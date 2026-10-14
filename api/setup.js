@@ -141,7 +141,7 @@ function page(body) {
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
 main{max-width:640px;margin:0 auto;padding:24px 16px 64px}h1{font-size:1.5rem;margin:0 0 4px}h2{font-size:1.1rem;margin:28px 0 8px}
 .muted{color:var(--muted)}.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:10px 0}
-.step{display:flex;gap:12px;align-items:flex-start}.icon{font-size:1.3rem;line-height:1.4}.step b{display:block}
+.step{display:flex;gap:12px;align-items:flex-start}.icon{font-size:1.3rem;line-height:1.4}.step .t{display:block;font-weight:700}
 .next{border:2px solid var(--accent)}.parts{margin:6px 0 0;padding:0;list-style:none;font-size:.9rem}
 button,.btn{display:inline-block;background:var(--accent);color:#fff;border:0;border-radius:10px;padding:12px 18px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;margin-top:8px}
 .ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
@@ -237,7 +237,7 @@ function dashboard({ checks, settings, bot, url }, errors) {
           ? `<ul class="parts">${st.parts.map((p) => `<li>${p.ok ? "✅" : "▫️"} ${esc(p.detail)}</li>`).join("")}</ul>`
           : `<span class="muted">${esc(st.parts[0]?.detail)}</span>`;
       return `<div class="card step ${isNext ? "next" : ""}"><span class="icon">${ok ? "✅" : isNext ? "👉" : "⬜"}</span>
-<div style="flex:1"><b>שלב ${s.n} מתוך ${all.length} · ${esc(s.title)}</b>${s.check === "none" ? "" : parts}
+<div style="flex:1"><span class="t">שלב ${s.n} מתוך ${all.length} · ${esc(s.title)}</span>${s.check === "none" ? "" : parts}
 ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
 <div><a href="${DOCS}/browser.md#step-${s.id}" target="_blank" rel="noopener">הסבר מלא לשלב הזה</a></div></div></div>`;
     })
@@ -245,7 +245,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
 
   const addons = ADDONS.map((a) => {
     const ok = checks[a.check]?.ok;
-    return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><b>${esc(a.title)}</b>
+    return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><span class="t">${esc(a.title)}</span>
 <span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url) : ""}
 <div><a href="${DOCS}/browser.md#step-${a.id}" target="_blank" rel="noopener">איך מוסיפים</a></div></div></div>`;
   }).join("");
