@@ -42,6 +42,8 @@ if (!env) {
   add("kit_url", /^https:\/\//.test(env.KIT_URL || ""), env.KIT_URL ? "קיימת" : "עוד אין (ממלאים אחרי הפריסה)");
 
   add("voice_addon", Boolean(env.GROQ_API_KEY), env.GROQ_API_KEY ? "יש מפתח Groq" : "לא מופעל (לא חובה)");
+  const g = Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET);
+  add("google_addon", g, g ? "יש מפתחות Google" : "לא מופעל (לא חובה)");
 }
 
 let live = null;

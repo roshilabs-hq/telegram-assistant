@@ -3,7 +3,8 @@ import { secrets } from "../lib/config.js";
 import * as store from "../lib/db.js";
 import { timezoneOf } from "../lib/core.js";
 import { sendMessage } from "../lib/telegram.js";
-import { nextOccurrence, dayKey, hhmm } from "../lib/time.js";
+import { nextOccurrence, dayKey, hhmm, atWallTime } from "../lib/time.js";
+import { googleConfigured, listEvents } from "../lib/google.js";
 
 /**
  * רץ כל דקה. Supabase קורא לכתובת הזו (pg_cron), כי בחשבון החינמי של Vercel
@@ -57,18 +58,22 @@ export async function deliverDueReminders(tz, send = sendMessage, now = new Date
   return sent;
 }
 
-export function briefingText(rows, today, tz) {
+/** @param events אירועי היומן של היום (תוספת יומן ו-Gmail), אם מחובר */
+export function briefingText(rows, today, tz, events = []) {
   const dayOf = (iso) => dayKey(tz, new Date(iso));
   const todays = rows.filter((r) => dayOf(r.due_at) === today);
   const later = rows.filter((r) => dayOf(r.due_at) !== today);
-  if (!todays.length && !later.length) return "☀️ בוקר טוב! אין תזכורות מיוחדות להיום.";
+  if (!todays.length && !later.length && !events.length) return "☀️ בוקר טוב! אין תזכורות מיוחדות להיום.";
 
   const time = (iso) => new Date(iso).toLocaleTimeString("he-IL", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
   const short = (iso) => {
     const [, m, d] = dayOf(iso).split("-");
     return `${Number(d)}.${Number(m)}`;
   };
-  const lines = todays.map((r) => `• ${time(r.due_at)} ${r.text}${r.recurrence_kind ? " 🔁" : ""}`);
+  const lines = [
+    ...events.map((e) => `• 📆 ${e.start?.all_day ? "כל היום" : time(e.start?.iso)} ${e.title}`),
+    ...todays.map((r) => `• ${time(r.due_at)} ${r.text}${r.recurrence_kind ? " 🔁" : ""}`),
+  ];
   if (later.length) {
     const shown = later.slice(0, 4).map((r) => `${r.text} (${short(r.due_at)})`).join(", ");
     const rest = later.length - Math.min(later.length, 4);
@@ -95,7 +100,14 @@ export async function maybeBriefing(settings, tz, send = sendMessage, now = new 
   try {
     const horizon = new Date(now.getTime() + 7 * 86400000).toISOString();
     const rows = await store.upcomingReminders(String(owner), now.toISOString(), horizon);
-    await send(owner, briefingText(rows, today, tz));
+    let events = [];
+    if (googleConfigured() && settings.google?.refresh_token) {
+      // יומן שלא עונה לא מפיל את התדריך: שולחים בלי האירועים.
+      const endOfDay = atWallTime(tz, 1, 0, 0, now).toISOString();
+      const r = await listEvents(tz, { time_min: now.toISOString(), time_max: endOfDay }).catch(() => null);
+      if (r?.ok) events = r.events;
+    }
+    await send(owner, briefingText(rows, today, tz, events));
     return true;
   } catch (e) {
     console.error("briefing failed, releasing lock", e);

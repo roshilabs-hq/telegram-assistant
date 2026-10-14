@@ -6,6 +6,11 @@ import { sendMessage, sendTyping, answerCallback, editMessageText, downloadFile 
 import { voiceEnabled, transcribe, frameTranscript } from "../lib/voice.js";
 
 const FAILURE = "משהו נשבר אצלי ולא הצלחתי לענות 😕 אפשר לנסות שוב עוד רגע.";
+// חיבור Google שפג הוא לא תקלה מסתורית: זה דבר מסוים שמתקנים בדקה, ונשאר שבור עד שמתקנים.
+const GOOGLE_EXPIRED =
+  "🔑 החיבור ל-Google פג, ולכן אין לי גישה ליומן ולמייל.\n" +
+  'מתקנים בעמוד ההקמה (/setup): בתוספת "יומן ו-Gmail" לוחצים "חיבור מחדש".\n' +
+  "תזכורות, פתקים ורשימות ממשיכים לעבוד כרגיל.";
 const NO_VOICE =
   "עוד לא מחברו אותי להודעות קוליות 🎙️ בינתיים אפשר לכתוב לי.\n(מי שהקים את הבוט יכול להוסיף את זה: תוספת \"הודעות קוליות\".)";
 const WELCOME = (name) =>
@@ -117,7 +122,7 @@ export default async function handler(req, res) {
     return res.status(200).send("ok");
   } catch (e) {
     console.error("telegram handler failed", e);
-    if (replyTo) await sendMessage(replyTo, FAILURE).catch(() => {});
+    if (replyTo) await sendMessage(replyTo, e?.expired ? GOOGLE_EXPIRED : FAILURE).catch(() => {});
     return res.status(200).send("ok");
   }
 }

@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import postgres from "postgres";
 import { env, secrets, baseUrl } from "../lib/config.js";
+import { same, cookies, authed, sessionCookie } from "../lib/session.js";
+import { googleConfigured, redirectUri } from "../lib/google.js";
 import { runChecks, cronSql } from "../lib/checks.js";
 import { detectProvider, resolveModel } from "../lib/ai.js";
 import * as store from "../lib/db.js";
@@ -20,7 +22,6 @@ import { STEPS, ADDONS } from "../lib/steps.generated.js";
  */
 
 export const DOCS = "https://github.com/roshilabs-hq/telegram-assistant/blob/main/docs";
-const COOKIE = "setup_session";
 const FLASH = "setup_flash";
 
 const COMPOSITE = {
@@ -32,28 +33,6 @@ export function stepStatus(check, checks) {
   const parts = COMPOSITE[check] || [check];
   const ok = parts.every((p) => checks[p]?.ok);
   return { ok, parts: parts.map((p) => ({ id: p, ...(checks[p] || { ok: false, detail: "" }) })) };
-}
-
-// ---------- הרשאה ----------
-
-const same = (a, b) => {
-  const x = Buffer.from(String(a || ""));
-  const y = Buffer.from(String(b || ""));
-  return x.length > 0 && x.length === y.length && timingSafeEqual(x, y);
-};
-
-function cookies(req) {
-  return Object.fromEntries(
-    String(req.headers.cookie || "")
-      .split(";")
-      .map((c) => c.trim().split("="))
-      .filter((p) => p.length === 2)
-  );
-}
-
-function authed(req) {
-  if (!env.setupPassword()) return false;
-  return same(cookies(req)[COOKIE], secrets.session()) || same(req.headers["x-setup-password"], env.setupPassword());
 }
 
 // ---------- פעולות ----------
@@ -229,6 +208,20 @@ function askPanel(s, url) {
 <textarea readonly style="height:70px">${esc(`${url}/api/ask`)}\n${esc(s.ask_token)}</textarea>`;
 }
 
+/**
+ * תוספת יומן ו-Gmail. את כתובת החזרה המשתמש צריך להעתיק ל-Google Cloud בדיוק
+ * כמו שהיא, ולכן היא מוצגת כאן מוכנה להעתקה, ולא כהוראה "תרכיבו כתובת".
+ */
+function googlePanel(check, url) {
+  const uri = redirectUri(url);
+  const copy = `<p class="muted">כתובת החזרה (Authorized redirect URI) להדבקה ב-Google Cloud:</p>
+<textarea id="ru" readonly style="height:48px">${esc(uri)}</textarea>
+<button class="ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('ru').value);this.textContent='הועתק ✓'">העתקה</button>`;
+  if (!googleConfigured()) return copy;
+  const label = check?.ok ? "חיבור מחדש / חשבון אחר" : "🔗 חיבור לחשבון Google";
+  return `<a class="btn ${check?.ok ? "ghost" : ""}" href="/api/google/start">${label}</a>${check?.ok ? "" : copy}`;
+}
+
 function dashboard({ checks, settings, bot, url }, errors) {
   // העמוד משמש את שני המסלולים, אבל שלב "מורידים את הקוד" קיים רק במסלול Claude Code ואין לו בדיקה.
   const all = STEPS.filter((s) => s.only !== "claude").map((s, i) => ({ ...s, n: i + 1 }));
@@ -253,7 +246,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
   const addons = ADDONS.map((a) => {
     const ok = checks[a.check]?.ok;
     return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><b>${esc(a.title)}</b>
-<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}
+<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url) : ""}
 <div><a href="${DOCS}/browser.md#step-${a.id}" target="_blank" rel="noopener">איך מוסיפים</a></div></div></div>`;
   }).join("");
 
@@ -288,7 +281,7 @@ export default async function handler(req, res) {
       if (!env.setupPassword() || !same(form.password, env.setupPassword())) {
         return res.status(401).setHeader("content-type", "text/html; charset=utf-8").send(loginPage("הסיסמה לא נכונה."));
       }
-      res.setHeader("set-cookie", `${COOKIE}=${secrets.session()}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`);
+      res.setHeader("set-cookie", sessionCookie());
       return res.redirect(303, "/setup");
     }
     if (!authed(req)) return res.status(401).setHeader("content-type", "text/html; charset=utf-8").send(loginPage());
