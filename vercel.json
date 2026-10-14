@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/setup.js": { "includeFiles": "supabase/migrations/**" },
+    "api/telegram.js": { "maxDuration": 60 }
+  },
+  "rewrites": [
+    { "source": "/setup", "destination": "/api/setup" },
+    { "source": "/", "destination": "/api/home" }
+  ]
+}
