@@ -106,6 +106,7 @@ test("זיהוי ספק לפי המפתח", () => {
   assert.equal(detectProvider("sk-ant-abc", ""), "anthropic");
   assert.equal(detectProvider("sk-proj-abc", ""), "openai");
   assert.equal(detectProvider("AIzaXYZ", ""), "google");
+  assert.equal(detectProvider("AQ.Ab8RN6xyz", ""), "google");
   assert.equal(detectProvider("weird", ""), null);
   assert.equal(detectProvider("weird", "google"), "google");
 });

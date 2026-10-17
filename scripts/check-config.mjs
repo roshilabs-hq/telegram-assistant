@@ -33,7 +33,7 @@ if (!env) {
   add("telegram_token", /^\d{6,}:[\w-]{30,}$/.test(t), t ? (/^\d{6,}:[\w-]{30,}$/.test(t) ? "בפורמט תקין" : "לא נראה כמו טוקן של BotFather") : "חסר");
 
   const k = env.AI_API_KEY || "";
-  const provider = k.startsWith("sk-ant-") ? "Claude" : k.startsWith("AIza") ? "Gemini" : k.startsWith("sk-") ? "ChatGPT" : null;
+  const provider = k.startsWith("sk-ant-") ? "Claude" : k.startsWith("AIza") || k.startsWith("AQ.") ? "Gemini" : k.startsWith("sk-") ? "ChatGPT" : null;
   add("ai_key", Boolean(provider), k ? (provider ? `מפתח של ${provider}` : "לא מזוהה כמפתח של Gemini, Claude או ChatGPT") : "חסר");
 
   const p = env.SETUP_PASSWORD || "";
