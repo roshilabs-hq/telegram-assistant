@@ -74,3 +74,18 @@ test("כשהמודל נופל, הבעלים מקבל הודעה ולא שתיק�
   await handler(mockReq({ headers: hdr(), body: msg("42", "היי") }), mockRes());
   assert.match(telegramCalls(env.sent, "sendMessage")[0].text, /משהו נשבר/);
 });
+
+test("מכסת ה-AI נגמרה: הבעלים מקבל הסבר מה לעשות, ולא 'משהו נשבר'", async () => {
+  const { MockLanguageModelV4 } = await import("ai/test");
+  const { useTestModel } = await import("../lib/ai.js");
+  await store.setSetting("owner_chat_id", "42");
+  useTestModel(
+    new MockLanguageModelV4({
+      doGenerate: async () => {
+        throw Object.assign(new Error("You exceeded your current quota"), { statusCode: 429 });
+      },
+    }),
+  );
+  await handler(mockReq({ headers: hdr(), body: msg("42", "היי") }), mockRes());
+  assert.match(telegramCalls(env.sent, "sendMessage")[0].text, /מכסה של ספק ה-AI/);
+});

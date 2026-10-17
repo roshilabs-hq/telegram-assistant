@@ -1,6 +1,7 @@
 import * as store from "../lib/db.js";
 import { same } from "../lib/session.js";
 import { converse } from "../lib/core.js";
+import { isQuotaError, QUOTA_MESSAGE } from "../lib/ai.js";
 
 /**
  * תוספת "Siri וקיצורי דרך": דלת שנייה לאותו עוזר, בלי טלגרם.
@@ -26,6 +27,6 @@ export default async function handler(req, res) {
     return res.status(200).setHeader("content-type", "text/plain; charset=utf-8").send(reply);
   } catch (e) {
     console.error("ask failed", e);
-    return res.status(500).setHeader("content-type", "text/plain; charset=utf-8").send("משהו נשבר, נסו שוב עוד רגע.");
+    return res.status(500).setHeader("content-type", "text/plain; charset=utf-8").send(isQuotaError(e) ? QUOTA_MESSAGE : "משהו נשבר, נסו שוב עוד רגע.");
   }
 }

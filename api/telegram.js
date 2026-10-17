@@ -4,6 +4,7 @@ import * as store from "../lib/db.js";
 import { converse, isAllowed, tryPair, timezoneOf } from "../lib/core.js";
 import { sendMessage, sendTyping, answerCallback, editMessageText, downloadFile } from "../lib/telegram.js";
 import { voiceEnabled, transcribe, frameTranscript } from "../lib/voice.js";
+import { isQuotaError, QUOTA_MESSAGE } from "../lib/ai.js";
 
 const FAILURE = "משהו נשבר אצלי ולא הצלחתי לענות 😕 אפשר לנסות שוב עוד רגע.";
 // חיבור Google שפג הוא לא תקלה מסתורית: זה דבר מסוים שמתקנים בדקה, ונשאר שבור עד שמתקנים.
@@ -118,7 +119,7 @@ export default async function handler(req, res) {
     return res.status(200).send("ok");
   } catch (e) {
     console.error("telegram handler failed", e);
-    if (replyTo) await sendMessage(replyTo, e?.expired ? GOOGLE_EXPIRED : FAILURE).catch(() => {});
+    if (replyTo) await sendMessage(replyTo, e?.expired ? GOOGLE_EXPIRED : isQuotaError(e) ? QUOTA_MESSAGE : FAILURE).catch(() => {});
     return res.status(200).send("ok");
   }
 }
