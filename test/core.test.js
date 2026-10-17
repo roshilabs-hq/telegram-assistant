@@ -126,3 +126,21 @@ test("בחירת המודל החדש ביותר", async () => {
   const denied = async () => new Response("{}", { status: 401 });
   assert.deepEqual(await resolveModel("anthropic", "sk-ant-x", denied), { ok: false, status: 401 });
 });
+
+test("החלפת ספק: מודל שנשמר לספק אחר לא נשלח לספק החדש", async () => {
+  const { languageModel } = await import("../lib/ai.js");
+  process.env.AI_API_KEY = "sk-ant-test";
+  const m = languageModel({ ai_model: "gemini-2.5-flash", ai_provider: "google" });
+  assert.equal(m.provider, "anthropic");
+  assert.notEqual(m.modelId, "gemini-2.5-flash");
+  assert.equal(languageModel({ ai_model: "claude-haiku-5-5", ai_provider: "anthropic" }).modelId, "claude-haiku-5-5");
+});
+
+test("צימוד: אחרי 5 ניחושים שגויים הקוד נמחק", async () => {
+  await store.setSetting("pairing_code", "123456");
+  for (let i = 0; i < 5; i++) await tryPair("666", "/start 000000", await store.getSettings());
+  const s = await store.getSettings();
+  assert.equal(s.pairing_code, null);
+  assert.equal(await tryPair("666", "/start 123456", s), false);
+  assert.equal(isAllowed("666", await store.getSettings()), false);
+});

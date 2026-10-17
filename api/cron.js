@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import { secrets } from "../lib/config.js";
+import { same } from "../lib/session.js";
 import * as store from "../lib/db.js";
 import { timezoneOf } from "../lib/core.js";
 import { sendMessage } from "../lib/telegram.js";
@@ -10,11 +10,7 @@ import { googleConfigured, listEvents } from "../lib/google.js";
  * רץ כל דקה. Supabase קורא לכתובת הזו (pg_cron), כי בחשבון החינמי של Vercel
  * תזמון רץ רק פעם ביום.
  */
-function authorized(req) {
-  const want = Buffer.from(`Bearer ${secrets.cron()}`);
-  const got = Buffer.from(String(req.headers.authorization || ""));
-  return secrets.cron() && got.length === want.length && timingSafeEqual(got, want);
-}
+const authorized = (req) => Boolean(secrets.cron()) && same(req.headers.authorization, `Bearer ${secrets.cron()}`);
 
 export function reminderKeyboard(id) {
   // callback_data מוגבל ל-64 בתים, אז רק קוד פעולה ומספר.

@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import { secrets } from "../lib/config.js";
+import { same } from "../lib/session.js";
 import * as store from "../lib/db.js";
 import { converse, isAllowed, tryPair, timezoneOf } from "../lib/core.js";
 import { sendMessage, sendTyping, answerCallback, editMessageText, downloadFile } from "../lib/telegram.js";
@@ -22,11 +22,7 @@ const WELCOME = (name) =>
   "• תרשום שהקוד של השער הוא 4521";
 
 /** טלגרם שולח את הסוד שקבענו ב-setWebhook בכותרת. בלעדיו, הבקשה לא מטלגרם. */
-function fromTelegram(req) {
-  const got = Buffer.from(String(req.headers["x-telegram-bot-api-secret-token"] || ""));
-  const want = Buffer.from(secrets.webhook());
-  return want.length > 0 && got.length === want.length && timingSafeEqual(got, want);
-}
+const fromTelegram = (req) => same(req.headers["x-telegram-bot-api-secret-token"], secrets.webhook());
 
 function when(tz, iso) {
   const d = new Date(iso);

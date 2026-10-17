@@ -52,6 +52,7 @@ test("העמוד יוצר קוד צימוד לבד ומציג קישור לטל�
       ? new Response(JSON.stringify({ ok: true, result: { url: "https://bot.example.vercel.app/api/telegram" } }))
       : realFetch(url, init);
   await store.setSetting("ai_model", "gemini-2.5-flash");
+  await store.setSetting("ai_provider", "google");
   await store.heartbeat();
   const res = mockRes();
   await handler(mockReq({ method: "GET", headers: { cookie: `setup_session=${secrets.session()}` } }), res);

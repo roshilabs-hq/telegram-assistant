@@ -63,6 +63,7 @@ async function checkAi() {
         : `הבדיקה מול הספק נכשלה (קוד ${r.status}).`;
   }
   await store.setSetting("ai_model", r.model);
+  await store.setSetting("ai_provider", provider);
   return null;
 }
 
@@ -189,7 +190,6 @@ ${manual ? `<p>יש עוד פעולה אחת שאני לא יכול לעשות �
 ${link ? `<a class="btn" href="${esc(link)}">📲 פתיחת הבוט בטלגרם</a>` : ""}
 <p class="muted">מהמחשב: שולחים לבוט את הקוד הזה</p><div class="code">${esc(code)}</div>`;
   }
-  if (check === "briefing" || check === "ask" || check === "voice") return "";
   return "";
 }
 

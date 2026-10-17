@@ -18,6 +18,7 @@ globalThis.fetch = async (url, init) =>
       : telegram(url, init);
 if (state !== "fresh") {
   await store.setSetting("ai_model", "gemini-2.5-flash");
+  await store.setSetting("ai_provider", "google");
   await store.heartbeat();
 }
 if (state === "done") {

@@ -1,5 +1,5 @@
-import { timingSafeEqual } from "node:crypto";
 import * as store from "../lib/db.js";
+import { same } from "../lib/session.js";
 import { converse } from "../lib/core.js";
 
 /**
@@ -12,9 +12,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   const settings = await store.getSettings();
-  const want = Buffer.from(`Bearer ${settings.ask_token || ""}`);
-  const got = Buffer.from(String(req.headers.authorization || ""));
-  if (!settings.ask_token || got.length !== want.length || !timingSafeEqual(got, want)) {
+  if (!settings.ask_token || !same(req.headers.authorization, `Bearer ${settings.ask_token}`)) {
     return res.status(401).json({ error: "unauthorized" });
   }
   if (!settings.owner_chat_id) return res.status(409).json({ error: "הבוט עוד לא מחובר לבעלים" });
