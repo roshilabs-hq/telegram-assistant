@@ -141,7 +141,7 @@ test("צימוד: אחרי 5 ניחושים שגויים הקוד נמחק", asy
   await store.setSetting("pairing_code", "123456");
   for (let i = 0; i < 5; i++) await tryPair("666", "/start 000000", await store.getSettings());
   const s = await store.getSettings();
-  assert.equal(s.pairing_code, null);
+  assert.equal(s.pairing_code ?? null, null);
   assert.equal(await tryPair("666", "/start 123456", s), false);
   assert.equal(isAllowed("666", await store.getSettings()), false);
 });

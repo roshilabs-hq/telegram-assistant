@@ -4,6 +4,18 @@
  */
 const UNIQUE = { bot_settings: "key", bot_locks: "key" };
 
+// עמודות "not null" מהסכמה (supabase/migrations/0001_init.sql). בלי האכיפה הזו, כתיבת
+// null להגדרה עברה בבדיקות ונפלה במסד האמיתי (נמצא בהרצה הראשונה על חשבון נקי).
+const NOT_NULL = {
+  bot_settings: ["key", "value"],
+  bot_messages: ["chat_id", "role", "content"],
+  bot_reminders: ["chat_id", "text", "due_at"],
+  bot_notes: ["chat_id", "content"],
+  bot_lists: ["chat_id", "list_name", "item"],
+};
+const nullViolation = (t, row, partial) =>
+  (NOT_NULL[t] || []).find((c) => (partial ? c in row && row[c] == null : row[c] == null));
+
 export function createFake() {
   const tables = new Map();
   const seq = new Map();
@@ -92,6 +104,8 @@ export function createFake() {
       if (this.op === "insert" || this.op === "upsert") {
         const key = this.conflict || UNIQUE[this.t];
         for (const p of this.payload) {
+          const bad = nullViolation(this.t, p, false);
+          if (bad) return { data: null, error: { code: "23502", message: `null value in column "${bad}"` } };
           const existing = key ? all.find((r) => r[key] === p[key]) : null;
           if (existing && this.op === "insert") return { data: null, error: { code: "23505", message: "duplicate key" } };
           if (existing) {
@@ -105,6 +119,8 @@ export function createFake() {
           }
         }
       } else if (this.op === "update") {
+        const bad = nullViolation(this.t, this.payload, true);
+        if (bad) return { data: null, error: { code: "23502", message: `null value in column "${bad}"` } };
         out = all.filter(match);
         for (const r of out) Object.assign(r, this.payload);
       } else if (this.op === "delete") {
