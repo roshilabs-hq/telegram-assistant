@@ -10,11 +10,12 @@ check: voice
 
 ## מה עושים
 ### בדפדפן
-1. נכנסים ל-[Groq Console](https://console.groq.com/keys) ונרשמים (חינם, בלי כרטיס אשראי).
-2. לוחצים **Create API Key**, נותנים שם (למשל `bot`) ומעתיקים את המפתח. הוא מתחיל ב-`gsk_`.
-3. ב-Vercel נכנסים לפרויקט ‹ **Settings** ‹ **Environment Variables**.
-4. מוסיפים: שם `GROQ_API_KEY`, ובערך מדביקים את המפתח. לוחצים **Save**.
-5. **Deployments** ‹ שלוש נקודות ליד הפריסה העליונה ‹ **Redeploy**.
+1. נכנסים ל-[Groq Console](https://console.groq.com/keys). כותבים את המייל שלך ולוחצים **Continue with email**. ![](docs/img/voice-1.png)
+2. ב-Gmail מגיע מייל "Your login request to Groq". לוחצים בו **Log in**, והחשבון נפתח. זה חינם ובלי כרטיס אשראי: התוכנית החינמית נותנת עד 8 שעות של הודעות קוליות ביום, הרבה יותר ממה שבוט אישי צריך.
+3. לוחצים **Create API Key**, בשם כותבים `telegram-bot` ולוחצים **Submit**. **מעתיקים מיד**: המפתח מתחיל ב-`gsk_` ומוצג רק פעם אחת.
+4. ב-Vercel נכנסים לפרויקט ‹ **Settings** ‹ **Environment Variables** ‹ **Add Environment Variable**.
+5. ב-**Key** כותבים `GROQ_API_KEY`, וב-**Value** מדביקים את המפתח. לוחצים **Save**.
+6. **Deployments** ‹ שלוש נקודות ליד הפריסה העליונה ‹ **Redeploy**.
 
 ### עם Claude Code
 1. כותבים ל-Claude: `/add-voice`.
@@ -24,5 +25,7 @@ check: voice
 בעמוד ההקמה, תחת "תוספות", השורה "הודעות קוליות" מסומנת ✅. שולחים לבוט הודעה קולית קצרה, והוא מבצע אותה.
 
 ## נתקעתי
+- **ב-Groq כתוב "does not belong to any organizations"**: זה קורה בכניסה עם **Continue with Google**. חוזרים לעמוד הכניסה, כותבים את המייל ולוחצים **Continue with email**.
+- **לא הספקתי להעתיק את המפתח**: ב-**API Keys** מוחקים אותו ויוצרים חדש.
 - **הבוט עונה "עוד לא מחברו אותי להודעות קוליות"**: שכחנו לעשות Redeploy אחרי ההוספה.
 - **הבוט לא הבין מה אמרתי**: מדברים קרוב לטלפון. התמלול מכוון לעברית.
