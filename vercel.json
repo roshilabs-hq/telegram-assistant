@@ -6,6 +6,7 @@
   },
   "rewrites": [
     { "source": "/setup", "destination": "/api/setup" },
-    { "source": "/", "destination": "/api/home" }
+    { "source": "/", "destination": "/api/home" },
+    { "source": "/privacy", "destination": "/api/home?privacy" }
   ]
 }

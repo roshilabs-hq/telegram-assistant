@@ -99,3 +99,14 @@ test("שלב מורכב ירוק רק כשכל החלקים ירוקים", () =>
 test("קבצי ההדרכה מעודכנים (npm run guide לא משנה כלום)", () => {
   execFileSync(process.execPath, ["scripts/build-guide.mjs", "--check"], { stdio: "pipe" });
 });
+
+test("דף הבית ומדיניות הפרטיות (Google דורש את שתיהן לפני Publish)", async () => {
+  const { default: home } = await import("../api/home.js");
+  const page = mockRes();
+  home(mockReq({ method: "GET" }), page);
+  assert.match(page.body, /href="\/privacy"/);
+  const privacy = mockRes();
+  home(mockReq({ method: "GET", query: { privacy: "" } }), privacy);
+  assert.match(privacy.body, /מדיניות פרטיות/);
+  assert.match(privacy.body, /myaccount\.google\.com\/permissions/);
+});

@@ -208,15 +208,19 @@ function askPanel(s, url) {
 <textarea readonly style="height:70px">${esc(`${url}/api/ask`)}\n${esc(s.ask_token)}</textarea>`;
 }
 
+const copyField = (id, label, value) => `<p class="muted">${label}</p>
+<textarea id="${id}" readonly style="height:48px">${esc(value)}</textarea>
+<button class="ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('${id}').value);this.textContent='הועתק ✓'">העתקה</button>`;
+
 /**
- * תוספת יומן ו-Gmail. את כתובת החזרה המשתמש צריך להעתיק ל-Google Cloud בדיוק
- * כמו שהיא, ולכן היא מוצגת כאן מוכנה להעתקה, ולא כהוראה "תרכיבו כתובת".
+ * תוספת יומן ו-Gmail. את הכתובות המשתמש צריך להעתיק ל-Google Cloud בדיוק
+ * כמו שהן, ולכן הן מוצגות כאן מוכנות להעתקה, ולא כהוראה "תרכיבו כתובת".
  */
 function googlePanel(check, url) {
-  const uri = redirectUri(url);
-  const copy = `<p class="muted">כתובת החזרה (Authorized redirect URI) להדבקה ב-Google Cloud:</p>
-<textarea id="ru" readonly style="height:48px">${esc(uri)}</textarea>
-<button class="ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('ru').value);this.textContent='הועתק ✓'">העתקה</button>`;
+  const copy =
+    copyField("gh", "דף הבית (Application home page):", url) +
+    copyField("gp", "מדיניות פרטיות (Application privacy policy link):", `${url}/privacy`) +
+    copyField("ru", "כתובת החזרה (Authorized redirect URI):", redirectUri(url));
   if (!googleConfigured()) return copy;
   const label = check?.ok ? "חיבור מחדש / חשבון אחר" : "🔗 חיבור לחשבון Google";
   return `<a class="btn ${check?.ok ? "ghost" : ""}" href="/api/google/start">${label}</a>${check?.ok ? "" : copy}`;

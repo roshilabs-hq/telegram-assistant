@@ -8,32 +8,46 @@ check: google
 ## למה
 הבוט יכול לקבוע פגישות ביומן ("קבע לי מחר ב-10 פגישה עם דני"), לענות "מה יש לי היום", לחפש ולקרוא מיילים, להכין טיוטות תשובה ולשלוח מיילים. כל שליחה ומחיקה מחכה לאישור שלך. הגישה ניתנת דרך "אפליקציה" שפותחים אצלך ב-Google, ורק את/ה מחובר/ת אליה.
 
-זה השלב הכי ארוך בערכה, כי Google דורש כמה אישורים. עוברים עליו פעם אחת, ולוקח כרבע שעה.
+זה השלב הכי ארוך בערכה, כי Google דורש כמה אישורים. עוברים עליו פעם אחת, ולוקח כרבע שעה. **כדאי לעשות אותו ממחשב**: האתר של Google Cloud כמעט לא שמיש בטלפון.
+
+כל המסכים של Google Cloud באנגלית. ההדרכה כותבת בדיוק על מה ללחוץ.
 
 ## מה עושים
 **חלק א׳: פותחים פרויקט ב-Google Cloud (פעם אחת)**
-1. נכנסים ל-[Google Cloud Console](https://console.cloud.google.com) עם אותו חשבון Google שהיומן שלו. אם מופיע חלון תנאי שימוש, מסמנים ומאשרים.
-2. למעלה לוחצים על בחירת הפרויקט ‹ **New Project**. בשם כותבים `telegram-bot` ולוחצים **Create**. מחכים כמה שניות ובוחרים בפרויקט החדש.
-3. מפעילים את שני השירותים, כל אחד בלחיצה על **Enable**:
+1. נכנסים ל-[יצירת פרויקט ב-Google Cloud](https://console.cloud.google.com/projectcreate) עם אותו חשבון Google שהיומן שלו.
+   - בכניסה הראשונה מופיע חלון **Welcome**: מסמנים את תיבת תנאי השימוש ולוחצים **Agree and continue**. ![](docs/img/google-1.png)
+   - אם מופיע פס של ניסיון חינם (**Free Trial**), לוחצים **Dismiss**. לא צריך כרטיס אשראי.
+2. ב-**Project name** כותבים `telegram-bot` ולוחצים **Create**. מחכים כמה שניות עד שהפרויקט נבחר (השם שלו מופיע למעלה). ![](docs/img/google-2.png)
+3. מפעילים את שני השירותים. בכל קישור לוחצים **Enable** ומחכים שהעמוד מתחלף: ![](docs/img/google-3.png)
    - [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com)
    - [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
 
-**חלק ב׳: מסך ההסכמה**
-1. נכנסים ל-[Google Auth Platform](https://console.cloud.google.com/auth/overview) ולוחצים **Get started**.
-2. **App name**: `העוזר שלי`. **User support email**: המייל שלך. **Next**.
-3. **Audience**: בוחרים **External**. **Next**.
-4. **Contact information**: המייל שלך. **Next**, מסמנים את ההסכמה ולוחצים **Create**.
-5. בתפריט מימין (או משמאל) נכנסים ל-**Audience** ולוחצים **Publish app** ‹ **Confirm**.
+   אם בועה כחולה מכסה את הכפתור ("Click on the menu anytime..."), לוחצים בה **Got it**.
 
-> 💡 **למה Publish?** בלי זה, Google מנתק את החיבור כל 7 ימים. אחרי Publish האפליקציה נשארת שלך ופרטית: אף אחד לא יכול להשתמש בה בלי הסיסמה שלו, ו-Google לא צריך לאשר אותה בשביל שימוש אישי.
+**חלק ב׳: מסך ההסכמה**
+1. נכנסים ל-[Google Auth Platform](https://console.cloud.google.com/auth/overview) ולוחצים **Get started**. ![](docs/img/google-4.png)
+2. **App name**: `העוזר שלי`. **User support email**: בוחרים את המייל שלך מהרשימה. **Next**.
+3. **Audience**: בוחרים **External**. **Next**.
+4. **Contact Information**: כותבים את המייל שלך. **Next**.
+5. **Finish**: מסמנים **I agree...** ולוחצים **Create**. ![](docs/img/google-5.png)
 
 **חלק ג׳: מפתחות**
-1. בתפריט נכנסים ל-**Clients** ‹ **Create client**.
-2. **Application type**: בוחרים **Web application**. בשם כותבים `telegram-bot`.
-3. תחת **Authorized redirect URIs** לוחצים **Add URI**, ומדביקים את הכתובת מעמוד ההקמה. בתוספת "יומן Google ו-Gmail" יש כפתור **העתקה** בדיוק בשביל זה.
-4. לוחצים **Create**. בחלון שנפתח מופיעים **Client ID** ו-**Client secret**. מעתיקים את שניהם. ה-secret מוצג פעם אחת בלבד, אז כדאי לשמור אותו עכשיו.
+1. בתפריט משמאל נכנסים ל-**Clients** ‹ **Create client**.
+2. **Application type**: בוחרים **Web application**. ב-**Name** כותבים `telegram-bot`.
+3. תחת **Authorized redirect URIs** לוחצים **Add URI**, ומדביקים את **כתובת החזרה** מעמוד ההקמה. בתוספת "יומן Google ו-Gmail" יש לה כפתור **העתקה**. ![](docs/img/google-6.png)
+4. לוחצים **Create**. בחלון שנפתח מופיעים **Client ID** ו-**Client secret**, וליד כל אחד כפתור העתקה. **מעתיקים את שניהם עכשיו** למקום שמור (למשל פתק בטלפון). ה-secret מוצג רק פעם אחת.
 
-**חלק ד׳: מכניסים את המפתחות לבוט**
+**חלק ד׳: מפרסמים את האפליקציה**
+1. בתפריט נכנסים ל-**Branding**. ממלאים שני שדות, מתוך כפתורי ההעתקה בעמוד ההקמה: ![](docs/img/google-7.png)
+   - **Application home page**: הכתובת של הבוט.
+   - **Application privacy policy link**: הכתובת של הבוט עם `/privacy` בסוף. הבוט כבר מציג שם מדיניות פרטיות.
+   - תחת **Authorized domains** הכתובת של הבוט כבר מופיעה (Google הוסיף אותה בחלק ג׳). אם לא, לוחצים **Add domain** ומדביקים אותה בלי `https://` ובלי `/` בסוף.
+2. לוחצים **Save** (בתחתית העמוד).
+3. בתפריט נכנסים ל-**Audience** ולוחצים **Publish app** ‹ **Confirm**. ![](docs/img/google-8.png) הסטטוס משתנה ל-**In production**.
+
+> 💡 **למה Publish?** בלי זה, Google מנתק את החיבור כל 7 ימים. אחרי Publish האפליקציה נשארת שלך ופרטית: אף אחד לא יכול להשתמש בה בלי הסיסמה שלו, ו-Google לא צריך לאשר אותה בשביל שימוש אישי. בלי לוגו, ולכן גם בלי בדיקה של Google.
+
+**חלק ה׳: מכניסים את המפתחות לבוט**
 ### בדפדפן
 1. ב-Vercel ‹ הפרויקט ‹ **Settings** ‹ **Environment Variables** מוסיפים שני משתנים:
    - `GOOGLE_CLIENT_ID`: ה-Client ID.
@@ -45,7 +59,7 @@ check: google
 6. **מסמנים את כל התיבות** (יומן ומייל) ולוחצים **Continue**.
 
 ### עם Claude Code
-1. כותבים ל-Claude: `/add-google`. Claude מלווה אותך בחלקים א׳ עד ג׳, ופותח לך את `.env.local` כדי להדביק בו את שני המפתחות.
+1. כותבים ל-Claude: `/add-google`. Claude מלווה אותך בחלקים א׳ עד ד׳, ופותח לך את `.env.local` כדי להדביק בו את שני המפתחות.
 2. Claude מוסיף את המפתחות ל-Vercel יחד איתך דרך הדשבורד, ואז עושים **Redeploy**.
 3. בעמוד ההקמה לוחצים **🔗 חיבור לחשבון Google**, ועוברים את מסך האזהרה כמו שמתואר במסלול הדפדפן (סעיפים 4–6).
 
@@ -53,8 +67,11 @@ check: google
 מופיע עמוד "✅ יומן ו-Gmail מחוברים" עם המייל שלך, ובעמוד ההקמה התוספת מסומנת ✅. שולחים לבוט "מה יש לי מחר?", והוא עונה עם האירועים מהיומן.
 
 ## נתקעתי
+- **הכפתור Publish app אפור, וכתוב "complete your configuration on the Branding page"**: ב-**Branding** חסרים דף הבית או מדיניות הפרטיות (חלק ד׳, סעיף 1), או שלא לחצת **Save**.
+- **ב-Branding כתוב "Missing domain"**: לוחצים **Add domain** ומדביקים את הכתובת של הבוט בלי `https://`.
 - **"Error 400: redirect_uri_mismatch"**: הכתובת ב-Google Cloud לא זהה בדיוק לזו שבעמוד ההקמה. ב-**Clients** פותחים את הלקוח, מוחקים את הכתובת ומדביקים שוב מכפתור ההעתקה. אחרי השמירה מחכים חמש דקות.
 - **"Access blocked: ... has not completed the Google verification process"**: האפליקציה עוד במצב בדיקה. ב-**Audience** לוחצים **Publish app**.
 - **"Gmail API has not been used in project..."**: שכחנו להפעיל את אחד השירותים בחלק א׳ (סעיף 3).
+- **איבדתי את ה-Client secret**: Google כבר לא מציג אותו שוב. ב-**Clients** פותחים את הלקוח ולוחצים **Add secret**, מעתיקים את החדש, ואת הישן מכבים (**Disable**) ומוחקים.
 - **הבוט אומר שהחיבור ל-Google פג**: בעמוד ההקמה לוחצים **חיבור מחדש**. זה קורה אם שינית סיסמה ב-Google או הסרת את הגישה.
 - **לא סימנתי את כל התיבות**: לוחצים שוב על החיבור בעמוד ההקמה ומסמנים הכול.
