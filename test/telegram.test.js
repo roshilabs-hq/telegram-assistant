@@ -87,5 +87,5 @@ test("מכסת ה-AI נגמרה: הבעלים מקבל הסבר מה לעשות,
     }),
   );
   await handler(mockReq({ headers: hdr(), body: msg("42", "היי") }), mockRes());
-  assert.match(telegramCalls(env.sent, "sendMessage")[0].text, /מכסה של ספק ה-AI/);
+  assert.match(telegramCalls(env.sent, "sendMessage")[0].text, /מכסה או יתרה/);
 });
