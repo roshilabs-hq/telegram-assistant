@@ -357,6 +357,42 @@ Claude עונה בעברית ומתחיל להוביל אותך בשלב הבא.
 כל המסכים של Google Cloud באנגלית. ההדרכה כותבת בדיוק על מה ללחוץ.
 
 ### מה עושים
+**חלק א׳: פותחים פרויקט ב-Google Cloud (פעם אחת)**
+1. נכנסים ל-[יצירת פרויקט ב-Google Cloud](https://console.cloud.google.com/projectcreate) עם אותו חשבון Google שהיומן שלו.
+   - בכניסה הראשונה מופיע חלון **Welcome**: מסמנים את תיבת תנאי השימוש ולוחצים **Agree and continue**. ![](img/google-1.png)
+   - אם מופיע פס של ניסיון חינם (**Free Trial**), לוחצים **Dismiss**. לא צריך כרטיס אשראי.
+2. ב-**Project name** כותבים `telegram-bot` ולוחצים **Create**. מחכים כמה שניות עד שהפרויקט נבחר (השם שלו מופיע למעלה). ![](img/google-2.png)
+3. מפעילים את שני השירותים. בכל קישור לוחצים **Enable** ומחכים שהעמוד מתחלף: ![](img/google-3.png)
+   - [Gmail API](https://console.cloud.google.com/apis/library/gmail.googleapis.com)
+   - [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com)
+
+   אם בועה כחולה מכסה את הכפתור ("Click on the menu anytime..."), לוחצים בה **Got it**.
+
+**חלק ב׳: מסך ההסכמה**
+1. נכנסים ל-[Google Auth Platform](https://console.cloud.google.com/auth/overview) ולוחצים **Get started**. ![](img/google-4.png)
+2. **App name**: `העוזר שלי`. **User support email**: בוחרים את המייל שלך מהרשימה. **Next**.
+3. **Audience**: בוחרים **External**. **Next**.
+4. **Contact Information**: כותבים את המייל שלך. **Next**.
+5. **Finish**: מסמנים **I agree...** ולוחצים **Create**. ![](img/google-5.png)
+
+**חלק ג׳: מפתחות**
+1. בתפריט משמאל נכנסים ל-**Clients** ‹ **Create client**.
+2. **Application type**: בוחרים **Web application**. ב-**Name** כותבים `telegram-bot`.
+3. תחת **Authorized redirect URIs** לוחצים **Add URI**, ומדביקים את **כתובת החזרה** מעמוד ההקמה. בתוספת "יומן Google ו-Gmail" יש לה כפתור **העתקה**. ![](img/google-6.png)
+4. לוחצים **Create**. בחלון שנפתח מופיעים **Client ID** ו-**Client secret**, וליד כל אחד כפתור העתקה. **מעתיקים את שניהם עכשיו** למקום שמור (למשל פתק בטלפון). ה-secret מוצג רק פעם אחת: אחרי שסוגרים את החלון או מרעננים, אי אפשר להעתיק אותו שוב.
+
+**חלק ד׳: מפרסמים את האפליקציה**
+1. בתפריט נכנסים ל-**Branding**. ממלאים שני שדות, מתוך כפתורי ההעתקה בעמוד ההקמה: ![](img/google-7.png)
+   - **Application home page**: הכתובת של הבוט.
+   - **Application privacy policy link**: הכתובת של הבוט עם `/privacy` בסוף. הבוט כבר מציג שם מדיניות פרטיות.
+   - תחת **Authorized domains** הכתובת של הבוט כבר מופיעה (Google הוסיף אותה בחלק ג׳). אם לא, לוחצים **Add domain** ומדביקים אותה בלי `https://` ובלי `/` בסוף.
+2. לוחצים **Save** (בתחתית העמוד).
+3. בתפריט נכנסים ל-**Audience** ולוחצים **Publish app** ‹ **Confirm**. ![](img/google-8.png) הסטטוס משתנה ל-**In production**.
+
+> 💡 **למה Publish?** בלי זה, Google מנתק את החיבור כל 7 ימים. אחרי Publish האפליקציה נשארת שלך ופרטית: אף אחד לא יכול להשתמש בה בלי הסיסמה שלו, ו-Google לא צריך לאשר אותה בשביל שימוש אישי. בלי לוגו, ולכן גם בלי בדיקה של Google.
+
+**חלק ה׳: מכניסים את המפתחות לבוט**
+
 1. כותבים ל-Claude: `/add-google`. Claude מלווה אותך בחלקים א׳ עד ד׳, ופותח לך את `.env.local` כדי להדביק בו את שני המפתחות.
 2. Claude מוסיף את המפתחות ל-Vercel יחד איתך דרך הדשבורד, ואז עושים **Redeploy**.
 3. בעמוד ההקמה לוחצים **🔗 חיבור לחשבון Google**, ועוברים את מסך האזהרה כמו שמתואר במסלול הדפדפן (סעיפים 4–7).

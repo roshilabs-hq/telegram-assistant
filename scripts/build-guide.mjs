@@ -61,12 +61,15 @@ function splitByPath(text) {
   const re = /^###\s+(.+?)\s*$/gm;
   const heads = [...text.matchAll(re)];
   if (!heads.length) return { browser: text, claude: text };
+  // מה שלפני ה-### הראשון משותף לשני המסלולים. בלי זה חלקים א׳–ד׳ של Google נעלמו משתי ההדרכות.
+  const shared = text.slice(0, heads[0].index).trim();
+  const join = (chunk) => (shared ? `${shared}\n\n${chunk}` : chunk);
   heads.forEach((h, i) => {
     const start = h.index + h[0].length;
     const end = i + 1 < heads.length ? heads[i + 1].index : text.length;
     const chunk = text.slice(start, end).trim();
-    if (h[1] === PATHS.browser.label) parts.browser = chunk;
-    else if (h[1] === PATHS.claude.label) parts.claude = chunk;
+    if (h[1] === PATHS.browser.label) parts.browser = join(chunk);
+    else if (h[1] === PATHS.claude.label) parts.claude = join(chunk);
     else throw new Error(`כותרת לא מוכרת "### ${h[1]}". מותר רק "${PATHS.browser.label}" או "${PATHS.claude.label}"`);
   });
   return parts;

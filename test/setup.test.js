@@ -110,3 +110,11 @@ test("דף הבית ומדיניות הפרטיות (Google דורש את שתי
   assert.match(privacy.body, /מדיניות פרטיות/);
   assert.match(privacy.body, /myaccount\.google\.com\/permissions/);
 });
+
+test("ההדרכות שנוצרו כוללות את כל חלקי התוספת של Google (טקסט שלפני ### לא נעלם)", async () => {
+  const { readFileSync } = await import("node:fs");
+  for (const f of ["docs/browser.md", "docs/claude-code.md"]) {
+    const doc = readFileSync(f, "utf8");
+    for (const part of ["חלק א׳", "חלק ב׳", "חלק ג׳", "חלק ד׳", "חלק ה׳"]) assert.match(doc, new RegExp(part), `${f}: חסר ${part}`);
+  }
+});
