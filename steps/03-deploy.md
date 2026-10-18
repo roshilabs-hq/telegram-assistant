@@ -15,8 +15,8 @@ check: deploy
 4. מעתיקים את הכתובת מ-**Domains**.
 
 ### עם Claude Code
-1. Claude מעלה את הקוד לריפו פרטי שלך.
-2. [vercel.com/new](https://vercel.com/new) ‹ **Import** ‹ Supabase ב-Frankfurt ‹ שלושת המשתנים מ-`.env.local` ‹ **Deploy**.
+1. [vercel.com/new](https://vercel.com/new) ‹ **Import** של הריפו מהתבנית ‹ שלושת המשתנים מ-`.env.local` ‹ **Deploy**.
+2. **Storage** ‹ Supabase חדש ב-Frankfurt ‹ **Redeploy**.
 3. נותנים ל-Claude את הכתובת מ-**Domains**.
 
 ## למה
@@ -44,11 +44,13 @@ check: deploy
 9. לוחצים **Continue to Project**. תחת **Domains** מופיעה הכתובת של הבוט, משהו כמו `telegram-assistant-xxxx.vercel.app`. מעתיקים אותה.
 
 ### עם Claude Code
-1. כותבים ל-Claude: "תעלה את הבוט לאוויר". Claude מוודא ש-GitHub מחובר אצלך (`gh auth status`) ומעלה את הקוד לריפו פרטי חדש בחשבון שלך.
-2. Claude פותח לך את [vercel.com/new](https://vercel.com/new). מתחברים עם GitHub, בוחרים את הריפו שנוצר ולוחצים **Import**.
-3. תחת **Storage** (או **Integrations**) מוסיפים **Supabase**, ובאזור בוחרים **Frankfurt**.
-4. תחת **Environment Variables** מוסיפים את שלושת השדות: `TELEGRAM_TOKEN`, `AI_API_KEY`, `SETUP_PASSWORD` (סיסמה חדשה, לפחות 8 תווים). את הערכים מעתיקים מהקובץ `.env.local` ש-Claude פתח לך. Claude לא רואה אותם.
-5. לוחצים **Deploy**, ומעתיקים ל-Claude את הכתובת שמופיעה תחת **Domains**.
+1. כותבים ל-Claude: "תעלה את הבוט לאוויר". Claude פותח לך את [vercel.com/new](https://vercel.com/new).
+2. מתחברים עם GitHub (מי שאין לו חשבון Vercel, נפתח לו אחד בדרך). ברשימה בוחרים את הריפו שיצרת בשלב "מורידים את הקוד" ולוחצים **Import**.
+3. תחת **Environment Variables** מוסיפים שלושה שדות: `TELEGRAM_TOKEN`, `AI_API_KEY`, `SETUP_PASSWORD`. את הערכים מעתיקים מהקובץ `.env.local` ש-Claude פתח לך. Claude לא רואה אותם.
+4. לוחצים **Deploy** ומחכים לסיום.
+5. בדשבורד של הפרויקט: **Storage** ‹ **Create Database** ‹ **Supabase** ‹ **Frankfurt** ‹ **Create**. גם מי שכבר יש לו Supabase יוצר כאן חדש **(מומלץ)**, בגלל המגבלה של 2 פרויקטים חינמיים בחשבון.
+6. **Deployments** ‹ שלוש נקודות ליד הפריסה העליונה ‹ **Redeploy**, כדי שהבוט יכיר את Supabase.
+7. מעתיקים ל-Claude את הכתובת שמופיעה תחת **Domains**.
 
 > בווינדוס עם שם משתמש בעברית, הפקודה `vercel` בטרמינל קורסת. לכן הפריסה עוברת דרך האתר של Vercel.
 

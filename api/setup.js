@@ -216,13 +216,14 @@ const copyField = (id, label, value) => `<p class="muted">${label}</p>
  * תוספת יומן ו-Gmail. את הכתובות המשתמש צריך להעתיק ל-Google Cloud בדיוק
  * כמו שהן, ולכן הן מוצגות כאן מוכנות להעתקה, ולא כהוראה "תרכיבו כתובת".
  */
-function googlePanel(check, url) {
+function googlePanel(check, url, wasConnected) {
   const copy =
     copyField("gh", "דף הבית (Application home page):", url) +
     copyField("gp", "מדיניות פרטיות (Application privacy policy link):", `${url}/privacy`) +
     copyField("ru", "כתובת החזרה (Authorized redirect URI):", redirectUri(url));
   if (!googleConfigured()) return copy;
-  const label = check?.ok ? "חיבור מחדש / חשבון אחר" : "🔗 חיבור לחשבון Google";
+  // מי שהתחבר בעבר רואה "חיבור מחדש": זה השם שההודעות על חיבור שפג מפנות אליו.
+  const label = wasConnected ? "🔗 חיבור מחדש" : "🔗 חיבור לחשבון Google";
   return `<a class="btn ${check?.ok ? "ghost" : ""}" href="/api/google/start">${label}</a>${check?.ok ? "" : copy}`;
 }
 
@@ -250,7 +251,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
   const addons = ADDONS.map((a) => {
     const ok = checks[a.check]?.ok;
     return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><span class="t">${esc(a.title)}</span>
-<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url) : ""}
+<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url, Boolean(settings.google?.refresh_token)) : ""}
 <div><a href="${DOCS}/browser.md#step-${a.id}" target="_blank" rel="noopener">איך מוסיפים</a></div></div></div>`;
   }).join("");
 
