@@ -6,6 +6,7 @@
  *   CHECKLIST.md            תיבות סימון לכל שלב, עם קישור להדרכה בשני המסלולים
  *   docs/browser.md         כל השלבים במסלול הדפדפן
  *   docs/claude-code.md     כל השלבים במסלול Claude Code
+ *   docs/quick.md           המדריך המקוצר ("יש לי ניסיון"), מתוך "## בקצרה" של כל שלב
  *   lib/steps.generated.js  רשימת השלבים לעמוד /setup
  *
  * שימוש:  node scripts/build-guide.mjs          כותב את הקבצים
@@ -18,6 +19,8 @@ import { join, dirname } from "node:path";
 
 const ROOT = process.cwd();
 const CHECK_ONLY = process.argv.includes("--check");
+
+const QUICK = { file: "docs/quick.md", title: "המדריך המקוצר: יש לי ניסיון" };
 
 const PATHS = {
   browser: { label: "בדפדפן", file: "docs/browser.md", title: "מסלול א׳: מהדפדפן" },
@@ -69,7 +72,8 @@ function splitByPath(text) {
   return parts;
 }
 
-const REQUIRED = ["למה", "מה עושים", "איך יודעים שהצליח", "נתקעתי"];
+// "בקצרה" הוא אותו שלב לקורא מנוסה: אותו קובץ, ולכן שתי ההדרכות לא מתרחקות זו מזו.
+const REQUIRED = ["בקצרה", "למה", "מה עושים", "איך יודעים שהצליח", "נתקעתי"];
 
 function loadDir(dir, kind) {
   const full = join(ROOT, dir);
@@ -97,6 +101,7 @@ function loadDir(dir, kind) {
         minutes: Number(meta.minutes),
         check: meta.check,
         only,
+        quick: splitByPath(s["בקצרה"]),
         why: s["למה"],
         how,
         done: s["איך יודעים שהצליח"],
@@ -108,6 +113,12 @@ function loadDir(dir, kind) {
 function anchor(step) {
   return `step-${step.id}`;
 }
+
+/**
+ * בשלבים, נתיבים כתובים מראש הריפו (`docs/img/x.png`), אבל ההדרכות יושבות בתוך docs/.
+ * בלי התיקון GitHub מחפש docs/docs/img, ואף צילום מסך לא מוצג.
+ */
+const fromDocs = (text) => text.replace(/\]\(docs\//g, "](");
 
 function renderPath(pathKey, steps, addons) {
   const P = PATHS[pathKey];
@@ -155,6 +166,7 @@ function renderPath(pathKey, steps, addons) {
     "|---|---|---|",
     ...core.map((s, i) => `| ${i + 1} | [${s.title}](#${anchor(s)}) | כ-${s.minutes} דק׳ |`),
     "",
+    ...(pathKey === "browser" ? [`יש לך ניסיון עם Vercel ו-GitHub? [המדריך המקוצר](quick.md) הוא עמוד אחד.`, ""] : []),
     "---",
     "",
     ...core.map((s, i) => block(s, i + 1, core.length, "שלב")),
@@ -170,7 +182,40 @@ function renderPath(pathKey, steps, addons) {
     );
   }
   out.push("</div>", "");
-  return out.join("\n");
+  return fromDocs(out.join("\n"));
+}
+
+/** המדריך המקוצר: מסלול הדפדפן, רק "בקצרה" של כל שלב, וקישור להסבר המלא. */
+function renderQuick(steps, addons) {
+  const pick = (list) => list.filter((s) => s.only !== "claude");
+  const core = pick(steps);
+  const extra = pick(addons);
+  const block = (s, i) => {
+    const quick = s.quick.browser;
+    if (!quick) throw new Error(`${s.file}: אין "בקצרה" למסלול "${PATHS.browser.label}"`);
+    return [
+      `<a id="${anchor(s)}"></a>`,
+      `### ${i}. ${s.title} · כ-${s.minutes} דק׳`,
+      quick,
+      "",
+      `[הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#${anchor(s)})`,
+      "",
+    ].join("\n");
+  };
+  const page = [
+    "<!-- נוצר אוטומטית מתוך steps/ ו-addons/ — לא לערוך ידנית. להרצה: npm run guide -->",
+    '<div dir="rtl">',
+    "",
+    `# ${QUICK.title}`,
+    "",
+    `אותם שלבים כמו [המדריך המלא](browser.md), בלי ההסברים. נתקעים בשלב? הקישור שבסופו פותח את ההסבר המלא שלו.`,
+    "",
+    ...core.map((s, i) => block(s, i + 1)),
+    ...(extra.length ? ["## תוספות (לא חובה)", "", ...extra.map((s, i) => block(s, i + 1))] : []),
+    "</div>",
+    "",
+  ].join("\n");
+  return fromDocs(page);
 }
 
 function renderChecklist(steps, addons) {
@@ -229,6 +274,7 @@ for (const s of [...steps, ...addons]) {
 const outputs = {
   [PATHS.browser.file]: renderPath("browser", steps, addons),
   [PATHS.claude.file]: renderPath("claude", steps, addons),
+  [QUICK.file]: renderQuick(steps, addons),
   "CHECKLIST.md": renderChecklist(steps, addons),
   "lib/steps.generated.js": renderModule(steps, addons),
 };

@@ -5,6 +5,18 @@ minutes: 7
 check: deploy
 ---
 
+## בקצרה
+### בדפדפן
+1. [כפתור ה-Deploy](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20setup%20password%20you%20choose%20%288%2B%20characters%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D) ‹ התחברות עם GitHub ‹ **Create**.
+2. Supabase: **Add** ‹ **Frankfurt** ‹ **Create** ‹ **Done**.
+3. שלושה משתנים: `TELEGRAM_TOKEN`, `AI_API_KEY`, `SETUP_PASSWORD` (8 תווים לפחות) ‹ **Deploy**.
+4. מעתיקים את הכתובת מ-**Domains**.
+
+### עם Claude Code
+1. Claude מעלה את הקוד לריפו פרטי שלך.
+2. [vercel.com/new](https://vercel.com/new) ‹ **Import** ‹ Supabase ב-Frankfurt ‹ שלושת המשתנים מ-`.env.local` ‹ **Deploy**.
+3. נותנים ל-Claude את הכתובת מ-**Domains**.
+
 ## למה
 הבוט צריך מחשב שדולק 24 שעות ביממה. **Vercel** הוא המחשב באינטרנט שהבוט ירוץ עליו, ו-**Supabase** הוא המחברת שבה הבוט זוכר תזכורות, פתקים ורשימות. בשניהם יש מסלול חינמי שמספיק לבוט אישי. בשלב הזה פותחים את שניהם ומעלים את הבוט.
 

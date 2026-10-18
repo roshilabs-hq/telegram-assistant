@@ -5,6 +5,13 @@ minutes: 15
 check: google
 ---
 
+## בקצרה
+1. [Google Cloud](https://console.cloud.google.com/projectcreate): פרויקט חדש ‹ **Enable** ל-Gmail API ול-Google Calendar API.
+2. Google Auth Platform: **Get started** ‹ **External** ‹ **Clients**: Web application עם כתובת החזרה מעמוד ההקמה.
+3. **Branding**: דף בית ו-`/privacy` מעמוד ההקמה ‹ **Audience** ‹ **Publish app**.
+4. ב-Vercel: `GOOGLE_CLIENT_ID` ו-`GOOGLE_CLIENT_SECRET` ‹ **Redeploy**.
+5. בעמוד ההקמה: **🔗 חיבור לחשבון Google** ‹ **מתקדם** ‹ **כניסה אל ... (לא מאובטח)** ‹ **בחירת הכול**.
+
 ## למה
 הבוט יכול לקבוע פגישות ביומן ("קבע לי מחר ב-10 פגישה עם דני"), לענות "מה יש לי היום", לחפש ולקרוא מיילים, להכין טיוטות תשובה ולשלוח מיילים. כל שליחה ומחיקה מחכה לאישור שלך. הגישה ניתנת דרך "אפליקציה" שפותחים אצלך ב-Google, ורק את/ה מחובר/ת אליה.
 

@@ -14,6 +14,8 @@
 | 5 | [מחברים את הבוט אליך](#step-pair) | כ-1 דק׳ |
 | 6 | [שולחים הודעה ראשונה](#step-say-hello) | כ-1 דק׳ |
 
+יש לך ניסיון עם Vercel ו-GitHub? [המדריך המקוצר](quick.md) הוא עמוד אחד.
+
 ---
 
 <a id="step-create-bot"></a>
@@ -68,10 +70,10 @@
 
 **Gemini (מומלץ):**
 1. נכנסים ל-[Google AI Studio](https://aistudio.google.com/apikey) עם חשבון Google.
-2. בפעם הראשונה מופיע מסך ברוכים הבאים. מסמנים את התיבה הראשונה (גיל 18 ומעלה) ולוחצים **Continue**. ![](docs/img/ai-key-1.png)
-3. לוחצים **Create API key**. ![](docs/img/ai-key-2.png)
-4. אם בשדה **Project** כתוב "No Cloud Projects Available", לוחצים עליו ‹ **Create project** ‹ **Create project**. ![](docs/img/ai-key-4.png)
-5. לוחצים **Create key**. ![](docs/img/ai-key-5.png)
+2. בפעם הראשונה מופיע מסך ברוכים הבאים. מסמנים את התיבה הראשונה (גיל 18 ומעלה) ולוחצים **Continue**. ![](img/ai-key-1.png)
+3. לוחצים **Create API key**. ![](img/ai-key-2.png)
+4. אם בשדה **Project** כתוב "No Cloud Projects Available", לוחצים עליו ‹ **Create project** ‹ **Create project**. ![](img/ai-key-4.png)
+5. לוחצים **Create key**. ![](img/ai-key-5.png)
 6. ליד המפתח לוחצים על סמל ההעתקה. המפתח מתחיל ב-`AQ.` (או ב-`AIza` במפתחות ישנים).
 7. **מחברים אמצעי תשלום:** באותה שורה של המפתח לוחצים **Set up billing**, ובחלון של Google ממלאים את פרטי כרטיס האשראי ומאשרים. בסוף, בעמוד המפתחות ליד הפרויקט כתוב **Paid** (או Tier 1) במקום **Free**.
 8. **תקרת הוצאה (מומלץ):** ב-[Billing ‹ Budgets & alerts](https://console.cloud.google.com/billing/budgets) לוחצים **Create budget**, וקובעים למשל 10 דולר. Google ישלח מייל כשמתקרבים לסכום.
@@ -116,17 +118,17 @@
 
 ### מה עושים
 1. לוחצים על הכפתור: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20setup%20password%20you%20choose%20%288%2B%20characters%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
-2. Vercel מבקש להתחבר. לוחצים **GitHub**, ובחלון של GitHub לוחצים **Authorize**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך.) ![](docs/img/deploy-1.png)
+2. Vercel מבקש להתחבר. לוחצים **GitHub**, ובחלון של GitHub לוחצים **Authorize**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך.) ![](img/deploy-1.png)
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
-3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. ![](docs/img/deploy-6.png)
-4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](docs/img/deploy-7.png)
-5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](docs/img/deploy-8.png)
-6. ב-**Primary Region** בוחרים **Frankfurt, Germany** (הכי קרוב לישראל). התוכנית החינמית (**Free Plan**) כבר מסומנת. לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
-7. **Add Environment Variables**: ממלאים שלושה שדות: ![](docs/img/deploy-13.png)
+3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. ![](img/deploy-6.png)
+4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](img/deploy-7.png)
+5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](img/deploy-8.png)
+6. ב-**Primary Region** בוחרים **Frankfurt, Germany** (הכי קרוב לישראל). התוכנית החינמית (**Free Plan**) כבר מסומנת. לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](img/deploy-10.png)
+7. **Add Environment Variables**: ממלאים שלושה שדות: ![](img/deploy-13.png)
    - `TELEGRAM_TOKEN`: הטוקן מ-BotFather.
    - `AI_API_KEY`: המפתח מהשלב הקודם.
    - `SETUP_PASSWORD`: סיסמה חדשה שבוחרים עכשיו, לפחות 8 תווים. היא תשמש להיכנס לעמוד ההקמה. כדאי לשמור אותה.
-8. לוחצים **Deploy** ומחכים כדקה, עד שמופיע **Congratulations!**. ![](docs/img/deploy-14.png)
+8. לוחצים **Deploy** ומחכים כדקה, עד שמופיע **Congratulations!**. ![](img/deploy-14.png)
 9. לוחצים **Continue to Project**. תחת **Domains** מופיעה הכתובת של הבוט, משהו כמו `telegram-assistant-xxxx.vercel.app`. מעתיקים אותה.
 
 ### איך יודעים שהצליח
@@ -154,7 +156,7 @@
 ### מה עושים
 1. נכנסים לעמוד ההקמה: הכתובת של הבוט + `/setup`.
 2. מקלידים את סיסמת ההקמה.
-3. לוחצים **🚀 הפעילו הכול** ומחכים כמה שניות. ![](docs/img/activate-2.png)
+3. לוחצים **🚀 הפעילו הכול** ומחכים כמה שניות. ![](img/activate-2.png)
 4. אם מופיעה תיבה עם טקסט באנגלית וכפתור **העתקה**, יש עוד פעולה אחת שהבוט לא יכול לעשות לבד:
    1. לוחצים **העתקה**.
    2. לוחצים על הקישור "עורך ה-SQL של Supabase" (נפתח בלשונית חדשה).
@@ -184,8 +186,8 @@
 
 ### מה עושים
 **מהטלפון:**
-1. בעמוד ההקמה לוחצים **📲 פתיחת הבוט בטלגרם**. ![](docs/img/pair-1.png)
-2. טלגרם נפתח בשיחה עם הבוט. לוחצים **Start** (או **התחל**). ![](docs/img/pair-2.png)
+1. בעמוד ההקמה לוחצים **📲 פתיחת הבוט בטלגרם**. ![](img/pair-1.png)
+2. טלגרם נפתח בשיחה עם הבוט. לוחצים **Start** (או **התחל**). ![](img/pair-2.png)
 
 **מהמחשב:**
 1. מחפשים בטלגרם את הבוט לפי שם המשתמש שלו (מופיע בראש עמוד ההקמה, למשל `@dana_helper_bot`).
@@ -217,7 +219,7 @@
 3. `מה יש ברשימת הקניות?`
 
 ### איך יודעים שהצליח
-הבוט מאשר כל בקשה ![](docs/img/say-hello-1.png), ואחרי שתי דקות מגיעה תזכורת עם שלושה כפתורים: ✅ בוצע, ⏱ 10 דק׳, 🌅 מחר 9:00. 🎉 **סיימת!**
+הבוט מאשר כל בקשה ![](img/say-hello-1.png), ואחרי שתי דקות מגיעה תזכורת עם שלושה כפתורים: ✅ בוצע, ⏱ 10 דק׳, 🌅 מחר 9:00. 🎉 **סיימת!**
 
 <details>
 <summary><b>נתקעתי</b></summary>
@@ -242,7 +244,7 @@
 **למה:** לדבר לבוט במקום להקליד: מקליטים הודעה קולית, והבוט מתמלל אותה ומבצע. מתאים במיוחד לנהיגה, או לסיכום אחרי פגישה ("תרשום ש... ותזכיר לי ביום שני ל...").
 
 ### מה עושים
-1. נכנסים ל-[Groq Console](https://console.groq.com/keys). כותבים את המייל שלך ולוחצים **Continue with email**. ![](docs/img/voice-1.png)
+1. נכנסים ל-[Groq Console](https://console.groq.com/keys). כותבים את המייל שלך ולוחצים **Continue with email**. ![](img/voice-1.png)
 2. ב-Gmail מגיע מייל "Your login request to Groq". לוחצים בו **Log in**, והחשבון נפתח. זה חינם ובלי כרטיס אשראי: התוכנית החינמית נותנת עד 8 שעות של הודעות קוליות ביום, הרבה יותר ממה שבוט אישי צריך.
 3. לוחצים **Create API Key**, בשם כותבים `telegram-bot` ולוחצים **Submit**. **מעתיקים מיד**: המפתח מתחיל ב-`gsk_` ומוצג רק פעם אחת.
 4. ב-Vercel נכנסים לפרויקט ‹ **Settings** ‹ **Environment Variables** ‹ **Add Environment Variable**.
@@ -337,15 +339,15 @@
    - `GOOGLE_CLIENT_SECRET`: ה-Client secret.
 2. **Deployments** ‹ שלוש נקודות ליד הפריסה העליונה ‹ **Redeploy**, ומחכים שיסתיים.
 3. בעמוד ההקמה מרעננים, ובתוספת "יומן Google ו-Gmail" לוחצים **🔗 חיבור לחשבון Google**.
-4. בוחרים את החשבון. ![](docs/img/google-9.png)
-5. מופיע מסך אזהרה **"Google לא אימתה את האפליקציה הזו"**. זה צפוי: זו האפליקציה שלך, ו-Google מציג את האזהרה לכל אפליקציה אישית. לוחצים **מתקדם**, ואז למטה **כניסה אל telegram-assistant-xxxx.vercel.app (לא מאובטח)**. (באנגלית: **Advanced** ‹ **Go to ... (unsafe)**.) ![](docs/img/google-11.png)
-6. במסך **"כניסה אל ..."** לוחצים **המשך**. ![](docs/img/google-12.png)
-7. **מסמנים "בחירת הכול"** (יומן ומייל) ולוחצים **המשך**. ![](docs/img/google-13.png)
+4. בוחרים את החשבון. ![](img/google-9.png)
+5. מופיע מסך אזהרה **"Google לא אימתה את האפליקציה הזו"**. זה צפוי: זו האפליקציה שלך, ו-Google מציג את האזהרה לכל אפליקציה אישית. לוחצים **מתקדם**, ואז למטה **כניסה אל telegram-assistant-xxxx.vercel.app (לא מאובטח)**. (באנגלית: **Advanced** ‹ **Go to ... (unsafe)**.) ![](img/google-11.png)
+6. במסך **"כניסה אל ..."** לוחצים **המשך**. ![](img/google-12.png)
+7. **מסמנים "בחירת הכול"** (יומן ומייל) ולוחצים **המשך**. ![](img/google-13.png)
 
 > 💡 במסכים האלה Google מציג את הכתובת של הבוט, ולא את השם "העוזר שלי". זה תקין.
 
 ### איך יודעים שהצליח
-מופיע עמוד "✅ יומן ו-Gmail מחוברים" עם המייל שלך ![](docs/img/google-14.png), ובעמוד ההקמה התוספת מסומנת ✅. שולחים לבוט "קבע לי מחר ב-10 פגישה עם דני", ואחר כך "מה יש לי מחר?". הבוט עונה עם הפגישה מהיומן. כשמבקשים למחוק, הבוט שואל קודם ומוחק רק אחרי "כן".
+מופיע עמוד "✅ יומן ו-Gmail מחוברים" עם המייל שלך ![](img/google-14.png), ובעמוד ההקמה התוספת מסומנת ✅. שולחים לבוט "קבע לי מחר ב-10 פגישה עם דני", ואחר כך "מה יש לי מחר?". הבוט עונה עם הפגישה מהיומן. כשמבקשים למחוק, הבוט שואל קודם ומוחק רק אחרי "כן".
 
 <details>
 <summary><b>נתקעתי</b></summary>
