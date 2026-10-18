@@ -25,6 +25,8 @@
 **למה:** כל בוט בטלגרם נולד אצל "אבא של הבוטים", BotFather. הוא נותן לבוט שם, וגם **טוקן**: סיסמה ארוכה שבעזרתה הקוד שלנו מדבר בשם הבוט.
 
 ### מה עושים
+> **אין לך טלגרם?** מתקינים את האפליקציה מ-[telegram.org](https://telegram.org) ונרשמים עם מספר הטלפון. **כבר יצרת בעבר בוטים?** אין בעיה, יוצרים עוד אחד: לכל בוט יש טוקן משלו, והישנים ממשיכים לעבוד.
+
 1. פותחים את טלגרם (בטלפון או במחשב) ונכנסים ל-[@BotFather](https://t.me/BotFather). ליד השם צריך להופיע וי כחול.
 2. לוחצים **Start** (או **התחל**).
 3. שולחים לו `/newbot`.
@@ -57,6 +59,8 @@
 
 ### מה עושים
 בוחרים ספק אחד. אם לא בטוחים, בוחרים Gemini: הוא הזול מבין השלושה, ותמיד אפשר להחליף אחר כך.
+
+> **כבר יש לך חשבון אצל אחד הספקים?** מתחברים אליו, בודקים שאמצעי התשלום מחובר, ויוצרים **מפתח חדש** לבוט. לא משתמשים במפתח של פרויקט אחר: כך אפשר יהיה למחוק או להחליף את המפתח של הבוט בלי לפגוע בשום דבר אחר.
 
 | ספק | עלות משוערת לשימוש אישי | איך משלמים | פרטיות |
 |---|---|---|---|
@@ -118,11 +122,16 @@
 
 ### מה עושים
 1. לוחצים על הכפתור: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20setup%20password%20you%20choose%20%288%2B%20characters%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
-2. Vercel מבקש להתחבר. לוחצים **GitHub**, ובחלון של GitHub לוחצים **Authorize**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך.) ![](img/deploy-1.png)
+2. Vercel מבקש להתחבר. לוחצים **GitHub**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך, בחינם.) ![](img/deploy-1.png)
+   - **יש לך GitHub:** מתחברים, ובחלון של GitHub לוחצים **Authorize**.
+   - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. בסוף לוחצים **Authorize**.
+   - **יש לך כבר Vercel** (נכנסת בעבר עם מייל או Google): מתחברים כמו תמיד. בסעיף הבא מחברים אליו את GitHub.
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
 3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. ![](img/deploy-6.png)
+   - **כבר מופיע שם החשבון שלך ב-Git Scope** (חיברת בעבר): לא צריך להוסיף. ממשיכים לסעיף הבא.
 4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](img/deploy-7.png)
 5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](img/deploy-8.png)
+   - **יש לך כבר Supabase:** בכל זאת יוצרים כאן חדש **(מומלץ)**. הוא נפתח בלחיצה, בלי הרשמה, ולא נוגע בפרויקטים הקיימים שלך. בחשבון קיים יש מגבלה של 2 פרויקטים חינמיים, ופרויקט שלישי לא ייפתח.
 6. ב-**Primary Region** בוחרים **Frankfurt, Germany** (הכי קרוב לישראל). התוכנית החינמית (**Free Plan**) כבר מסומנת. לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](img/deploy-10.png)
 7. **Add Environment Variables**: ממלאים שלושה שדות: ![](img/deploy-13.png)
    - `TELEGRAM_TOKEN`: הטוקן מ-BotFather.
@@ -138,6 +147,9 @@
 <summary><b>נתקעתי</b></summary>
 
 - **אחרי ההתחברות ל-Vercel מופיע 404**: לוחצים שוב על כפתור ה-Deploy בהדרכה. ההתחברות כבר נשמרה, והפעם הטופס ייפתח.
+- **כתוב שהריפו `telegram-assistant` כבר קיים**: יש לך כבר ריפו בשם הזה. בשדה **Repository Name** כותבים שם אחר, למשל `telegram-assistant-2`.
+- **Vercel לא מצליח ליצור את הריפו, או כתוב שאין לו גישה**: בעבר נתת ל-Vercel גישה רק לחלק מהריפואים. ב-GitHub ‹ **Settings** ‹ **Applications** ‹ **Vercel** ‹ **Configure** בוחרים **All repositories** ושומרים, ולוחצים שוב על כפתור ה-Deploy.
+- **ב-Supabase כתוב שהגעת למגבלת הפרויקטים**: בחרת ארגון Supabase קיים. בוחרים במקום זה ליצור חדש, כמו בסעיף 5.
 - **ב-Deploy כתוב "Build Failed"**: לוחצים **Redeploy**. אם זה חוזר, מצלמים את המסך ופונים אלינו.
 - **לא הופיעה הצעה ליצור Supabase**: בדשבורד של הפרויקט ב-Vercel נכנסים ל-**Storage** ‹ **Create Database** ‹ **Supabase** ‹ **Frankfurt** ‹ **Connect**. אחר כך **Deployments** ‹ **Redeploy**.
 - **בעמוד ההקמה כתוב "חסרים SUPABASE_URL..."**: Supabase לא חובר לפרויקט. עושים את מה שכתוב בסעיף הקודם.

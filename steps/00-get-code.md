@@ -7,7 +7,7 @@ path: claude
 ---
 
 ## בקצרה
-1. בריפו של הערכה: **Use this template** ‹ **Private** ‹ **Create**.
+1. אין GitHub? [פותחים חשבון](https://github.com/signup). בריפו של הערכה: **Use this template** ‹ **Private** ‹ **Create**.
 2. ב-VS Code: **Clone Repository** עם הכתובת של הריפו החדש.
 3. ב-Claude Code כותבים `/start`.
 
@@ -16,10 +16,11 @@ path: claude
 
 ## מה עושים
 1. מוודאים שמותקנים: [Node.js](https://nodejs.org) (גרסת LTS), [Git](https://git-scm.com/downloads), [VS Code](https://code.visualstudio.com) והתוסף **Claude Code** ב-VS Code. צריך גם מנוי Claude (Pro ומעלה).
-2. נכנסים ל-[הריפו של הערכה](https://github.com/roshilabs-hq/telegram-assistant), לוחצים **Use this template** ‹ **Create a new repository**, נותנים שם, בוחרים **Private**, ולוחצים **Create**.
-3. בריפו החדש לוחצים **Code** ומעתיקים את הכתובת.
-4. ב-VS Code: **File** ‹ **Clone Repository** (או F1 ← `Git: Clone`), מדביקים את הכתובת ובוחרים תיקייה.
-5. כשהתיקייה נפתחת, פותחים את Claude Code (סמל ה-Claude בצד) וכותבים `/start`.
+2. מתחברים ל-[GitHub](https://github.com). **אין לך חשבון?** לוחצים [**Sign up**](https://github.com/signup), ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. **יש לך?** מתחברים כרגיל.
+3. נכנסים ל-[הריפו של הערכה](https://github.com/roshilabs-hq/telegram-assistant), לוחצים **Use this template** ‹ **Create a new repository**, נותנים שם, בוחרים **Private**, ולוחצים **Create**.
+4. בריפו החדש לוחצים **Code** ומעתיקים את הכתובת.
+5. ב-VS Code: **File** ‹ **Clone Repository** (או F1 ← `Git: Clone`), מדביקים את הכתובת ובוחרים תיקייה.
+6. כשהתיקייה נפתחת, פותחים את Claude Code (סמל ה-Claude בצד) וכותבים `/start`.
 
 ## איך יודעים שהצליח
 Claude עונה בעברית ומתחיל להוביל אותך בשלב הבא.
