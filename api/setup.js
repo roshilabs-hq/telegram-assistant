@@ -178,7 +178,7 @@ function actionPanel(check, checks, ctx) {
   if (check === "activate") {
     const manual = !env.databaseUrl() && (!checks.database.ok || !checks.scheduler.ok);
     return `${btn("activate", "🚀 הפעילו הכול")}
-${manual ? `<p>יש עוד פעולה אחת שאני לא יכול לעשות לבד: להריץ פקודות במסד. לוחצים <b>העתקה</b>, פותחים את <a href="${supabaseSqlEditor()}" target="_blank" rel="noopener">עורך ה-SQL של Supabase</a>, מדביקים, ולוחצים <b>Run</b>. אחר כך חוזרים לכאן ומרעננים.</p>
+${manual ? `<p>יש עוד פעולה אחת שאני לא יכול לעשות לבד: להריץ פקודות במסד. הן יוצרות את הטבלאות של הבוט ומפעילות את התזמון, ולא נוגעות בשום דבר אחר. לוחצים <b>העתקה</b>, פותחים את <a href="${supabaseSqlEditor()}" target="_blank" rel="noopener">עורך ה-SQL של Supabase</a>, מדביקים, ולוחצים <b>Run</b>. אחר כך חוזרים לכאן ומרעננים.</p>
 <textarea id="sql" readonly>${esc(schemaSql() + "\n\n" + cronSql(ctx.url))}</textarea>
 <button class="ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('sql').value);this.textContent='הועתק ✓'">העתקה</button>` : ""}`;
   }
