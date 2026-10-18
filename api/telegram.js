@@ -104,7 +104,7 @@ export default async function handler(req, res) {
       }
     }
     if (!text) {
-      await sendMessage(chatId, "כרגע אני מבין/ה רק טקסט והודעות קוליות 🙂");
+      await sendMessage(chatId, "כרגע אפשר לשלוח לי רק טקסט או הודעה קולית 🙂");
       return res.status(200).send("ok");
     }
 
