@@ -1,5 +1,6 @@
 name: test
-on: [push, pull_request]
+# רק push: בקשת עדכון מהבוט לא תחכה ל"אישור" שמבלבל את הלקוח.
+on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest

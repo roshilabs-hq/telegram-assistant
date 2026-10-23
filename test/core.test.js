@@ -164,3 +164,13 @@ test("הודעות משתמש מאתמול מקבלות תאריך, ושל הי�
     { role: "user", content: "תודה" },
   ]);
 });
+
+test("גרסאות: השוואה, ו-GitHub שלא עונה לא מפיל את הבדיקה", async () => {
+  const { isNewer, latestVersion } = await import("../lib/version.js");
+  assert.equal(isNewer("1.2.0", "1.1.9"), true);
+  assert.equal(isNewer("1.10.0", "1.9.0"), true);
+  assert.equal(isNewer("1.1.0", "1.1.0"), false);
+  assert.equal(isNewer("1.0.9", "1.1.0"), false);
+  assert.equal(await latestVersion(async () => new Response(JSON.stringify({ version: "2.0.0" }))), "2.0.0");
+  assert.equal(await latestVersion(async () => { throw new Error("offline"); }), null);
+});

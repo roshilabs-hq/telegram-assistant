@@ -5,6 +5,7 @@ import postgres from "postgres";
 import { env, secrets, baseUrl } from "../lib/config.js";
 import { same, cookies, authed, sessionCookie } from "../lib/session.js";
 import { googleConfigured, redirectUri } from "../lib/google.js";
+import { VERSION, ownRepo } from "../lib/version.js";
 import { runChecks, cronSql } from "../lib/checks.js";
 import { detectProvider, resolveModel } from "../lib/ai.js";
 import * as store from "../lib/db.js";
@@ -150,7 +151,7 @@ input,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line)
 textarea{direction:ltr;font-family:ui-monospace,monospace;font-size:.8rem;height:140px}
 .err{background:#fdecea;color:#7a1f16;border-color:#f5c2bd}.code{font-size:2rem;letter-spacing:.3em;font-weight:700;direction:ltr;text-align:center}
 label{display:block;margin-top:10px;font-weight:600}a{color:var(--accent)}
-</style></head><body><main>${body}</main></body></html>`;
+</style></head><body><main>${body}<p class="muted" style="text-align:center">גרסה ${VERSION}</p></main></body></html>`;
 }
 
 function loginPage(error) {
@@ -208,6 +209,18 @@ function askPanel(s, url) {
 <textarea readonly style="height:70px">${esc(`${url}/api/ask`)}\n${esc(s.ask_token)}</textarea>`;
 }
 
+/**
+ * תוספת "עדכונים אוטומטיים": קישורים ישירים לריפו של הלקוח ב-GitHub, כדי שלא יחפש
+ * את Settings ‹ Actions לבד. בלי הכתובת של הריפו (מחוץ ל-Vercel) מציגים רק את הגרסה.
+ */
+function updatesPanel(check) {
+  const repo = ownRepo();
+  if (!repo) return "";
+  return check?.ok
+    ? `<p class="muted"><a href="${repo}/settings/actions" target="_blank" rel="noopener">ההגדרה ב-GitHub (חד-פעמי)</a></p>`
+    : `<a class="btn" href="${repo}/pulls" target="_blank" rel="noopener">🔄 לבקשת העדכון ב-GitHub</a>`;
+}
+
 const copyField = (id, label, value) => `<p class="muted">${label}</p>
 <textarea id="${id}" readonly style="height:48px">${esc(value)}</textarea>
 <button class="ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('${id}').value);this.textContent='הועתק ✓'">העתקה</button>`;
@@ -251,7 +264,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
   const addons = ADDONS.map((a) => {
     const ok = checks[a.check]?.ok;
     return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><span class="t">${esc(a.title)}</span>
-<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url, Boolean(settings.google?.refresh_token)) : ""}
+<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url, Boolean(settings.google?.refresh_token)) : ""}${a.check === "updates" ? updatesPanel(checks.updates) : ""}
 <div><a href="${DOCS}/browser.md#step-${a.id}" target="_blank" rel="noopener">איך מוסיפים</a></div></div></div>`;
   }).join("");
 

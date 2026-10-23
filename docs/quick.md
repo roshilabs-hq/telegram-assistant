@@ -87,4 +87,12 @@
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-google)
 
+<a id="step-updates"></a>
+### 5. עדכונים אוטומטיים · כ-2 דק׳
+1. ב-GitHub, בריפו `telegram-assistant` שלך: **Settings** ‹ **Actions** ‹ **General**.
+2. תחת **Workflow permissions** מסמנים **Allow GitHub Actions to create and approve pull requests** ‹ **Save**.
+3. כשמגיעה בקשת עדכון: **Merge pull request** ‹ **Confirm merge**.
+
+[הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-updates)
+
 </div>
