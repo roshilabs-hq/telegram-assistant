@@ -1,0 +1,31 @@
+# עדכונים מהערכה: פעם בשבוע (ובלחיצה) בודק אם יצאה גרסה חדשה של הערכה,
+# ואם כן פותח בקשת שינוי (Pull Request) בריפו שלך. שום דבר לא משתנה עד שלוחצים Merge.
+# ההדרכה: docs/update.md
+name: עדכון מהערכה
+
+on:
+  schedule:
+    - cron: "0 6 * * 0" # יום ראשון, 09:00 בישראל
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    # לא רץ בריפו של הערכה עצמה, רק בעותקים של הלקוחות.
+    if: github.repository != 'roshilabs-hq/telegram-assistant'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: AndreasAugustin/actions-template-sync@v2
+        with:
+          source_repo_path: roshilabs-hq/telegram-assistant
+          upstream_branch: main
+          pr_title: "🔄 עדכון לבוט מהערכה"
+          pr_labels: template_sync
+          pr_body: |
+            יצאה גרסה חדשה של הערכה. מה השתנה: CHANGELOG.md.
+            כדי לעדכן את הבוט: לוחצים למטה **Merge pull request** ואז **Confirm merge** (לא Squash).
+            Vercel מעלה את הגרסה החדשה תוך דקה או שתיים. אחר כך נכנסים לעמוד ההקמה (/setup) ולוחצים "הפעילו הכול".
