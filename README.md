@@ -24,22 +24,20 @@
 
 **תוספות (לא חובה):** 📆 יומן Google ו-Gmail · 🎙️ הודעות קוליות · ☀️ תדריך בוקר · 🗣️ Siri
 
-## איך מתחילים
+## איך תרצו להקים?
 
-יש שתי דרכים, ושתיהן מגיעות לאותו בוט:
+כל ארבע הדרכים מגיעות לאותו בוט, בחשבונות שלכם.
 
-| | 🌐 **מסלול א׳: מהדפדפן** | 💻 **מסלול ב׳: עם Claude Code** |
+| | | |
 |---|---|---|
-| למי | כל אחד, גם מהטלפון | מי שיש לו מחשב ומנוי ל-Claude |
-| מה מתקינים | כלום | Node, Git, VS Code, Claude Code |
-| מה מקבלים | הבוט, כמו שהוא | הבוט, ועוזר שמסביר כל שלב ויכול לשנות את הבוט לפי בקשה |
-| מתחילים כאן | [**המדריך לדפדפן ←**](docs/browser.md) | [**המדריך ל-Claude Code ←**](docs/claude-code.md) |
+| 🧭 **תובילו אותי צעד אחרי צעד** | כל לחיצה מוסברת, עם צילום מסך ופתרון למה שיכול להיתקע. אפשר גם מהטלפון · כחצי שעה | [**מתחילים ←**](docs/browser.md) |
+| ⚡ **אני מכיר את הכלים** | כל השלבים בעמוד אחד, בלי הסברים. בשביל מי שכבר עבד עם GitHub ו-Vercel · כ-15 דקות | [**למדריך המקוצר ←**](docs/quick.md) |
+| 🤖 **עם Claude Code** | Claude מקים איתך מהמחשב, ואחר כך משנה את הבוט לפי בקשה. צריך מנוי Claude · כ-40 דקות | [**למסלול Claude Code ←**](docs/claude-code.md) |
+| 🛠️ **תתקינו לי** | [רושינוביץ](https://roshinovic.co.il) מתקינים את הבוט אצלכם, בחשבונות שלכם | [**לפרטים ←**](https://roshinovic.co.il) |
 
-לא בטוחים? [**איזה מסלול מתאים לי**](docs/choose-path.md) (שלוש שאלות). שם יש גם [**מה צריך לפני שמתחילים**](docs/choose-path.md#requirements).
+לא בטוחים? [**איזו דרך מתאימה לי**](docs/choose-path.md) (שלוש שאלות). שם יש גם [**מה צריך לפני שמתחילים**](docs/choose-path.md#requirements).
 
-יש לך ניסיון עם GitHub ו-Vercel? [**המדריך המקוצר**](docs/quick.md): כל השלבים בעמוד אחד, בלי הסברים.
-
-כבר יש לך טוקן מטלגרם ומפתח AI? אפשר לקפוץ ישר לכפתור:
+כבר יש לכם טוקן מטלגרם ומפתח AI? אפשר לקפוץ ישר לכפתור:
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20setup%20password%20you%20choose%20%288%2B%20characters%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
 
@@ -47,6 +45,5 @@
 - [צ'ק ליסט](CHECKLIST.md): כל השלבים ברשימה אחת
 - [מילון מונחים](docs/glossary.md): מה זה Vercel, Supabase, טוקן, ועוד
 - [איך מכבים הכול ומפסיקים לשלם](docs/turn-off.md)
-- 🛠️ **מעדיפים שנקים בשבילכם?** [רושינוביץ](https://roshinovic.co.il) מתקינים את הבוט אצלכם, בחשבונות שלכם.
 
 </div>
