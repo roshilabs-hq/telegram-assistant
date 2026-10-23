@@ -5,6 +5,8 @@
 
 אותם שלבים כמו [המדריך המלא](browser.md), בלי ההסברים. נתקעים בשלב? הקישור שבסופו פותח את ההסבר המלא שלו.
 
+**צריך:** חשבונות GitHub ו-Vercel, טלגרם, ומפתח AI עם אמצעי תשלום. [הפירוט המלא](choose-path.md#requirements).
+
 <a id="step-create-bot"></a>
 ### 1. יוצרים בוט בטלגרם · כ-3 דק׳
 1. ב-[@BotFather](https://t.me/BotFather) שולחים `/newbot`.
