@@ -19,6 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # ניסיון קודם שנכשל (למשל לפני שאופשר ל-Actions לפתוח בקשות שינוי) משאיר ענף בלי בקשה פתוחה,
+      # ואז הפעולה מדלגת בשקט עד הגרסה הבאה. מוחקים ענפים כאלה לפני שמתחילים.
+      - name: ניקוי ענף שנשאר מניסיון שנכשל
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for b in $(git ls-remote --heads origin 'chore/template_sync_*' | sed 's#.*refs/heads/##'); do
+            if [ -z "$(gh pr list --head "$b" --state open --json number -q '.[].number')" ]; then
+              git push origin --delete "$b"
+            fi
+          done
       - uses: AndreasAugustin/actions-template-sync@v2
         with:
           source_repo_path: roshilabs-hq/telegram-assistant
