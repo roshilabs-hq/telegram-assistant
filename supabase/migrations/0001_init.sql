@@ -81,3 +81,7 @@ alter table bot_notes enable row level security;
 alter table bot_lists enable row level security;
 alter table bot_locks enable row level security;
 alter table bot_turns enable row level security;
+
+-- ה-API של Supabase שומר רשימת טבלאות בזיכרון. בלי הרענון הזה, הבקשה הראשונה אחרי
+-- יצירת הטבלאות נכשלת ב-"Could not find the table ... in the schema cache".
+notify pgrst, 'reload schema';

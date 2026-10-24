@@ -51,6 +51,18 @@ async function runSql(sqlText) {
   }
 }
 
+/**
+ * אחרי יצירת הטבלאות, ה-API של Supabase צריך כמה שניות לטעון אותן מחדש. בלי ההמתנה,
+ * בלחיצה הראשונה על "הפעילו הכול" הבדיקה הבאה נכשלה ב-"schema cache" (נמצא בהרצה 24.10).
+ */
+async function waitForTables(tries = 15) {
+  for (let i = 0; i < tries; i++) {
+    const { error } = await store.db().from("bot_settings").select("key").limit(1);
+    if (!error) return;
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+}
+
 async function checkAi() {
   const key = env.aiKey();
   const provider = detectProvider(key);
@@ -75,6 +87,7 @@ export const ACTIONS = {
     if (env.databaseUrl()) {
       try {
         await runSql(schemaSql());
+        await waitForTables();
       } catch (e) {
         errors.push(`יצירת הטבלאות נכשלה: ${e.message}`);
       }
