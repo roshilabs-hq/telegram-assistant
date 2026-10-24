@@ -136,3 +136,12 @@ test("סיסמה קצרה מ-8 תווים לא פותחת את העמוד, ומ�
   assert.equal(res.statusCode, 401);
   assert.match(res.body, /קצרה/);
 });
+
+test("סיסמה בכותרת: גם ב-POST של פעולה וגם בחיבור Google סופרים ניסיונות", async () => {
+  const start = (await import("../api/google/start.js")).default;
+  const headers = { "x-real-ip": "5.6.7.8", "x-setup-password": "wrong-guess" };
+  for (let i = 0; i < 10; i++) await handler(mockReq({ headers, body: { action: "new_pairing" } }), mockRes());
+  const res = mockRes();
+  await start(mockReq({ method: "GET", headers }), res);
+  assert.equal(res.statusCode, 429);
+});

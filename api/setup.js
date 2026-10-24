@@ -305,6 +305,8 @@ export default async function handler(req, res) {
   res.setHeader("x-frame-options", "DENY");
   res.setHeader("referrer-policy", "no-referrer");
   const wantsJson = String(req.query?.format || "") === "json";
+  // מסלול Claude Code שולח את הסיסמה בכותרת, בכל סוג בקשה. גם שם סופרים ניסיונות.
+  if (req.headers["x-setup-password"] && (await tooManyTries(req))) return res.status(429).json({ error: "too many tries, wait a minute" });
 
   if (req.method === "POST") {
     const form = await readForm(req);
@@ -335,8 +337,6 @@ export default async function handler(req, res) {
     return res.redirect(303, "/setup");
   }
 
-  // מסלול Claude Code שולח את הסיסמה בכותרת. גם שם סופרים ניסיונות.
-  if (req.headers["x-setup-password"] && (await tooManyTries(req))) return res.status(429).json({ error: "too many tries, wait a minute" });
   if (!authed(req)) {
     if (wantsJson) return res.status(401).json({ error: "unauthorized" });
     return res.status(200).setHeader("content-type", "text/html; charset=utf-8").send(loginPage());

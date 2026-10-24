@@ -40,6 +40,8 @@ async function handleCallback(cb, settings) {
   const [kind, op, id, mins] = String(cb.data || "").split("|");
   if (kind === "c" && id && (op === "y" || op === "n")) {
     const r = await decide(chatId, id, op === "y", timezoneOf(settings));
+    // לחיצה שנייה לא דורסת את "✅ בוצע" שכבר כתוב בהודעה
+    if (r.stale) return answerCallback(cb.id, r.text);
     await answerCallback(cb.id, r.ok ? (op === "y" ? "בוצע" : "בוטל") : "לא בוצע");
     return editMessageText(chatId, cb.message.message_id, r.text);
   }

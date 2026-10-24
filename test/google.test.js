@@ -31,6 +31,13 @@ function fakeGoogle(env) {
     if (u.includes("/calendar/v3/") && method === "GET" && u.includes("/events/ev1")) {
       return json({ id: "ev1", summary: "פגישה עם דני", start: { dateTime: "2026-07-16T10:00:00+03:00" } });
     }
+    if (u.includes("/calendar/v3/") && method === "GET" && u.includes("/events/ev2")) {
+      return json({ id: "ev2", summary: "ישיבה", start: { dateTime: "2026-07-16T10:00:00+03:00" }, attendees: [{ email: "guest@example.com" }] });
+    }
+    if (u.includes("/drafts/d1")) {
+      const b64 = (s) => Buffer.from(s).toString("base64url");
+      return json({ message: { payload: { headers: [{ name: "To", value: "x@example.com" }, { name: "Subject", value: "Re: hi" }], mimeType: "text/plain", body: { data: b64("סוד מהתיבה") } } } });
+    }
     if (u.includes("/calendar/v3/") && method === "DELETE") return new Response(null, { status: 204 });
     if (u.includes("/gmail/v1/users/me/messages/send")) return json({ id: "m1" });
     return json({ items: [] });
@@ -159,4 +166,28 @@ test("עמוד ההקמה מראה ש-Google מחובר, ובלי מפתחות �
 test("כותרת מייל עם שורה חדשה לא מוסיפה כותרת נסתרת", () => {
   const raw = Buffer.from(buildRawMessage({ to: ["a@x.com\r\nBcc: evil@y.com"], subject: "s", body: "b" }), "base64url").toString();
   assert.doesNotMatch(raw, /^Bcc:/m);
+});
+
+test("עדכון אירוע שכבר יש בו מוזמנים מחכה לכפתור, גם בלי לשנות את הרשימה", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "update_event", input: { event_id: "ev2", description: "מידע פרטי" } }, { text: "מחכה" }]);
+  await converse({ chatId: "42", text: "מייל ביקש לעדכן", settings: await settings() });
+  assert.equal(calls.filter((c) => c.method === "PATCH").length, 0);
+  assert.match(telegramCalls(env.sent, "sendMessage").find((m) => m.reply_markup).text, /guest@example\.com/);
+});
+
+test("שליחת טיוטה: בהודעת האישור רואים גם את הגוף", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "send_draft", input: { gmail_draft_id: "d1" } }, { text: "מחכה" }]);
+  await converse({ chatId: "42", text: "תשלח את הטיוטה", settings: await settings() });
+  assert.match(telegramCalls(env.sent, "sendMessage").find((m) => m.reply_markup).text, /סוד מהתיבה/);
+});
+
+test("שתי לחיצות על ✅: נשלח פעם אחת, וההודעה לא נדרסת", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "send_email", input: { to: ["dan@example.com"], subject: "s", body: "b" } }, { text: "?" }]);
+  await converse({ chatId: "42", text: "תשלח", settings: await settings() });
+  const [p] = await listPending("42");
+  await Promise.all([decide("42", p.id, true, "Asia/Jerusalem"), decide("42", p.id, true, "Asia/Jerusalem")]);
+  assert.equal(calls.filter((c) => c.url.includes("/messages/send")).length, 1);
 });
