@@ -191,3 +191,14 @@ test("שתי לחיצות על ✅: נשלח פעם אחת, וההודעה לא 
   await Promise.all([decide("42", p.id, true, "Asia/Jerusalem"), decide("42", p.id, true, "Asia/Jerusalem")]);
   assert.equal(calls.filter((c) => c.url.includes("/messages/send")).length, 1);
 });
+
+test("אחרי לחיצה על הכפתור, התוצאה נכנסת להיסטוריה שהמודל רואה", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "send_email", input: { to: ["dan@example.com"], subject: "s", body: "b" } }, { text: "מחכה ללחיצה" }]);
+  await converse({ chatId: "42", text: "תשלח", settings: await settings() });
+  const [p] = await listPending("42");
+  await press(`c|y|${p.id}`);
+  const last = (await store.getHistory("42")).at(-1);
+  assert.equal(last.role, "assistant");
+  assert.match(last.content, /✅ בוצע/);
+});
