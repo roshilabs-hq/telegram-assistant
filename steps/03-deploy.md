@@ -30,14 +30,15 @@ check: deploy
    - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. בסוף לוחצים **Authorize**.
    - **יש לך כבר Vercel** (נכנסת בעבר עם מייל או Google): מתחברים כמו תמיד. בסעיף הבא מחברים אליו את GitHub.
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
+   - אם מופיע מסך **Secure Your Account with 2FA** (אבטחה בשני שלבים), לוחצים למטה **Skip securing my account**. אפשר להגדיר את זה אחר כך. ![](docs/img/deploy-2fa.png)
 3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. זה נותן ל-Vercel גישה לחשבון ה-GitHub שלך, ובחשבון חדש אין בו עדיין כלום חוץ מהבוט. ![](docs/img/deploy-6.png)
-   - **כבר מופיע שם החשבון שלך ב-Git Scope** (חיברת בעבר): לא צריך להוסיף. ממשיכים לסעיף הבא.
+   - **במקום Git Scope מופיעים כפתורים GitHub / GitLab / Bitbucket** (קורה למי שכבר יש לו Vercel): לוחצים **GitHub**, ושם החשבון שלך מופיע לבד. ממשיכים לסעיף הבא. ![](docs/img/deploy-providers.png)
 4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](docs/img/deploy-7.png)
 5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](docs/img/deploy-8.png)
-   - **יש לך כבר Supabase:** בכל זאת יוצרים כאן חדש **(מומלץ)**. הוא נפתח בלחיצה, בלי הרשמה, ולא נוגע בפרויקטים הקיימים שלך. בחשבון קיים יש מגבלה של 2 פרויקטים חינמיים, ופרויקט שלישי לא ייפתח.
-6. ב-**Primary Region** בוחרים **Frankfurt, Germany** (הכי קרוב לישראל). התוכנית החינמית (**Free Plan**) כבר מסומנת. לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
+   - **יש לך כבר Supabase:** בכל זאת יוצרים כאן חדש **(מומלץ)**. הוא נפתח בלחיצה, בלי הרשמה, ולא נוגע בפרויקטים הקיימים שלך. בחשבון קיים יש מגבלה של 2 פרויקטים חינמיים, ופרויקט שלישי לא ייפתח. אצל מי שכבר יצר Supabase דרך Vercel אין מסך **Accept and Create**, ועוברים ישר לבחירת האזור.
+6. ב-**Primary Region** בוחרים **Frankfurt, Germany** (ברירת המחדל היא Washington, צריך להחליף) (הכי קרוב לישראל). התוכנית החינמית (**Free Plan**) כבר מסומנת. לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
 7. **Add Environment Variables**: ממלאים שלושה שדות: ![](docs/img/deploy-13.png)
-   - `TELEGRAM_TOKEN`: הטוקן מ-BotFather.
+   - `TELEGRAM_TOKEN`: הטוקן מ-BotFather, של הבוט **החדש** שיצרת בשלב הראשון. (מי שכבר יש לו בוט אחר: לא הטוקן שלו. כל בוט מחובר להתקנה אחת.)
    - `AI_API_KEY`: המפתח מהשלב הקודם.
    - `SETUP_PASSWORD`: סיסמה חדשה שבוחרים עכשיו, לפחות 8 תווים. היא תשמש להיכנס לעמוד ההקמה. כדאי לשמור אותה.
 8. לוחצים **Deploy** ומחכים כדקה, עד שמופיע **Congratulations!**. ![](docs/img/deploy-14.png)
@@ -61,7 +62,7 @@ check: deploy
 
 ## נתקעתי
 - **אחרי ההתחברות ל-Vercel מופיע 404**: לוחצים שוב על כפתור ה-Deploy בהדרכה. ההתחברות כבר נשמרה, והפעם הטופס ייפתח.
-- **כתוב שהריפו `telegram-assistant` כבר קיים**: יש לך כבר עותק קוד (ריפו) בשם הזה ב-GitHub. בשדה **Repository Name** כותבים שם אחר, למשל `telegram-assistant-2`.
+- **כתוב "A repository named telegram-assistant already exists"**: יש לך כבר עותק קוד (ריפו) בשם הזה ב-GitHub. בשדה **Private Repository Name** כותבים שם אחר, למשל `telegram-assistant-2`, ולוחצים שוב **Create**. גם הכתובת של הבוט תהיה בשם הזה. ![](docs/img/deploy-exists.png)
 - **Vercel לא מצליח ליצור את הריפו, או כתוב שאין לו גישה**: בעבר נתת ל-Vercel גישה לחלק מעותקי הקוד שלך ב-GitHub, ולא לכולם. ב-GitHub ‹ **Settings** ‹ **Applications** ‹ **Vercel** ‹ **Configure** בוחרים **All repositories** ושומרים, ולוחצים שוב על כפתור ה-Deploy.
 - **ב-Supabase כתוב שהגעת למגבלת הפרויקטים**: בחרת ארגון Supabase קיים. בוחרים במקום זה ליצור חדש, כמו בסעיף 5.
 - **ב-Deploy כתוב "Build Failed"**: לוחצים **Redeploy**. אם זה חוזר, מצלמים את המסך ופונים אלינו.
