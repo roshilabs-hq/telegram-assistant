@@ -221,6 +221,9 @@ async function repo() {
   }
   if (!fetched || !run("git", ["reset", "--hard", "origin/main"], { quiet: true }).ok) return say(false, `העותק נוצר (${made.html_url}), אבל לא הצלחתי למשוך אותו`);
   run("git", ["branch", "--set-upstream-to=origin/main", "main"], { quiet: true });
+  // שינוי שהמשתמש יבקש בעתיד ייכתב בשם החשבון שלו. אחרת Vercel בתוכנית החינמית חוסם את ההעלאה.
+  run("git", ["config", "user.name", me.data.login], { quiet: true });
+  run("git", ["config", "user.email", `${me.data.id}+${me.data.login}@users.noreply.github.com`], { quiet: true });
   say(true, `העותק שלך: ${made.html_url} (פרטי)`);
 }
 
@@ -365,8 +368,12 @@ async function voice() {
   say(true, "מפתח Groq תקין");
   if (!vercel(["env", "add", "GROQ_API_KEY", "production", "--force", "--yes"], { input: k, quiet: true }).ok) return say(false, "לא הצלחתי להעביר את המפתח ל-Vercel");
   say(true, "GROQ_API_KEY הועבר ל-Vercel");
-  const d = vercel(["deploy", "--prod", "--yes"], { quiet: true });
-  say(d.ok, d.ok ? "הבוט עלה מחדש עם הודעות קוליות. שולחים לו הודעה קולית כדי לבדוק" : "ההעלאה מחדש נכשלה");
+  // בונים מחדש את הגרסה שכבר באוויר, ולא מעלים מהמחשב: העלאה מהמחשב מיוחסת לזהות ה-Git המקומית,
+  // ו-Vercel בתוכנית החינמית חוסם העלאה של מי שאינו בעל החשבון.
+  console.log("⏳ הבוט עולה מחדש עם המפתח החדש. זה לוקח דקה עד שלוש...");
+  const d = vercel(["redeploy", envNow().KIT_URL, "--target", "production"], { quiet: true });
+  const tail = d.out.trim().split("\n").slice(-4).join("\n");
+  say(d.ok, d.ok ? "הבוט עלה מחדש עם הודעות קוליות. שולחים לו הודעה קולית כדי לבדוק" : `ההעלאה מחדש נכשלה:\n${tail}`);
 }
 
 const STEPS = { preflight, login, env, accounts, repo, verify, deploy, activate, updates, briefing, voice };
