@@ -97,13 +97,25 @@ function run(cmd, args, { input, quiet = false } = {}) {
 
 // Vercel CLI שכבר מותקן חוסך הורדה. אם אין, npx מוריד גרסה קבועה.
 let hasVercel;
+/**
+ * לאיזה פרויקט התיקייה מחוברת ב-Vercel. גרסאות ישנות של ה-CLI כותבות .vercel/project.json,
+ * וגרסאות חדשות (בתיקייה של git) כותבות .vercel/repo.json עם רשימת פרויקטים.
+ */
+export function linkedProject(dir = ROOT) {
+  const read = (f) => (existsSync(join(dir, ".vercel", f)) ? JSON.parse(readFileSync(join(dir, ".vercel", f), "utf8")) : null);
+  const p = read("project.json");
+  if (p?.projectId) return { id: p.projectId, orgId: p.orgId, name: p.projectName || null };
+  const r = read("repo.json")?.projects?.[0];
+  return r?.id ? { id: r.id, orgId: r.orgId, name: r.name || null } : null;
+}
+
 // עם VERCEL_TOKEN כל פקודה הולכת לחשבון של הטוקן, ולא לחשבון שבמקרה מחובר במחשב
 const vercel = (args, opts) => {
   const t = envNow()?.VERCEL_TOKEN;
   const all = t ? [...args, "--token", t] : [...args];
   // הצוות של הפרויקט, ולא הצוות שבמקרה מוגדר במחשב. בלי זה פקודה לפי כתובת (redeploy) מחפשת בצוות הלא נכון.
-  const linkFile = join(ROOT, ".vercel", "project.json");
-  if (existsSync(linkFile) && !["login", "whoami", "--version"].includes(args[0])) all.push("--scope", JSON.parse(readFileSync(linkFile, "utf8")).orgId);
+  const link = linkedProject();
+  if (link?.orgId && !["login", "whoami", "--version"].includes(args[0])) all.push("--scope", link.orgId);
   return hasVercelNow() ? run("vercel", all, opts) : run("npx", ["--yes", VERCEL, ...all], opts);
 };
 
@@ -237,9 +249,9 @@ async function repo() {
 /** עם VERCEL_TOKEN שואלים את Vercel ישירות מה הכתובות של הפרויקט. זה הכי אמין. */
 async function projectDomain() {
   const t = envNow()?.VERCEL_TOKEN;
-  const linkFile = join(ROOT, ".vercel", "project.json");
-  if (!t || !existsSync(linkFile)) return null;
-  const { projectId, orgId } = JSON.parse(readFileSync(linkFile, "utf8"));
+  const link = linkedProject();
+  if (!t || !link) return null;
+  const { id: projectId, orgId } = link;
   const r = await fetch(`https://api.vercel.com/v9/projects/${projectId}/domains?teamId=${orgId}`, { headers: { authorization: `Bearer ${t}` } }).catch(() => null);
   const names = r?.ok ? ((await r.json()).domains || []).map((d) => d.name).filter((n) => n.endsWith(".vercel.app")) : [];
   return names.length ? `https://${names.sort((a, b) => a.length - b.length)[0]}` : null;
@@ -262,9 +274,9 @@ async function deploy() {
   const keepEnv = () => { if (readFileSync(ENV_FILE, "utf8") !== saved) writeFileSync(ENV_FILE, saved); };
   if (!vercel(["whoami"], { quiet: true }).ok) return say(false, "Vercel לא מחובר: מריצים npx vercel login ומאשרים בדפדפן");
 
-  // הרצה חוזרת: הפרויקט שהסקריפט כבר יצר רשום ב-.vercel/project.json, וממשיכים איתו
-  const linkFile = join(ROOT, ".vercel", "project.json");
-  let project = existsSync(linkFile) ? JSON.parse(readFileSync(linkFile, "utf8")).projectName || "הפרויקט הקיים" : null;
+  // הרצה חוזרת: הפרויקט שהסקריפט כבר יצר רשום בתיקייה .vercel, וממשיכים איתו
+  const existing = linkedProject();
+  let project = existing ? existing.name || "הפרויקט הקיים" : null;
   if (!project) {
     // השם לפי העותק ב-GitHub. לעולם לא מתחברים לפרויקט קיים: הוא יכול להיות בוט אחר
     // של המשתמש, וההגדרות שלו היו נדרסות. project add נכשל כשהשם תפוס, ואז מנסים את הבא.
@@ -385,9 +397,9 @@ async function voice() {
  */
 async function redeployProduction() {
   const t = envNow()?.VERCEL_TOKEN;
-  const linkFile = join(ROOT, ".vercel", "project.json");
-  if (!t || !existsSync(linkFile)) return { ok: false, error: "חסר VERCEL_TOKEN או חיבור לפרויקט" };
-  const { projectId, orgId } = JSON.parse(readFileSync(linkFile, "utf8"));
+  const link = linkedProject();
+  if (!t || !link) return { ok: false, error: "חסר VERCEL_TOKEN או חיבור לפרויקט" };
+  const { id: projectId, orgId } = link;
   const api = (path, init = {}) =>
     fetch(`https://api.vercel.com${path}${path.includes("?") ? "&" : "?"}teamId=${orgId}`, {
       ...init,

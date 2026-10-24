@@ -39,3 +39,19 @@ test("קובץ סודות ישן מקבל שדות חדשים עם ההסבר, �
   assert.match(out, /console\.groq\.com\/keys\nGROQ_API_KEY=/);
   assert.equal(addMissingFields(out), out.replace(/\s*$/, "\n"));
 });
+
+test("החיבור ל-Vercel נקרא גם מ-repo.json (CLI חדש) וגם מ-project.json (ישן)", async () => {
+  const { linkedProject } = await import("../scripts/setup.mjs");
+  const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const a = mkdtempSync(join(tmpdir(), "lk-"));
+  mkdirSync(join(a, ".vercel"));
+  writeFileSync(join(a, ".vercel", "repo.json"), JSON.stringify({ remoteName: "origin", projects: [{ id: "prj_1", orgId: "team_1", name: "bot-2" }] }));
+  assert.deepEqual(linkedProject(a), { id: "prj_1", orgId: "team_1", name: "bot-2" });
+  const b = mkdtempSync(join(tmpdir(), "lk-"));
+  mkdirSync(join(b, ".vercel"));
+  writeFileSync(join(b, ".vercel", "project.json"), JSON.stringify({ projectId: "prj_2", orgId: "team_2" }));
+  assert.deepEqual(linkedProject(b), { id: "prj_2", orgId: "team_2", name: null });
+  assert.equal(linkedProject(mkdtempSync(join(tmpdir(), "lk-"))), null);
+});
