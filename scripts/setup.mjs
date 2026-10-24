@@ -132,8 +132,23 @@ function preflight() {
   say(null, who.ok ? `Vercel מחובר במחשב לחשבון ${who.out.trim().split("\n").pop()}. נשתמש בו רק אם תאשר.` : "Vercel: נחבר עם טוקן בשלב הבא");
 }
 
+/** מוסיף לקובץ קיים שדות חדשים מהתבנית (למשל של תוספת), יחד עם ההסבר והקישור שמעליהם. */
+export function addMissingFields(text) {
+  const have = readEnv(text);
+  const lines = TEMPLATE.split("\n");
+  let out = text.replace(/\s*$/, "\n");
+  lines.forEach((line, i) => {
+    const key = /^([A-Z0-9_]+)=/.exec(line)?.[1];
+    if (!key || key in have) return;
+    let start = i;
+    while (start > 0 && lines[start - 1].startsWith("#")) start--;
+    out += `\n${lines.slice(start, i + 1).join("\n")}\n`;
+  });
+  return out;
+}
+
 function env() {
-  let text = existsSync(ENV_FILE) ? readFileSync(ENV_FILE, "utf8") : TEMPLATE;
+  let text = existsSync(ENV_FILE) ? addMissingFields(readFileSync(ENV_FILE, "utf8")) : TEMPLATE;
   if (!(readEnv(text).SETUP_PASSWORD || "").length) text = setEnvLine(text, "SETUP_PASSWORD", randomBytes(18).toString("base64url"));
   writeFileSync(ENV_FILE, text);
   const e = readEnv(text);

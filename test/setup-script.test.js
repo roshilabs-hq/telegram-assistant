@@ -28,3 +28,14 @@ test("אחרי העלאה נשמרת הכתובת הקבועה, לא הכתוב�
   assert.equal(productionUrl(out), "https://telegram-assistant-2.vercel.app");
   assert.equal(productionUrl("Aliased: https://my-bot.vercel.app [2s]"), "https://my-bot.vercel.app");
 });
+
+test("קובץ סודות ישן מקבל שדות חדשים עם ההסבר, והערכים הקיימים לא נוגעים", async () => {
+  const { addMissingFields } = await import("../scripts/setup.mjs");
+  const old = "TELEGRAM_TOKEN=abc\nAI_API_KEY=k\nSETUP_PASSWORD=p\n";
+  const out = addMissingFields(old);
+  const e = readEnv(out);
+  assert.equal(e.TELEGRAM_TOKEN, "abc");
+  assert.equal(e.GROQ_API_KEY, "");
+  assert.match(out, /console\.groq\.com\/keys\nGROQ_API_KEY=/);
+  assert.equal(addMissingFields(out), out.replace(/\s*$/, "\n"));
+});
