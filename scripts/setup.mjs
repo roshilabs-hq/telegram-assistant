@@ -205,12 +205,23 @@ function deploy() {
   const e = envNow() || {};
   const missing = REQUIRED.filter((k) => !e[k]);
   if (missing.length) return say(false, `חסר ב-.env.local: ${missing.join(", ")}`);
-  const project = basename(ROOT).toLowerCase().replace(/[^a-z0-9-]/g, "-").slice(0, 90) || "telegram-assistant";
-
   if (!vercel(["whoami"], { quiet: true }).ok) return say(false, "Vercel לא מחובר: מריצים npx vercel login ומאשרים בדפדפן");
-  const linked = vercel(["link", "--yes", "--project", project], { quiet: true }).ok
-    || (vercel(["project", "add", project], { quiet: true }), vercel(["link", "--yes", "--project", project]).ok);
-  if (!linked) return say(false, "לא הצלחתי ליצור את הפרויקט ב-Vercel");
+
+  // הרצה חוזרת: הפרויקט שהסקריפט כבר יצר רשום ב-.vercel/project.json, וממשיכים איתו
+  const linkFile = join(ROOT, ".vercel", "project.json");
+  let project = existsSync(linkFile) ? JSON.parse(readFileSync(linkFile, "utf8")).projectName || "הפרויקט הקיים" : null;
+  if (!project) {
+    // השם לפי העותק ב-GitHub. לעולם לא מתחברים לפרויקט קיים: הוא יכול להיות בוט אחר
+    // של המשתמש, וההגדרות שלו היו נדרסות. project add נכשל כשהשם תפוס, ואז מנסים את הבא.
+    const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
+    const base = (/\/([^/]+?)(?:\.git)?$/.exec(origin)?.[1] || basename(ROOT)).toLowerCase().replace(/[^a-z0-9-]/g, "-").slice(0, 90);
+    for (let i = 1; i <= 9 && !project; i++) {
+      const name = i === 1 ? base : `${base}-${i}`;
+      if (vercel(["project", "add", name], { quiet: true }).ok) project = name;
+    }
+    if (!project) return say(false, `לא הצלחתי ליצור פרויקט חדש ב-Vercel (כל השמות ${base} עד ${base}-9 תפוסים?)`);
+    if (!vercel(["link", "--yes", "--project", project]).ok) return say(false, "הפרויקט נוצר, אבל לא הצלחתי לחבר אליו את התיקייה");
+  }
   say(true, `פרויקט ב-Vercel: ${project}`);
 
   // החיבור ל-GitHub הוא מה שמעלה לבד כל עדכון שמאשרים (תוספת "עדכונים אוטומטיים")
