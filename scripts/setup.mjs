@@ -6,18 +6,20 @@
  *   node scripts/setup.mjs preflight   מה מותקן, ומה צריך לפני שמתחילים
  *   node scripts/setup.mjs login       התחברות ל-Vercel (נפתח דפדפן)
  *   node scripts/setup.mjs env         יוצר את .env.local ומייצר סיסמת הקמה
- *   node scripts/setup.mjs accounts    לאיזה חשבון GitHub ו-Vercel שייך כל טוקן
- *   node scripts/setup.mjs repo        יוצר את העותק הפרטי מהתבנית בחשבון של GITHUB_TOKEN
- *   node scripts/setup.mjs verify      בודק את הטוקן ואת מפתח ה-AI מול טלגרם והספק
- *   node scripts/setup.mjs deploy      יוצר פרויקט ב-Vercel, מחבר Supabase ו-GitHub, ומעלה
+ *   node scripts/setup.mjs verify      בודק את הטוקן מול טלגרם, ואת מפתח ה-AI בבקשה אמיתית
+ *   node scripts/setup.mjs accounts    לאיזה חשבון GitHub ולאיזה צוות Vercel שייכים הטוקנים
+ *   node scripts/setup.mjs confirm <github> <vercel>   שומר את אישור המשתמש. בלעדיו repo ו-deploy לא רצים
+ *   node scripts/setup.mjs repo        יוצר את העותק הפרטי מהתבנית בחשבון שאושר
+ *   node scripts/setup.mjs deploy      יוצר פרויקט ב-Vercel בצוות שאושר, מחבר Supabase ו-GitHub, ומעלה
  *   node scripts/setup.mjs activate    "הפעילו הכול" מרחוק, ומחזיר את קישור החיבור
  *   node scripts/setup.mjs updates     תוספת: עדכונים אוטומטיים (ההגדרה ב-GitHub, דרך הטוקן)
  *   node scripts/setup.mjs briefing 07:30   תוספת: תדריך בוקר (בלי שעה: מכבה)
  *   node scripts/setup.mjs voice       תוספת: הודעות קוליות (GROQ_API_KEY עובר ל-Vercel)
  *
- * לעולם לא מדפיס ערך של סוד. הסודות עוברים מ-.env.local ל-Vercel דרך stdin.
+ * לעולם לא מדפיס ערך של סוד. סודות עוברים ל-Vercel דרך stdin, וטוקנים דרך סביבת התהליך,
+ * כדי שלא יופיעו בשורת הפקודה. כל שלב בטוח להרצה חוזרת.
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { hostname } from "node:os";
@@ -51,10 +53,10 @@ export const TEMPLATE = `# הסודות של הבוט. הקובץ הזה נשא�
 # מדביקים אחרי ה-= בלי רווחים ובלי מירכאות.
 
 # --- שני טוקנים להקמה בלבד. הם קובעים באיזה חשבון הכול נוצר, ולא עולים לבוט. ---
-# GitHub: נכנסים לקישור, בוחרים Expiration של 30 יום, לוחצים Generate token ומעתיקים (מתחיל ב-ghp_)
+# GitHub: נכנסים לקישור, בוחרים Expiration של 7 ימים, לוחצים Generate token ומעתיקים (מתחיל ב-ghp_)
 # https://github.com/settings/tokens/new?scopes=repo,workflow&description=telegram-assistant-setup
 GITHUB_TOKEN=
-# Vercel: נכנסים לקישור, Create Token, נותנים שם, Expiration של 30 יום, Create ומעתיקים
+# Vercel: נכנסים לקישור, Create Token, נותנים שם, Expiration של 7 ימים, Create ומעתיקים
 # https://vercel.com/account/settings/tokens
 VERCEL_TOKEN=
 
@@ -79,7 +81,7 @@ const envNow = () => (existsSync(ENV_FILE) ? readEnv(readFileSync(ENV_FILE, "utf
 // NODE_OPTIONS מוחק לוכסנים הפוכים, ולכן הנתיב נכתב עם /
 const PRELOAD = `--require "${join(ROOT, "scripts", "ascii-hostname.cjs").replace(/\\/g, "/")}"`;
 
-function run(cmd, args, { input, quiet = false } = {}) {
+function run(cmd, args, { input, quiet = false, env: extra = {} } = {}) {
   // ב-Windows הפקודות הן קובצי .cmd, שרצים רק דרך shell. כל הארגומנטים כאן שלנו, לא של המשתמש.
   const line = [cmd, ...args.map((a) => (/^[\w@.:=/-]+$/.test(a) ? a : JSON.stringify(a)))].join(" ");
   const r = spawnSync(line, {
@@ -88,15 +90,13 @@ function run(cmd, args, { input, quiet = false } = {}) {
     encoding: "utf8",
     shell: true,
     stdio: [input === undefined ? "inherit" : "pipe", "pipe", "pipe"],
-    env: { ...process.env, NODE_OPTIONS: PRELOAD },
+    env: { ...process.env, NODE_OPTIONS: PRELOAD, ...extra },
   });
   const out = `${r.stdout || ""}${r.stderr || ""}`.replace(/<claude-code-hint[^>]*>\s*/g, "");
   if (!quiet && r.status !== 0) console.log(out.trim().split("\n").slice(-6).join("\n"));
   return { ok: r.status === 0, out };
 }
 
-// Vercel CLI שכבר מותקן חוסך הורדה. אם אין, npx מוריד גרסה קבועה.
-let hasVercel;
 /**
  * לאיזה פרויקט התיקייה מחוברת ב-Vercel. גרסאות ישנות של ה-CLI כותבות .vercel/project.json,
  * וגרסאות חדשות (בתיקייה של git) כותבות .vercel/repo.json עם רשימת פרויקטים.
@@ -109,14 +109,30 @@ export function linkedProject(dir = ROOT) {
   return r?.id ? { id: r.id, orgId: r.orgId, name: r.name || null } : null;
 }
 
-// עם VERCEL_TOKEN כל פקודה הולכת לחשבון של הטוקן, ולא לחשבון שבמקרה מחובר במחשב
-const vercel = (args, opts) => {
+/** מצב ההקמה (בלי סודות): מה המשתמש אישר. נשמר ב-.vercel, שלא עולה ל-git. */
+function readState(name) {
+  const f = join(ROOT, ".vercel", `setup-${name}.json`);
+  return existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : null;
+}
+function writeState(name, data) {
+  mkdirSync(join(ROOT, ".vercel"), { recursive: true });
+  writeFileSync(join(ROOT, ".vercel", `setup-${name}.json`), JSON.stringify(data, null, 2));
+}
+
+// Vercel CLI שכבר מותקן חוסך הורדה, אבל רק מגרסה 54: גרסה ישנה לא קוראת את VERCEL_TOKEN מהסביבה,
+// ואז הייתה עובדת בשקט מול החשבון שמחובר במחשב. אחרת npx מוריד גרסה קבועה.
+let hasVercel;
+const hasVercelNow = () => (hasVercel ??= Number(/(\d+)\.\d+\.\d+/.exec(run("vercel", ["--version"], { quiet: true }).out)?.[1] || 0) >= 54);
+
+const vercel = (args, opts = {}) => {
+  // הטוקן בסביבת התהליך, ולא בשורת הפקודה (שם הוא גלוי ברשימת התהליכים של המחשב)
   const t = envNow()?.VERCEL_TOKEN;
-  const all = t ? [...args, "--token", t] : [...args];
-  // הצוות של הפרויקט, ולא הצוות שבמקרה מוגדר במחשב. בלי זה פקודה לפי כתובת (redeploy) מחפשת בצוות הלא נכון.
-  const link = linkedProject();
-  if (link?.orgId && !["login", "whoami", "--version"].includes(args[0])) all.push("--scope", link.orgId);
-  return hasVercelNow() ? run("vercel", all, opts) : run("npx", ["--yes", VERCEL, ...all], opts);
+  const all = [...args];
+  // הצוות של הפרויקט, או הצוות שהמשתמש אישר. לא הצוות שבמקרה מוגדר במחשב.
+  const team = linkedProject()?.orgId || readState("confirmed")?.teamId;
+  if (team && !["login", "whoami", "--version"].includes(args[0])) all.push("--scope", team);
+  const o = { ...opts, env: t ? { VERCEL_TOKEN: t } : {} };
+  return hasVercelNow() ? run("vercel", all, o) : run("npx", ["--yes", VERCEL, ...all], o);
 };
 
 const gh = async (path, token, init = {}) => {
@@ -126,10 +142,47 @@ const gh = async (path, token, init = {}) => {
   }).catch(() => null);
   return { status: r?.status || 0, data: r ? await r.json().catch(() => ({})) : {} };
 };
-const vercelUser = async (token) => {
-  const r = await fetch("https://api.vercel.com/v2/user", { headers: { authorization: `Bearer ${token}` } }).catch(() => null);
-  return r?.ok ? (await r.json()).user?.username : null;
-};
+const vapi = (path, token) =>
+  fetch(`https://api.vercel.com${path}`, { headers: { authorization: `Bearer ${token}` } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+
+/** למי שייכים הטוקנים: משתמש ב-GitHub, ומשתמש וצוות ב-Vercel (שם ייווצר הפרויקט). */
+async function identity() {
+  const e = envNow() || {};
+  const out = {};
+  if (e.GITHUB_TOKEN) {
+    const u = await gh("/user", e.GITHUB_TOKEN);
+    if (u.status === 200) out.github = u.data.login;
+  } else {
+    // בלי טוקן: החשבון שמחובר ב-GitHub CLI (המסלול למי שלא יוצר טוקנים)
+    const g = run("gh", ["api", "user", "--jq", ".login"], { quiet: true });
+    if (g.ok) out.github = g.out.trim();
+  }
+  if (e.VERCEL_TOKEN) {
+    const u = (await vapi("/v2/user", e.VERCEL_TOKEN))?.user;
+    if (u) {
+      out.vercelUser = u.username;
+      const team = u.defaultTeamId ? await vapi(`/v2/teams/${u.defaultTeamId}`, e.VERCEL_TOKEN) : null;
+      if (team) Object.assign(out, { teamId: team.id, teamSlug: team.slug, teamName: team.name });
+    }
+  } else {
+    const w = vercel(["whoami"], { quiet: true });
+    if (w.ok) out.vercelUser = w.out.trim().split("\n").pop();
+  }
+  return out;
+}
+
+/** עוצר אם החשבון שיוצרים בו הוא לא זה שהמשתמש אישר, או שהטוקן הוחלף מאז האישור. */
+async function confirmedFor(kind) {
+  const c = readState("confirmed");
+  if (!c) {
+    say(false, "החשבונות עוד לא אושרו. מראים למשתמש את accounts, ורק אחרי \"כן\" מריצים confirm.");
+    return false;
+  }
+  const now = await identity();
+  const ok = kind === "github" ? Boolean(now.github) && now.github === c.github : c.teamId ? now.teamId === c.teamId : now.vercelUser === c.vercelUser;
+  if (!ok) say(false, "הטוקן שייך עכשיו לחשבון אחר ממה שאושר. מריצים שוב accounts, מראים למשתמש, ומאשרים מחדש.");
+  return ok;
+}
 
 // ---------- השלבים ----------
 
@@ -137,9 +190,9 @@ function preflight() {
   const [major] = process.versions.node.split(".").map(Number);
   say(major >= 20, `Node.js ${process.versions.node}${major >= 20 ? "" : " (צריך 20 ומעלה)"}`);
   say(run("git", ["--version"], { quiet: true }).ok, "Git");
-  const gh = run("gh", ["auth", "status"], { quiet: true });
-  if (gh.ok) say(true, "GitHub CLI מחובר (אפשר ליצור את העותק בפקודה)");
-  else say(null, /not logged|auth login/i.test(gh.out) ? "GitHub CLI מותקן אבל לא מחובר: מריצים gh auth login --web" : "אין GitHub CLI: את העותק יוצרים בלחיצה אחת ב-GitHub");
+  const g = run("gh", ["auth", "status"], { quiet: true });
+  if (g.ok) say(true, "GitHub CLI מחובר (גיבוי, למי שלא יוצר טוקנים)");
+  else say(null, "אין GitHub CLI מחובר. זה בסדר: את העותק יוצרים עם הטוקן");
   if (/[^\x20-\x7E]/.test(hostname())) say(null, "שם המחשב בעברית. Vercel CLI נשבר מזה, ואנחנו עוקפים את זה אוטומטית.");
   if (envNow()?.VERCEL_TOKEN) return;
   // החשבון שמחובר במחשב הוא רק גיבוי. בדרך הרגילה החשבון נקבע לפי הטוקן בשלב הבא.
@@ -170,6 +223,32 @@ function env() {
   for (const k of REQUIRED) say(Boolean(e[k]), `${k}: ${e[k] ? "יש" : "חסר"}`);
 }
 
+/** איזה מודל זול לבדיקה, מתוך רשימת המודלים שהספק החזיר. */
+export function cheapModel(provider, list) {
+  const ids =
+    provider === "google"
+      ? (list.models || []).filter((m) => (m.supportedGenerationMethods || []).includes("generateContent")).map((m) => m.name)
+      : (list.data || []).map((m) => m.id);
+  const want = { google: /flash/, openai: /^gpt-.*mini/, anthropic: /haiku/ }[provider];
+  return ids.find((id) => want.test(id)) || ids[0] || null;
+}
+
+/** בקשה אמיתית אחת, של מילה אחת: מוכיחה שהמפתח עובד ושיש אמצעי תשלום, לא רק שהמפתח קיים. */
+async function tryAnswer(provider, key, model) {
+  const req = {
+    google: [`https://generativelanguage.googleapis.com/v1beta/${model}:generateContent?key=${encodeURIComponent(key)}`, { contents: [{ parts: [{ text: "hi" }] }], generationConfig: { maxOutputTokens: 1 } }, {}],
+    openai: ["https://api.openai.com/v1/chat/completions", { model, messages: [{ role: "user", content: "hi" }], max_completion_tokens: 1 }, { authorization: `Bearer ${key}` }],
+    anthropic: ["https://api.anthropic.com/v1/messages", { model, max_tokens: 1, messages: [{ role: "user", content: "hi" }] }, { "x-api-key": key, "anthropic-version": "2023-06-01" }],
+  }[provider];
+  const r = await fetch(req[0], { method: "POST", headers: { "content-type": "application/json", ...req[2] }, body: JSON.stringify(req[1]) }).catch(() => null);
+  if (!r) return { ok: null };
+  if (r.ok) return { ok: true };
+  const text = await r.text().catch(() => "");
+  if ([400, 402, 403, 429].includes(r.status) && /quota|billing|credit|balance|insufficient|payment/i.test(text)) return { ok: false, billing: true };
+  if (r.status === 401 || r.status === 403) return { ok: false };
+  return { ok: null, status: r.status }; // תשובה לא צפויה: לא חוסמים, אבל מדווחים
+}
+
 async function verify() {
   const e = envNow() || {};
   const t = e.TELEGRAM_TOKEN || "";
@@ -181,43 +260,76 @@ async function verify() {
   const k = e.AI_API_KEY || "";
   const p = k.startsWith("sk-ant-") ? "anthropic" : k.startsWith("AIza") || k.startsWith("AQ.") ? "google" : k.startsWith("sk-") ? "openai" : null;
   if (!p) return say(false, k ? "המפתח לא נראה כמו מפתח של Gemini, ChatGPT או Claude" : "AI_API_KEY חסר ב-.env.local");
-  const req = {
+  const name = { google: "Gemini", openai: "ChatGPT", anthropic: "Claude" }[p];
+  const listReq = {
     google: [`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(k)}`, {}],
     openai: ["https://api.openai.com/v1/models", { headers: { authorization: `Bearer ${k}` } }],
     anthropic: ["https://api.anthropic.com/v1/models", { headers: { "x-api-key": k, "anthropic-version": "2023-06-01" } }],
   }[p];
-  const r = await fetch(...req).catch(() => null);
-  const name = { google: "Gemini", openai: "ChatGPT", anthropic: "Claude" }[p];
-  say(r?.ok, r?.ok ? `מפתח ${name} תקין` : `הספק (${name}) דחה את המפתח${r ? ` (קוד ${r.status})` : ""}. בודקים שהועתק כולו, ושיש אמצעי תשלום בחשבון.`);
+  const list = await fetch(...listReq).catch(() => null);
+  if (!list?.ok) return say(false, `הספק (${name}) דחה את המפתח${list ? ` (קוד ${list.status})` : ""}. בודקים שהועתק כולו.`);
+  const model = cheapModel(p, await list.json().catch(() => ({})));
+  const a = model ? await tryAnswer(p, k, model) : { ok: null };
+  if (a.ok) say(true, `מפתח ${name} תקין, והוא עונה`);
+  else if (a.billing) say(false, `המפתח של ${name} תקין, אבל אין בחשבון יתרה או אמצעי תשלום. מחברים תשלום לפי השלב "מוציאים מפתח לבינה המלאכותית", ומריצים שוב.`);
+  else if (a.ok === false) say(false, `${name} דחה את המפתח. בודקים שהועתק כולו.`);
+  else say(null, `מפתח ${name} תקין, אבל בדיקת התשובה לא הושלמה${a.status ? ` (קוד ${a.status})` : ""}. נגלה בהודעה הראשונה לבוט.`);
 }
 
 /** לאיזה חשבון כל טוקן שייך. Claude מראה את זה למשתמש ושואל לפני שיוצרים משהו. */
 async function accounts() {
   const e = envNow() || {};
+  const id = await identity();
   if (!e.GITHUB_TOKEN) say(false, "GITHUB_TOKEN חסר ב-.env.local");
-  else {
-    const u = await gh("/user", e.GITHUB_TOKEN);
-    say(u.status === 200, u.status === 200 ? `GitHub: ${u.data.login}` : "GitHub לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ, ומעתיקים את כולו.");
-  }
-  if (!e.VERCEL_TOKEN) say(null, "אין VERCEL_TOKEN: נעבוד עם החשבון שמחובר במחשב (אחרי אישור)");
-  else {
-    const name = await vercelUser(e.VERCEL_TOKEN);
-    say(Boolean(name), name ? `Vercel: ${name}` : "Vercel לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ.");
-  }
+  else say(Boolean(id.github), id.github ? `GitHub: ${id.github}` : "GitHub לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ, ומעתיקים את כולו.");
+  if (!e.VERCEL_TOKEN) say(null, id.vercelUser ? `אין VERCEL_TOKEN. במחשב מחובר Vercel של ${id.vercelUser}` : "אין VERCEL_TOKEN, ו-Vercel לא מחובר במחשב");
+  else if (!id.vercelUser) say(false, "Vercel לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ.");
+  else say(true, `Vercel: ${id.vercelUser}${id.teamName ? `, צוות: ${id.teamName} (${id.teamSlug})` : ""}`);
+  const vercelName = id.teamSlug || id.vercelUser;
+  if (id.github && vercelName) console.log(`\nאחרי שהמשתמש אישר: node scripts/setup.mjs confirm ${id.github} ${vercelName}`);
+}
+
+/** המשתמש אישר. השמות חייבים להתאים לטוקנים ברגע הזה, אחרת לא נשמר אישור. */
+async function confirm() {
+  const [github, vercelName] = process.argv.slice(3);
+  const id = await identity();
+  const now = id.teamSlug || id.vercelUser;
+  if (!github || github !== id.github) return say(false, `GitHub שאושר (${github || "-"}) לא תואם לטוקן (${id.github || "-"})`);
+  if (!vercelName || vercelName !== now) return say(false, `Vercel שאושר (${vercelName || "-"}) לא תואם לטוקן (${now || "-"})`);
+  writeState("confirmed", { github: id.github, vercelUser: id.vercelUser || null, teamId: id.teamId || null, teamSlug: id.teamSlug || null, at: new Date().toISOString() });
+  say(true, `אושר: GitHub ${id.github}, Vercel ${vercelName}`);
 }
 
 /**
- * יוצר את העותק הפרטי מהתבנית בחשבון של GITHUB_TOKEN, ומעביר את התיקייה הזו אליו.
+ * יוצר את העותק הפרטי מהתבנית בחשבון שאושר, ומחבר אליו את התיקייה הזו.
  * הקבצים לא משתנים (אותה תבנית), ו-.env.local נשאר כי הוא ב-.gitignore.
  */
 async function repo() {
   const t = envNow()?.GITHUB_TOKEN;
   if (!t) return say(false, "GITHUB_TOKEN חסר ב-.env.local");
+  if (!(await confirmedFor("github"))) return;
   const me = await gh("/user", t);
   if (me.status !== 200) return say(false, "GitHub לא מכיר את הטוקן");
-  let name, made;
+  const setIdentity = () => {
+    // שינוי שהמשתמש יבקש בעתיד ייכתב בשם החשבון שלו. אחרת Vercel בתוכנית החינמית חוסם את ההעלאה.
+    run("git", ["config", "user.name", me.data.login], { quiet: true });
+    run("git", ["config", "user.email", `${me.data.id}+${me.data.login}@users.noreply.github.com`], { quiet: true });
+  };
+
+  // הרצה חוזרת: התיקייה כבר מחוברת לעותק של המשתמש, ולא יוצרים עוד אחד
+  const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
+  const current = /github\.com[/:]([^/]+)\/([^/.]+?)(?:\.git)?$/.exec(origin);
+  if (current && current[1] !== "roshilabs-hq") {
+    if (current[1].toLowerCase() !== me.data.login.toLowerCase()) return say(false, `התיקייה מחוברת לעותק של ${current[1]}, ולא של ${me.data.login}. עוצרים ושואלים את המשתמש.`);
+    setIdentity();
+    return say(true, `כבר יש לך עותק: https://github.com/${current[1]}/${current[2]} (פרטי)`);
+  }
+  // הקבצים עומדים להתחלף בקבצים של העותק החדש. שינוי מקומי היה נמחק, אז עוצרים.
+  if (run("git", ["status", "--porcelain"], { quiet: true }).out.trim()) return say(false, "יש בתיקייה שינויים שלא נשמרו. עוצרים ושואלים את המשתמש לפני שיוצרים את העותק.");
+
+  let made;
   for (let i = 1; i <= 9 && !made; i++) {
-    name = i === 1 ? "telegram-assistant" : `telegram-assistant-${i}`;
+    const name = i === 1 ? "telegram-assistant" : `telegram-assistant-${i}`;
     const r = await gh("/repos/roshilabs-hq/telegram-assistant/generate", t, {
       method: "POST",
       body: JSON.stringify({ owner: me.data.login, name, private: true, description: "העוזר האישי שלי בטלגרם" }),
@@ -226,37 +338,38 @@ async function repo() {
     else if (r.status !== 422) return say(false, `GitHub סירב ליצור את העותק (קוד ${r.status}). הטוקן צריך הרשאות repo ו-workflow.`);
   }
   if (!made) return say(false, "כל השמות telegram-assistant עד telegram-assistant-9 תפוסים בחשבון");
-  // הטוקן עובר בכותרת של הפקודה הזו בלבד, ולא נשמר ב-.git/config
-  const auth = `http.https://github.com/.extraheader=AUTHORIZATION: basic ${Buffer.from(`x-access-token:${t}`).toString("base64")}`;
+  // הטוקן עובר בסביבת הפקודה הזו בלבד: לא בשורת הפקודה, ולא נשמר ב-.git/config
+  const auth = {
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: "http.https://github.com/.extraheader",
+    GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${t}`).toString("base64")}`,
+  };
   run("git", ["remote", "set-url", "origin", made.clone_url], { quiet: true });
   let fetched = false;
   for (let i = 0; i < 6 && !fetched; i++) {
-    fetched = run("git", ["-c", auth, "fetch", "origin"], { quiet: true }).ok;
+    fetched = run("git", ["fetch", "origin"], { quiet: true, env: auth }).ok;
     if (!fetched) await new Promise((ok) => setTimeout(ok, 3000)); // GitHub בונה את העותק כמה שניות
   }
   if (!fetched || !run("git", ["reset", "--hard", "origin/main"], { quiet: true }).ok) return say(false, `העותק נוצר (${made.html_url}), אבל לא הצלחתי למשוך אותו`);
   run("git", ["branch", "--set-upstream-to=origin/main", "main"], { quiet: true });
-  // שינוי שהמשתמש יבקש בעתיד ייכתב בשם החשבון שלו. אחרת Vercel בתוכנית החינמית חוסם את ההעלאה.
-  run("git", ["config", "user.name", me.data.login], { quiet: true });
-  run("git", ["config", "user.email", `${me.data.id}+${me.data.login}@users.noreply.github.com`], { quiet: true });
+  setIdentity();
   say(true, `העותק שלך: ${made.html_url} (פרטי)`);
+}
+
+/** עם VERCEL_TOKEN שואלים את Vercel ישירות מה הכתובות של הפרויקט. זה הכי אמין. */
+async function projectDomain() {
+  const t = envNow()?.VERCEL_TOKEN;
+  const link = linkedProject();
+  if (!t || !link) return null;
+  const d = await vapi(`/v9/projects/${link.id}/domains?teamId=${link.orgId}`, t);
+  const names = (d?.domains || []).map((x) => x.name).filter((n) => n.endsWith(".vercel.app"));
+  return names.length ? `https://${names.sort((a, b) => a.length - b.length)[0]}` : null;
 }
 
 /**
  * מכל כתובות ה-vercel.app בפלט, הקבועה היא הקצרה ביותר: לכתובת של העלאה בודדת
  * Vercel מוסיף קוד ושם חשבון (project-abc123-team.vercel.app).
  */
-/** עם VERCEL_TOKEN שואלים את Vercel ישירות מה הכתובות של הפרויקט. זה הכי אמין. */
-async function projectDomain() {
-  const t = envNow()?.VERCEL_TOKEN;
-  const link = linkedProject();
-  if (!t || !link) return null;
-  const { id: projectId, orgId } = link;
-  const r = await fetch(`https://api.vercel.com/v9/projects/${projectId}/domains?teamId=${orgId}`, { headers: { authorization: `Bearer ${t}` } }).catch(() => null);
-  const names = r?.ok ? ((await r.json()).domains || []).map((d) => d.name).filter((n) => n.endsWith(".vercel.app")) : [];
-  return names.length ? `https://${names.sort((a, b) => a.length - b.length)[0]}` : null;
-}
-
 export function productionUrl(output) {
   const alias = /Aliased:\s*(https:\/\/\S+)/.exec(output)?.[1];
   if (alias) return alias.replace(/\/+$/, "");
@@ -264,24 +377,33 @@ export function productionUrl(output) {
   return all.sort((a, b) => a.length - b.length)[0] || null;
 }
 
+/** פרויקט שמחובר לתיקייה מתאים לה רק אם הוא בצוות שאושר ונקרא כמו העותק (או עם סיומת). */
+export function sameProject(existing, base, teamId) {
+  if (!existing) return true;
+  if (teamId && existing.orgId !== teamId) return false;
+  return !existing.name || new RegExp(`^${base}(-\\d+)?$`).test(existing.name);
+}
+
 async function deploy() {
   const e = envNow() || {};
   const missing = REQUIRED.filter((k) => !e[k]);
   if (missing.length) return say(false, `חסר ב-.env.local: ${missing.join(", ")}`);
+  if (!vercel(["whoami"], { quiet: true }).ok) return say(false, "Vercel לא מחובר: מריצים node scripts/setup.mjs login");
+  if (!(await confirmedFor("vercel"))) return;
   // Vercel CLI "מושך" את משתני הפרויקט לתוך .env.local אחרי link ואחרי חיבור מסד, ודורס את הטוקנים.
   // שומרים את הקובץ ומחזירים אותו אחרי כל שלב כזה. את משתני המסד הבוט קורא מ-Vercel, לא מהמחשב.
   const saved = readFileSync(ENV_FILE, "utf8");
   const keepEnv = () => { if (readFileSync(ENV_FILE, "utf8") !== saved) writeFileSync(ENV_FILE, saved); };
-  if (!vercel(["whoami"], { quiet: true }).ok) return say(false, "Vercel לא מחובר: מריצים npx vercel login ומאשרים בדפדפן");
 
-  // הרצה חוזרת: הפרויקט שהסקריפט כבר יצר רשום בתיקייה .vercel, וממשיכים איתו
+  const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
+  const base = (/\/([^/]+?)(?:\.git)?$/.exec(origin)?.[1] || basename(ROOT)).toLowerCase().replace(/[^a-z0-9-]/g, "-").slice(0, 90);
+  // הרצה חוזרת: ממשיכים עם הפרויקט שמחובר לתיקייה רק אם הוא שלה. תיקייה שהועתקה מבוט אחר
+  // מחוברת לפרויקט שלו, וההגדרות שלו היו נדרסות.
   const existing = linkedProject();
+  if (!sameProject(existing, base, readState("confirmed")?.teamId)) return say(false, `התיקייה מחוברת לפרויקט אחר ב-Vercel (${existing.name || existing.id}). עוצרים ושואלים את המשתמש.`);
   let project = existing ? existing.name || "הפרויקט הקיים" : null;
   if (!project) {
-    // השם לפי העותק ב-GitHub. לעולם לא מתחברים לפרויקט קיים: הוא יכול להיות בוט אחר
-    // של המשתמש, וההגדרות שלו היו נדרסות. project add נכשל כשהשם תפוס, ואז מנסים את הבא.
-    const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
-    const base = (/\/([^/]+?)(?:\.git)?$/.exec(origin)?.[1] || basename(ROOT)).toLowerCase().replace(/[^a-z0-9-]/g, "-").slice(0, 90);
+    // השם לפי העותק ב-GitHub. project add נכשל כשהשם תפוס, ואז מנסים את הבא, כך שלעולם לא נוגעים בפרויקט קיים.
     for (let i = 1; i <= 9 && !project; i++) {
       const name = i === 1 ? base : `${base}-${i}`;
       if (vercel(["project", "add", name], { quiet: true }).ok) project = name;
@@ -295,7 +417,8 @@ async function deploy() {
 
   // החיבור ל-GitHub הוא מה שמעלה לבד כל עדכון שמאשרים (תוספת "עדכונים אוטומטיים")
   const git = vercel(["git", "connect", "--yes"], { quiet: true });
-  say(git.ok || /already connected/i.test(git.out) ? true : null, git.ok || /already connected/i.test(git.out) ? "Vercel מחובר ל-GitHub" : "החיבור ל-GitHub לא הצליח. אפשר בהמשך: Vercel ‹ Settings ‹ Git");
+  const gitOk = git.ok || /already connected/i.test(git.out);
+  say(gitOk, gitOk ? "Vercel מחובר ל-GitHub" : "Vercel לא התחבר לעותק ב-GitHub. הבוט יעלה, אבל עדכונים שמאשרים לא יעלו לבד. מתקנים ב-Vercel ‹ Settings ‹ Git ‹ Connect.");
 
   const names = vercel(["env", "ls", "production"], { quiet: true }).out;
   if (!/POSTGRES_URL|SUPABASE_URL/.test(names)) {
@@ -320,6 +443,20 @@ async function deploy() {
   say(true, `הבוט באוויר: ${url}`);
 }
 
+/** קריאה לעמוד ההקמה של הבוט. כל תשובה שאינה 2xx היא שגיאה, עם הסבר. */
+async function setupApi(body) {
+  const e = envNow() || {};
+  if (!e.KIT_URL) return { errors: ["אין עדיין KIT_URL. מריצים קודם את deploy."] };
+  const headers = { "x-setup-password": e.SETUP_PASSWORD, "content-type": "application/json" };
+  const url = `${e.KIT_URL.replace(/\/+$/, "")}/api/setup?format=json`;
+  const r = await fetch(url, body ? { method: "POST", headers, body: JSON.stringify(body) } : { headers }).catch((x) => ({ failed: x }));
+  if (r.failed) return { errors: [`לא הצלחתי להגיע לבוט: ${r.failed.message}`] };
+  if (r.status === 401) return { errors: ["עמוד ההקמה דחה את הסיסמה: SETUP_PASSWORD ב-.env.local שונה מזו שב-Vercel"] };
+  if (r.status === 429) return { errors: ["יותר מדי ניסיונות כניסה. מחכים דקה ומנסים שוב."] };
+  if (!r.ok) return { errors: [`עמוד ההקמה החזיר שגיאה (קוד ${r.status})`] };
+  return r.json().catch(() => ({ errors: ["עמוד ההקמה החזיר תשובה לא תקינה"] }));
+}
+
 async function activate() {
   const a = await setupApi({ action: "activate" });
   for (const err of a.errors || []) say(false, err);
@@ -330,7 +467,7 @@ async function activate() {
     await new Promise((ok) => setTimeout(ok, 15000));
     s = await setupApi();
   }
-  if (!s?.steps) return say(false, "לא הצלחתי לקרוא את עמוד ההקמה");
+  if (!s?.steps) return (s?.errors || ["לא הצלחתי לקרוא את עמוד ההקמה"]).forEach((x) => say(false, x));
   for (const step of s.steps.filter((x) => x.kind !== "addon")) say(step.ok, step.title);
   if (s.pair_link) console.log(`\nקישור החיבור (פותחים בטלפון ולוחצים Start):\n${s.pair_link}`);
 }
@@ -340,30 +477,26 @@ function login() {
   const r = spawnSync(hasVercelNow() ? "vercel login" : `npx --yes ${VERCEL} login`, { cwd: ROOT, shell: true, stdio: "inherit", env: { ...process.env, NODE_OPTIONS: PRELOAD } });
   say(r.status === 0, r.status === 0 ? "מחובר ל-Vercel" : "ההתחברות לא הושלמה. מריצים שוב, ומאשרים בדפדפן שנפתח.");
 }
-const hasVercelNow = () => (hasVercel ??= run("vercel", ["--version"], { quiet: true }).ok);
 
 // ---------- תוספות ----------
 
-async function setupApi(body) {
-  const e = envNow() || {};
-  if (!e.KIT_URL) return { errors: ["אין עדיין KIT_URL. מריצים קודם את deploy."] };
-  const headers = { "x-setup-password": e.SETUP_PASSWORD, "content-type": "application/json" };
-  return fetch(`${e.KIT_URL.replace(/\/+$/, "")}/api/setup?format=json`, body ? { method: "POST", headers, body: JSON.stringify(body) } : { headers })
-    .then((r) => r.json()).catch((x) => ({ errors: [x.message] }));
-}
-
-/** עדכונים אוטומטיים: ההגדרה האחת ב-GitHub (ש-Actions יוכל לפתוח בקשת עדכון), דרך הטוקן. */
+/** עדכונים אוטומטיים: ההגדרה ב-GitHub (ש-Actions יוכל לפתוח בקשת עדכון), ובדיקה ש-Vercel מחובר לעותק. */
 async function updates() {
   const t = envNow()?.GITHUB_TOKEN;
   if (!t) return say(false, "GITHUB_TOKEN חסר ב-.env.local. בלעדיו מפעילים בעמוד: addons/05-updates.md");
   const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
-  const repo = /github\.com[/:]([^/]+\/[^/.]+?)(?:\.git)?$/.exec(origin)?.[1];
-  if (!repo) return say(false, "לא מצאתי את העותק ב-GitHub");
-  const r = await gh(`/repos/${repo}/actions/permissions/workflow`, t, {
+  const repoName = /github\.com[/:]([^/]+\/[^/.]+?)(?:\.git)?$/.exec(origin)?.[1];
+  if (!repoName) return say(false, "לא מצאתי את העותק ב-GitHub");
+  const r = await gh(`/repos/${repoName}/actions/permissions/workflow`, t, {
     method: "PUT",
     body: JSON.stringify({ default_workflow_permissions: "write", can_approve_pull_request_reviews: true }),
   });
-  say(r.status === 204, r.status === 204 ? "עדכונים אוטומטיים פועלים: פעם בשבוע תגיע בקשת עדכון, ומאשרים בלחיצה" : `GitHub סירב (קוד ${r.status})`);
+  if (r.status !== 204) return say(false, `GitHub סירב (קוד ${r.status})`);
+  const vt = envNow()?.VERCEL_TOKEN;
+  const link = linkedProject();
+  const p = vt && link ? await vapi(`/v9/projects/${link.id}?teamId=${link.orgId}`, vt) : null;
+  if (p && !p.link) return say(false, "ב-GitHub זה מוכן, אבל Vercel לא מחובר לעותק, ולכן עדכון שמאשרים לא יעלה לבד. מתקנים ב-Vercel ‹ Settings ‹ Git ‹ Connect.");
+  say(true, "עדכונים אוטומטיים פועלים: פעם בשבוע תגיע בקשת עדכון, ומאשרים בלחיצה");
 }
 
 /** תדריך בוקר: node scripts/setup.mjs briefing 07:30 (ובלי שעה: מכבה). */
@@ -399,13 +532,12 @@ async function redeployProduction() {
   const t = envNow()?.VERCEL_TOKEN;
   const link = linkedProject();
   if (!t || !link) return { ok: false, error: "חסר VERCEL_TOKEN או חיבור לפרויקט" };
-  const { id: projectId, orgId } = link;
   const api = (path, init = {}) =>
-    fetch(`https://api.vercel.com${path}${path.includes("?") ? "&" : "?"}teamId=${orgId}`, {
+    fetch(`https://api.vercel.com${path}${path.includes("?") ? "&" : "?"}teamId=${link.orgId}`, {
       ...init,
       headers: { authorization: `Bearer ${t}`, "content-type": "application/json" },
     }).then((r) => r.json()).catch(() => ({}));
-  const live = (await api(`/v6/deployments?projectId=${projectId}&target=production&state=READY&limit=1`)).deployments?.[0];
+  const live = (await api(`/v6/deployments?projectId=${link.id}&target=production&state=READY&limit=1`)).deployments?.[0];
   if (!live) return { ok: false, error: "לא מצאתי גרסה פעילה של הבוט" };
   const created = await api("/v13/deployments?forceNew=1", {
     method: "POST",
@@ -421,7 +553,7 @@ async function redeployProduction() {
   return { ok: false, error: "הבנייה מחדש לוקחת יותר מ-4 דקות" };
 }
 
-const STEPS = { preflight, login, env, accounts, repo, verify, deploy, activate, updates, briefing, voice };
+const STEPS = { preflight, login, env, verify, accounts, confirm, repo, deploy, activate, updates, briefing, voice };
 const step = process.argv[2];
 // רץ ישירות (ולא נטען מבדיקה)
 if (basename(process.argv[1] || "") === "setup.mjs") {

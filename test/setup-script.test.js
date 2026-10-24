@@ -55,3 +55,20 @@ test("החיבור ל-Vercel נקרא גם מ-repo.json (CLI חדש) וגם מ-p
   assert.deepEqual(linkedProject(b), { id: "prj_2", orgId: "team_2", name: null });
   assert.equal(linkedProject(mkdtempSync(join(tmpdir(), "lk-"))), null);
 });
+
+test("בדיקת מפתח ה-AI בוחרת מודל זול מתוך הרשימה של הספק", async () => {
+  const { cheapModel } = await import("../scripts/setup.mjs");
+  assert.equal(cheapModel("anthropic", { data: [{ id: "claude-opus-5-5" }, { id: "claude-haiku-5-5" }] }), "claude-haiku-5-5");
+  assert.equal(cheapModel("openai", { data: [{ id: "gpt-5" }, { id: "gpt-5-mini" }] }), "gpt-5-mini");
+  assert.equal(cheapModel("google", { models: [{ name: "models/embedding-001", supportedGenerationMethods: ["embedContent"] }, { name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] }] }), "models/gemini-2.5-flash");
+  assert.equal(cheapModel("openai", { data: [] }), null);
+});
+
+test("הרצה חוזרת ממשיכה רק עם פרויקט של התיקייה הזו, בצוות שאושר", async () => {
+  const { sameProject } = await import("../scripts/setup.mjs");
+  assert.equal(sameProject(null, "telegram-assistant-2", "team_1"), true);
+  assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_1" }, "telegram-assistant-2", "team_1"), true);
+  assert.equal(sameProject({ name: "telegram-assistant-2-3", orgId: "team_1" }, "telegram-assistant-2", "team_1"), true);
+  assert.equal(sameProject({ name: "telegram-assistant", orgId: "team_1" }, "telegram-assistant-2", "team_1"), false);
+  assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_work" }, "telegram-assistant-2", "team_1"), false);
+});
