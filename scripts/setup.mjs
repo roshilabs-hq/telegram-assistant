@@ -227,6 +227,10 @@ async function deploy() {
   const e = envNow() || {};
   const missing = REQUIRED.filter((k) => !e[k]);
   if (missing.length) return say(false, `חסר ב-.env.local: ${missing.join(", ")}`);
+  // Vercel CLI "מושך" את משתני הפרויקט לתוך .env.local אחרי link ואחרי חיבור מסד, ודורס את הטוקנים.
+  // שומרים את הקובץ ומחזירים אותו אחרי כל שלב כזה. את משתני המסד הבוט קורא מ-Vercel, לא מהמחשב.
+  const saved = readFileSync(ENV_FILE, "utf8");
+  const keepEnv = () => { if (readFileSync(ENV_FILE, "utf8") !== saved) writeFileSync(ENV_FILE, saved); };
   if (!vercel(["whoami"], { quiet: true }).ok) return say(false, "Vercel לא מחובר: מריצים npx vercel login ומאשרים בדפדפן");
 
   // הרצה חוזרת: הפרויקט שהסקריפט כבר יצר רשום ב-.vercel/project.json, וממשיכים איתו
@@ -242,7 +246,9 @@ async function deploy() {
       if (vercel(["project", "add", name], { quiet: true }).ok) project = name;
     }
     if (!project) return say(false, `לא הצלחתי ליצור פרויקט חדש ב-Vercel (כל השמות ${base} עד ${base}-9 תפוסים?)`);
-    if (!vercel(["link", "--yes", "--project", project]).ok) return say(false, "הפרויקט נוצר, אבל לא הצלחתי לחבר אליו את התיקייה");
+    const linked = vercel(["link", "--yes", "--project", project]).ok;
+    keepEnv();
+    if (!linked) return say(false, "הפרויקט נוצר, אבל לא הצלחתי לחבר אליו את התיקייה");
   }
   say(true, `פרויקט ב-Vercel: ${project}`);
 
@@ -252,7 +258,8 @@ async function deploy() {
 
   const names = vercel(["env", "ls", "production"], { quiet: true }).out;
   if (!/POSTGRES_URL|SUPABASE_URL/.test(names)) {
-    const db = vercel(["integration", "add", "supabase", "-m", "region=fra1", "--name", `${project}-db`]);
+    const db = vercel(["integration", "add", "supabase", "-m", "region=fra1", "--name", `${project}-db`, "--no-env-pull"]);
+    keepEnv();
     if (!db.ok) return say(false, "חיבור Supabase לא הושלם. אם נפתח דפדפן, מאשרים שם ומריצים שוב את השלב הזה.");
   }
   say(true, "מסד נתונים (Supabase) מחובר");
