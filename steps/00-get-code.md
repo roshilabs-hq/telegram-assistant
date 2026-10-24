@@ -15,7 +15,7 @@ path: claude
 במסלול הזה Claude עובד איתך על עותק של הקוד שיושב אצלך במחשב. הוא מסביר כל שלב, עושה בעצמו את מה שאפשר, ויכול גם לשנות את הבוט לפי בקשה.
 
 ## מה עושים
-1. מוודאים שמותקנים: [Node.js](https://nodejs.org) (גרסת LTS), [Git](https://git-scm.com/downloads), [VS Code](https://code.visualstudio.com) והתוסף **Claude Code** ב-VS Code. צריך גם מנוי Claude (Pro ומעלה).
+1. מוודאים שמותקנים: [Node.js](https://nodejs.org) (גרסת LTS), [Git](https://git-scm.com/downloads), [VS Code](https://code.visualstudio.com), והתוסף **Claude Code** ב-VS Code (בתוך VS Code: **Extensions** ‹ מחפשים Claude Code ‹ **Install**, ומתחברים עם חשבון Claude). צריך מנוי Claude Pro ומעלה. צ'אט רגיל ב-claude.ai לא מתאים כאן, כי אין לו גישה לקבצים במחשב.
 2. מתחברים ל-[GitHub](https://github.com). **אין לך חשבון?** לוחצים [**Sign up**](https://github.com/signup), ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. **יש לך?** מתחברים כרגיל.
 3. נכנסים ל-[הריפו של הערכה](https://github.com/roshilabs-hq/telegram-assistant), לוחצים **Use this template** ‹ **Create a new repository**, נותנים שם, בוחרים **Private**, ולוחצים **Create**.
 4. בריפו החדש לוחצים **Code** ומעתיקים את הכתובת.
