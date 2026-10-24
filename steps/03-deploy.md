@@ -29,8 +29,9 @@ check: deploy
    - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. בסוף לוחצים **Authorize**.
    - **יש לך כבר Vercel** (נכנסת בעבר עם מייל או Google): מתחברים כמו תמיד. בסעיף הבא מחברים אליו את GitHub.
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
+   - **יש לך חשבון של עבודה** ב-Vercel או ב-GitHub: הבוט נוצר בחשבון שמחובר עכשיו. בודקים בפינה השמאלית העליונה של Vercel, ובשדה **Git Scope**, שמופיע השם **האישי** שלך ולא של העבודה. אם לא, מחליפים שם (לוחצים על השם ובוחרים את החשבון האישי), או מתחברים לחשבון האישי בחלון גלישה בסתר.
    - אם מופיע מסך **Secure Your Account with 2FA** (אבטחה בשני שלבים), לוחצים למטה **Skip securing my account**. אפשר להגדיר את זה אחר כך. ![](docs/img/deploy-2fa.png)
-3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. זה נותן ל-Vercel גישה לחשבון ה-GitHub שלך, ובחשבון חדש אין בו עדיין כלום חוץ מהבוט. ![](docs/img/deploy-6.png)
+3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. זה נותן ל-Vercel גישה לחשבון ה-GitHub שלך. בחשבון חדש אין בו עדיין כלום חוץ מהבוט. בחשבון קיים Vercel יכול לראות גם את שאר הריפואים, אבל הוא נוגע רק במה שמחברים אליו. ![](docs/img/deploy-6.png)
    - **במקום Git Scope מופיעים כפתורים GitHub / GitLab / Bitbucket** (קורה למי שכבר יש לו Vercel): לוחצים **GitHub**, ושם החשבון שלך מופיע לבד. ממשיכים לסעיף הבא. ![](docs/img/deploy-providers.png)
 4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](docs/img/deploy-7.png)
 5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](docs/img/deploy-8.png)
