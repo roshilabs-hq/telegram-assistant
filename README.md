@@ -44,5 +44,6 @@
 - [צ'ק ליסט](CHECKLIST.md): כל השלבים ברשימה אחת
 - [מילון מונחים](docs/glossary.md): מה זה Vercel, Supabase, טוקן, ועוד
 - [איך מכבים הכול ומפסיקים לשלם](docs/turn-off.md)
+- [נתקעתם? תמיכה](docs/support.md): מה כלול, ואיך פונים
 
 </div>

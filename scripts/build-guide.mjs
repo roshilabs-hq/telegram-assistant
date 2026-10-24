@@ -8,6 +8,7 @@
  *   docs/claude-code.md     כל השלבים במסלול Claude Code
  *   docs/quick.md           המדריך המקוצר ("יש לי ניסיון"), מתוך "## בקצרה" של כל שלב
  *   lib/steps.generated.js  רשימת השלבים לעמוד /setup
+ *   .github/ISSUE_TEMPLATE/stuck.yml  טופס "נתקעתי" עם רשימת השלבים (רק כש-package.json מגדיר repository)
  *
  * שימוש:  node scripts/build-guide.mjs          כותב את הקבצים
  *         node scripts/build-guide.mjs --check  נכשל אם משהו לא מעודכן (ל-CI)
@@ -21,6 +22,15 @@ const ROOT = process.cwd();
 const CHECK_ONLY = process.argv.includes("--check");
 
 const QUICK = { file: "docs/quick.md", title: "המדריך המקוצר: יש לי ניסיון" };
+
+// טופס "נתקעתי" יושב בריפו הציבורי של הערכה, גם כשהלקוח קורא את ההדרכה מהעותק שלו.
+const PKG = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
+const REPO = /github\.com\/([\w.-]+\/[\w.-]+?)(?:\.git)?$/.exec(PKG.repository?.url || PKG.repository || "")?.[1];
+const STUCK_URL = REPO && `https://github.com/${REPO}/issues/new?template=stuck.yml`;
+const STUCK_LINE = STUCK_URL
+  ? `לא הסתדר? [ספרו לנו איפה נתקעתם](${STUCK_URL}), ונתקן את ההדרכה.` +
+    (existsSync(join(ROOT, "docs/support.md")) ? " אין לכם GitHub? [דרכים נוספות](support.md)." : "")
+  : null;
 
 const PATHS = {
   browser: { label: "בדפדפן", file: "docs/browser.md", title: "מסלול א׳: מהדפדפן" },
@@ -149,6 +159,7 @@ function renderPath(pathKey, steps, addons) {
       "<summary><b>נתקעתי</b></summary>",
       "",
       s.stuck,
+      ...(STUCK_LINE ? ["", STUCK_LINE] : []),
       "",
       "</details>",
       "",
@@ -274,6 +285,45 @@ function renderModule(steps, addons) {
   ].join("\n");
 }
 
+/** טופס Issue ב-GitHub. JSON.stringify נותן מחרוזות שגם YAML קורא. */
+function renderStuckForm(steps, addons) {
+  const q = JSON.stringify;
+  const options = [...steps, ...addons].map((s) => s.title).concat("לפני שהתחלתי / לא בטוח/ה");
+  return [
+    "# נוצר אוטומטית מתוך steps/ ו-addons/ — לא לערוך ידנית. להרצה: npm run guide",
+    `name: ${q("נתקעתי")}`,
+    `description: ${q("ספרו לנו איפה נתקעתם. כל היתקעות היא באג בהדרכה, ואנחנו מתקנים אותה.")}`,
+    `title: ${q("נתקעתי: ")}`,
+    "labels: [\"stuck\"]",
+    "body:",
+    "  - type: markdown",
+    "    attributes:",
+    `      value: ${q("⚠️ **הטופס הזה ציבורי. לא מדביקים כאן טוקן, מפתח, סיסמה, או צילום מסך שרואים בו אותם.**")}`,
+    "  - type: dropdown",
+    "    id: step",
+    "    attributes:",
+    `      label: ${q("באיזה שלב נתקעתם?")}`,
+    "      options:",
+    ...options.map((o) => `        - ${q(o)}`),
+    "    validations:",
+    "      required: true",
+    "  - type: dropdown",
+    "    id: guide",
+    "    attributes:",
+    `      label: ${q("באיזו הדרכה השתמשתם?")}`,
+    "      options:",
+    ...[PATHS.browser.title, QUICK.title, PATHS.claude.title].map((o) => `        - ${q(o)}`),
+    "  - type: textarea",
+    "    id: what",
+    "    attributes:",
+    `      label: ${q("מה ראיתם על המסך, ומה ניסיתם?")}`,
+    `      description: ${q("אפשר להדביק כאן צילום מסך (Ctrl+V). בלי סודות.")}`,
+    "    validations:",
+    "      required: true",
+    "",
+  ].join("\n");
+}
+
 const steps = loadDir("steps", "step");
 const addons = loadDir("addons", "addon");
 if (!steps.length) throw new Error("לא נמצאו שלבים ב-steps/");
@@ -290,6 +340,7 @@ const outputs = {
   [QUICK.file]: renderQuick(steps, addons),
   "CHECKLIST.md": renderChecklist(steps, addons),
   "lib/steps.generated.js": renderModule(steps, addons),
+  ...(STUCK_URL ? { ".github/ISSUE_TEMPLATE/stuck.yml": renderStuckForm(steps, addons) } : {}),
 };
 
 let stale = [];

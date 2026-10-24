@@ -1,0 +1,44 @@
+# נוצר אוטומטית מתוך steps/ ו-addons/ — לא לערוך ידנית. להרצה: npm run guide
+name: "נתקעתי"
+description: "ספרו לנו איפה נתקעתם. כל היתקעות היא באג בהדרכה, ואנחנו מתקנים אותה."
+title: "נתקעתי: "
+labels: ["stuck"]
+body:
+  - type: markdown
+    attributes:
+      value: "⚠️ **הטופס הזה ציבורי. לא מדביקים כאן טוקן, מפתח, סיסמה, או צילום מסך שרואים בו אותם.**"
+  - type: dropdown
+    id: step
+    attributes:
+      label: "באיזה שלב נתקעתם?"
+      options:
+        - "מורידים את הקוד ופותחים ב-Claude Code"
+        - "יוצרים בוט בטלגרם"
+        - "מוציאים מפתח לבינה המלאכותית"
+        - "מעלים את הבוט לאוויר"
+        - "לוחצים \"הפעילו הכול\""
+        - "מחברים את הבוט אליך"
+        - "שולחים הודעה ראשונה"
+        - "הודעות קוליות"
+        - "תדריך בוקר"
+        - "לדבר עם הבוט דרך Siri"
+        - "יומן Google ו-Gmail"
+        - "עדכונים אוטומטיים"
+        - "לפני שהתחלתי / לא בטוח/ה"
+    validations:
+      required: true
+  - type: dropdown
+    id: guide
+    attributes:
+      label: "באיזו הדרכה השתמשתם?"
+      options:
+        - "מסלול א׳: מהדפדפן"
+        - "המדריך המקוצר: יש לי ניסיון"
+        - "מסלול ב׳: עם Claude Code"
+  - type: textarea
+    id: what
+    attributes:
+      label: "מה ראיתם על המסך, ומה ניסיתם?"
+      description: "אפשר להדביק כאן צילום מסך (Ctrl+V). בלי סודות."
+    validations:
+      required: true
