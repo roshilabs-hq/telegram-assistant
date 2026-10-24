@@ -181,3 +181,17 @@ test("צימוד: ניחושים שגויים שנשלחים במקביל נספ
   await Promise.all(Array.from({ length: 5 }, () => tryPair("666", "/start 000000", snapshot)));
   assert.equal((await store.getSettings()).pairing_code ?? null, null);
 });
+
+test("תזכורת בתאריך שאחרי מעבר שעון נשמרת בשעה שביקשו (כל יום בשנה)", async () => {
+  const { offsetString, fromWallParts } = await import("../lib/time.js");
+  const tz = "Asia/Jerusalem";
+  // תאריך בעונה ההפוכה להיום, עם ההיסט של היום, כמו שהמודל כותב
+  const date = offsetString(tz) === offsetString(tz, new Date(Date.UTC(new Date().getUTCFullYear() + 1, 0, 15)))
+    ? `${new Date().getUTCFullYear() + 1}-07-15` : `${new Date().getUTCFullYear() + 1}-01-15`;
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "create_reminder", input: { text: "רופא", due_at: `${date}T10:00:00${offsetString(tz)}` } }, { text: "נקבע" }]);
+  await converse({ chatId: "42", text: "תזכיר לי", settings: await store.getSettings() });
+  const [r] = (await store.listReminders("42")).reminders;
+  const [y, mo, d] = date.split("-").map(Number);
+  assert.equal(new Date(r.due_at).getTime(), fromWallParts(tz, { y, mo, d, h: 10, mi: 0 }).getTime());
+});

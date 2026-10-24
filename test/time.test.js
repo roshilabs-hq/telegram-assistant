@@ -45,3 +45,17 @@ test("מחר ב-9 לפי שעון קיר", () => {
   assert.deepEqual(wallParts(TZ, atWallTime(TZ, 1, 9, 0, now)), { y: 2026, mo: 7, d: 16, h: 9, mi: 0 });
   assert.equal(hhmm(TZ, now), "23:30");
 });
+
+test("מעבר שעון: זמן עם ההיסט של היום מקבל את ההיסט של התאריך שלו", async () => {
+  const { fixOffset } = await import("../lib/time.js");
+  const tz = "Asia/Jerusalem";
+  const summer = new Date("2026-10-24T09:00:00Z"); // לפני המעבר (+03:00)
+  assert.equal(fixOffset(tz, "2026-10-26T10:00:00+03:00", summer), "2026-10-26T10:00:00+02:00");
+  assert.equal(fixOffset(tz, "2026-10-24T18:00:00+03:00", summer), "2026-10-24T18:00:00+03:00");
+  // המודל כבר כתב את ההיסט הנכון, או Z: לא נוגעים
+  assert.equal(fixOffset(tz, "2026-10-26T10:00:00+02:00", summer), "2026-10-26T10:00:00+02:00");
+  assert.equal(fixOffset(tz, "2026-10-26T08:00:00Z", summer), "2026-10-26T08:00:00Z");
+  // ובאביב, בכיוון ההפוך
+  const winter = new Date("2027-03-20T09:00:00Z");
+  assert.equal(fixOffset(tz, "2027-03-28T10:00:00+02:00", winter), "2027-03-28T10:00:00+03:00");
+});
