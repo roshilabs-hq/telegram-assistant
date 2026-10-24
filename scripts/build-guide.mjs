@@ -172,6 +172,10 @@ function renderPath(pathKey, steps, addons) {
     ...core.map((s, i) => `| ${i + 1} | [${s.title}](#${anchor(s)}) | כ-${s.minutes} דק׳ |`),
     "",
     ...(pathKey === "browser" ? [`יש לך ניסיון עם Vercel ו-GitHub? [המדריך המקוצר](quick.md) הוא עמוד אחד.`, ""] : []),
+    // הערכה כותבת את ההודעה המוכנה בעצמה, כי בה הקישור להדרכה שלה
+    ...(pathKey === "browser" && existsSync(join(ROOT, "docs/help-from-claude.md"))
+      ? ["> 💬 **יש לך Claude באפליקציה או בדפדפן?** אפשר להיעזר בו לאורך הדרך: [ככה](help-from-claude.md).", ""]
+      : []),
     "---",
     "",
     ...core.map((s, i) => block(s, i + 1, core.length, "שלב")),

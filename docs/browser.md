@@ -18,6 +18,8 @@
 
 יש לך ניסיון עם Vercel ו-GitHub? [המדריך המקוצר](quick.md) הוא עמוד אחד.
 
+> 💬 **יש לך Claude באפליקציה או בדפדפן?** אפשר להיעזר בו לאורך הדרך: [ככה](help-from-claude.md).
+
 ---
 
 <a id="step-create-bot"></a>
