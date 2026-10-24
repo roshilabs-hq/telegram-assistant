@@ -65,7 +65,7 @@ VERCEL_TOKEN=
 # הטוקן מ-BotFather, נראה כמו 123456789:AAH...
 TELEGRAM_TOKEN=
 
-# מפתח ה-AI מהספק (Gemini, ChatGPT או Claude)
+# מפתח של Claude, מ-Claude Console (מתחיל ב-sk-ant-)
 AI_API_KEY=
 
 # סיסמת עמוד ההקמה. Claude כבר יצר אותה, לא צריך לגעת.

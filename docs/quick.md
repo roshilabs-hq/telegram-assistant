@@ -17,9 +17,8 @@
 
 <a id="step-ai-key"></a>
 ### 2. מוציאים מפתח לבינה המלאכותית · כ-10 דק׳
-1. מפתח API **בתשלום** מאחד הספקים: [Gemini](https://aistudio.google.com/apikey) (מומלץ, כולל **Set up billing**), [ChatGPT](https://platform.openai.com/api-keys) או [Claude](https://console.anthropic.com/settings/keys).
-2. כבר יש חשבון? יוצרים בו מפתח חדש רק לבוט.
-3. ב-ChatGPT וב-Claude טוענים יתרה קטנה, בלי טעינה אוטומטית: היתרה היא התקרה. ב-Gemini אפשר רק התראה במייל, לא חסימה.
+1. ב-[Claude Console](https://console.anthropic.com) נרשמים, ובחלק של **Billing** טוענים 5 דולר. הטעינה האוטומטית נשארת כבויה, וכך היתרה היא התקרה.
+2. ב-**API Keys** לוחצים **Create Key** ומעתיקים את המפתח (מתחיל ב-`sk-ant-`). כבר יש חשבון? יוצרים בו מפתח חדש רק לבוט.
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-ai-key)
 

@@ -5,10 +5,9 @@
 הבוט רץ בחשבונות שלך, ולכן גם הכיבוי אצלך. מספיק לעשות את שני הסעיפים הראשונים כדי שהבוט יפסיק לעבוד ושלא יהיו יותר חיובים. השאר הוא ניקיון.
 
 ## 1. מפסיקים את החיוב על ה-AI (חובה)
-זה החיוב היחיד בערכה.
-- **Gemini:** ב-[Google AI Studio](https://aistudio.google.com/apikey) מוחקים את המפתח. ב-[Billing](https://console.cloud.google.com/billing) בוחרים את חשבון החיוב ולוחצים **Close billing account**.
-- **ChatGPT:** ב-[API keys](https://platform.openai.com/api-keys) מוחקים את המפתח. היתרה שטענת מראש נשארת בחשבון, ולא יורד ממנה יותר כסף.
-- **Claude:** ב-[API Keys](https://console.anthropic.com/settings/keys) מוחקים את המפתח. גם כאן היתרה נשארת, ולא יורד ממנה יותר כסף.
+זה החיוב היחיד בערכה. ב-[API Keys](https://console.anthropic.com/settings/keys) של Claude Console מוחקים את המפתח. היתרה שטענת מראש נשארת בחשבון, ולא יורד ממנה יותר כסף.
+
+> התקנת בעבר עם Gemini או עם ChatGPT? מוחקים את המפתח אצל אותו ספק. ב-Gemini גם סוגרים את חשבון החיוב ב-[Billing](https://console.cloud.google.com/billing), ‹ **Close billing account**.
 
 ## 2. מוחקים את הבוט בטלגרם
 1. ב-[@BotFather](https://t.me/BotFather) שולחים `/deletebot`.
