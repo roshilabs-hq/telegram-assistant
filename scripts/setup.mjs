@@ -201,6 +201,17 @@ async function repo() {
   say(true, `העותק שלך: ${made.html_url} (פרטי)`);
 }
 
+/**
+ * מכל כתובות ה-vercel.app בפלט, הקבועה היא הקצרה ביותר: לכתובת של העלאה בודדת
+ * Vercel מוסיף קוד ושם חשבון (project-abc123-team.vercel.app).
+ */
+export function productionUrl(output) {
+  const alias = /Aliased:\s*(https:\/\/\S+)/.exec(output)?.[1];
+  if (alias) return alias.replace(/\/+$/, "");
+  const all = [...new Set(String(output).match(/https:\/\/[a-z0-9-]+\.vercel\.app/g) || [])];
+  return all.sort((a, b) => a.length - b.length)[0] || null;
+}
+
 function deploy() {
   const e = envNow() || {};
   const missing = REQUIRED.filter((k) => !e[k]);
@@ -242,8 +253,10 @@ function deploy() {
   }
 
   const d = vercel(["deploy", "--prod", "--yes"], { quiet: true });
-  const url = (/Aliased:\s*(https:\/\/\S+)/.exec(d.out) || /(https:\/\/[\w.-]+\.vercel\.app)/.exec(d.out))?.[1];
-  if (!d.ok || !url) return say(false, `העלאה נכשלה:\n${d.out.trim().split("\n").slice(-6).join("\n")}`);
+  if (!d.ok) return say(false, `העלאה נכשלה:\n${d.out.trim().split("\n").slice(-6).join("\n")}`);
+  // הכתובת הקבועה של הפרויקט, ולא הכתובת של ההעלאה הזו: Vercel נועל כתובות של העלאה בודדת מאחורי התחברות
+  const url = productionUrl(d.out);
+  if (!url) return say(false, "הבוט עלה, אבל לא מצאתי את הכתובת הקבועה שלו. היא מופיעה ב-Vercel תחת Domains.");
   writeFileSync(ENV_FILE, setEnvLine(readFileSync(ENV_FILE, "utf8"), "KIT_URL", url.replace(/\/+$/, "")));
   say(true, `הבוט באוויר: ${url}`);
 }

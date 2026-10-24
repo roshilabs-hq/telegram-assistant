@@ -21,3 +21,10 @@ test("העקיפה לשם מחשב בעברית: אחריה שם המחשב בא
   const out = execFileSync(process.execPath, ["-r", "./scripts/ascii-hostname.cjs", "-e", "import('node:os').then(o=>console.log(o.hostname()))"], { encoding: "utf8" }).trim();
   assert.match(out, /^[\x20-\x7E]+$/);
 });
+
+test("אחרי העלאה נשמרת הכתובת הקבועה, לא הכתובת הנעולה של ההעלאה", async () => {
+  const { productionUrl } = await import("../scripts/setup.mjs");
+  const out = "Inspect: https://vercel.com/x\nProduction: https://telegram-assistant-2-j19lbfgah-roshidemobot-bot.vercel.app\nhttps://telegram-assistant-2.vercel.app";
+  assert.equal(productionUrl(out), "https://telegram-assistant-2.vercel.app");
+  assert.equal(productionUrl("Aliased: https://my-bot.vercel.app [2s]"), "https://my-bot.vercel.app");
+});
