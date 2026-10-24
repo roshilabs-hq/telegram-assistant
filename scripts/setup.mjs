@@ -374,9 +374,39 @@ async function voice() {
   // בונים מחדש את הגרסה שכבר באוויר, ולא מעלים מהמחשב: העלאה מהמחשב מיוחסת לזהות ה-Git המקומית,
   // ו-Vercel בתוכנית החינמית חוסם העלאה של מי שאינו בעל החשבון.
   console.log("⏳ הבוט עולה מחדש עם המפתח החדש. זה לוקח דקה עד שלוש...");
-  const d = vercel(["redeploy", envNow().KIT_URL, "--target", "production"], { quiet: true });
-  const tail = d.out.trim().split("\n").slice(-4).join("\n");
-  say(d.ok, d.ok ? "הבוט עלה מחדש עם הודעות קוליות. שולחים לו הודעה קולית כדי לבדוק" : `ההעלאה מחדש נכשלה:\n${tail}`);
+  const d = await redeployProduction();
+  say(d.ok, d.ok ? "הבוט עלה מחדש עם הודעות קוליות. שולחים לו הודעה קולית כדי לבדוק" : `${d.error}. אפשר גם בלחיצה: Vercel ‹ הפרויקט ‹ Deployments ‹ ⋯ ‹ Redeploy`);
+}
+
+/**
+ * בונה מחדש את הגרסה שבאוויר, דרך ה-API של Vercel ולא דרך ה-CLI:
+ * ה-CLI מחפש את ההעלאה בצוות שמוגדר במחשב, ולא בצוות של הפרויקט, גם עם --scope.
+ * ה-API מקבל את הצוות במפורש, ולא תלוי במה שמוגדר במחשב.
+ */
+async function redeployProduction() {
+  const t = envNow()?.VERCEL_TOKEN;
+  const linkFile = join(ROOT, ".vercel", "project.json");
+  if (!t || !existsSync(linkFile)) return { ok: false, error: "חסר VERCEL_TOKEN או חיבור לפרויקט" };
+  const { projectId, orgId } = JSON.parse(readFileSync(linkFile, "utf8"));
+  const api = (path, init = {}) =>
+    fetch(`https://api.vercel.com${path}${path.includes("?") ? "&" : "?"}teamId=${orgId}`, {
+      ...init,
+      headers: { authorization: `Bearer ${t}`, "content-type": "application/json" },
+    }).then((r) => r.json()).catch(() => ({}));
+  const live = (await api(`/v6/deployments?projectId=${projectId}&target=production&state=READY&limit=1`)).deployments?.[0];
+  if (!live) return { ok: false, error: "לא מצאתי גרסה פעילה של הבוט" };
+  const created = await api("/v13/deployments?forceNew=1", {
+    method: "POST",
+    body: JSON.stringify({ name: live.name, deploymentId: live.uid, target: "production" }),
+  });
+  if (!created.id) return { ok: false, error: `Vercel סירב לבנות מחדש${created.error?.message ? `: ${created.error.message}` : ""}` };
+  for (let i = 0; i < 48; i++) {
+    await new Promise((ok) => setTimeout(ok, 5000));
+    const s = (await api(`/v13/deployments/${created.id}`)).readyState;
+    if (s === "READY") return { ok: true };
+    if (s === "ERROR" || s === "CANCELED") return { ok: false, error: "הבנייה מחדש נכשלה ב-Vercel" };
+  }
+  return { ok: false, error: "הבנייה מחדש לוקחת יותר מ-4 דקות" };
 }
 
 const STEPS = { preflight, login, env, accounts, repo, verify, deploy, activate, updates, briefing, voice };
