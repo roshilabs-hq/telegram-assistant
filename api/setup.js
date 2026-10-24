@@ -7,7 +7,8 @@ import { cookies, authed, sessionCookie, passwordOk, tooManyTries, MIN_PASSWORD 
 import { googleConfigured, redirectUri } from "../lib/google.js";
 import { VERSION, ownRepo } from "../lib/version.js";
 import { runChecks, cronSql } from "../lib/checks.js";
-import { detectProvider, resolveModel } from "../lib/ai.js";
+import { generateText } from "ai";
+import { detectProvider, resolveModel, languageModel, isQuotaError } from "../lib/ai.js";
 import * as store from "../lib/db.js";
 import { newPairingCode } from "../lib/core.js";
 import { setWebhook } from "../lib/telegram.js";
@@ -74,6 +75,14 @@ async function checkAi() {
       : r.status === 429
         ? "הספק אומר שנגמרה המכסה או שאין יתרה בחשבון."
         : `הבדיקה מול הספק נכשלה (קוד ${r.status}).`;
+  }
+  // רשימת המודלים נפתחת גם למפתח בלי יתרה. תשובה אמיתית אחת, של מילה, מוכיחה שהבוט יוכל לענות.
+  try {
+    await generateText({ model: languageModel({ ai_provider: provider, ai_model: r.model }).model, prompt: "hi", maxOutputTokens: 1 });
+  } catch (e) {
+    return isQuotaError(e)
+      ? "המפתח תקין, אבל אין בחשבון אצל הספק יתרה או אמצעי תשלום. מחברים תשלום (השלב \"מוציאים מפתח לבינה המלאכותית\"), ולוחצים שוב."
+      : `הספק לא ענה לבקשת בדיקה: ${String(e.message).slice(0, 160)}`;
   }
   await store.setSetting("ai_model", r.model);
   await store.setSetting("ai_provider", provider);

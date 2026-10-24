@@ -8,10 +8,11 @@
  *   node scripts/setup.mjs env         יוצר את .env.local ומייצר סיסמת הקמה
  *   node scripts/setup.mjs verify      בודק את הטוקן מול טלגרם, ואת מפתח ה-AI בבקשה אמיתית
  *   node scripts/setup.mjs accounts    לאיזה חשבון GitHub ולאיזה צוות Vercel שייכים הטוקנים
- *   node scripts/setup.mjs confirm <github> <vercel>   שומר את אישור המשתמש. בלעדיו repo ו-deploy לא רצים
+ *   node scripts/setup.mjs confirm <github> <vercel> <bot>   שומר את אישור המשתמש. בלעדיו repo ו-deploy לא רצים
  *   node scripts/setup.mjs repo        יוצר את העותק הפרטי מהתבנית בחשבון שאושר
  *   node scripts/setup.mjs deploy      יוצר פרויקט ב-Vercel בצוות שאושר, מחבר Supabase ו-GitHub, ומעלה
- *   node scripts/setup.mjs activate    "הפעילו הכול" מרחוק, ומחזיר את קישור החיבור
+ *   node scripts/setup.mjs url <כתובת>  שומר את הכתובת הקבועה, כשאי אפשר לאמת אותה לבד
+ *   node scripts/setup.mjs activate    "הפעילו הכול" מרחוק, ומחזיר את קישור החיבור (--take-over רק באישור)
  *   node scripts/setup.mjs updates     תוספת: עדכונים אוטומטיים (ההגדרה ב-GitHub, דרך הטוקן)
  *   node scripts/setup.mjs briefing 07:30   תוספת: תדריך בוקר (בלי שעה: מכבה)
  *   node scripts/setup.mjs voice       תוספת: הודעות קוליות (GROQ_API_KEY עובר ל-Vercel)
@@ -251,15 +252,22 @@ async function tryAnswer(provider, key, model) {
 
 async function verify() {
   const e = envNow() || {};
+  const result = { ai: false, bot: null };
+  // כל כישלון כאן מחזיר קוד יציאה שאינו 0, ו-deploy לא ירוץ בלי בדיקה מוצלחת
+  const done = () => {
+    writeState("verified", result);
+    if (!result.ai || !result.bot) process.exitCode = 1;
+  };
   const t = e.TELEGRAM_TOKEN || "";
   if (!t) say(false, "TELEGRAM_TOKEN חסר ב-.env.local");
   else {
     const r = await fetch(`https://api.telegram.org/bot${t}/getMe`).then((x) => x.json()).catch(() => null);
-    say(Boolean(r?.ok), r?.ok ? `הטוקן תקין: הבוט @${r.result.username}` : "טלגרם לא מכיר את הטוקן. מעתיקים אותו שוב מ-BotFather, רק את הקוד עצמו.");
+    if (r?.ok) result.bot = { id: r.result.id, username: r.result.username };
+    say(Boolean(r?.ok), r?.ok ? `הטוקן תקין: הבוט @${r.result.username}. מוודאים עם המשתמש שזה הבוט החדש שיצר עכשיו.` : "טלגרם לא מכיר את הטוקן. מעתיקים אותו שוב מ-BotFather, רק את הקוד עצמו.");
   }
   const k = e.AI_API_KEY || "";
   const p = k.startsWith("sk-ant-") ? "anthropic" : k.startsWith("AIza") || k.startsWith("AQ.") ? "google" : k.startsWith("sk-") ? "openai" : null;
-  if (!p) return say(false, k ? "המפתח לא נראה כמו מפתח של Gemini, ChatGPT או Claude" : "AI_API_KEY חסר ב-.env.local");
+  if (!p) return say(false, k ? "המפתח לא נראה כמו מפתח של Gemini, ChatGPT או Claude" : "AI_API_KEY חסר ב-.env.local"), done();
   const name = { google: "Gemini", openai: "ChatGPT", anthropic: "Claude" }[p];
   const listReq = {
     google: [`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(k)}`, {}],
@@ -267,13 +275,15 @@ async function verify() {
     anthropic: ["https://api.anthropic.com/v1/models", { headers: { "x-api-key": k, "anthropic-version": "2023-06-01" } }],
   }[p];
   const list = await fetch(...listReq).catch(() => null);
-  if (!list?.ok) return say(false, `הספק (${name}) דחה את המפתח${list ? ` (קוד ${list.status})` : ""}. בודקים שהועתק כולו.`);
+  if (!list?.ok) return say(false, `הספק (${name}) דחה את המפתח${list ? ` (קוד ${list.status})` : ""}. בודקים שהועתק כולו.`), done();
   const model = cheapModel(p, await list.json().catch(() => ({})));
   const a = model ? await tryAnswer(p, k, model) : { ok: null };
+  result.ai = a.ok === true;
   if (a.ok) say(true, `מפתח ${name} תקין, והוא עונה`);
   else if (a.billing) say(false, `המפתח של ${name} תקין, אבל אין בחשבון יתרה או אמצעי תשלום. מחברים תשלום לפי השלב "מוציאים מפתח לבינה המלאכותית", ומריצים שוב.`);
   else if (a.ok === false) say(false, `${name} דחה את המפתח. בודקים שהועתק כולו.`);
-  else say(null, `מפתח ${name} תקין, אבל בדיקת התשובה לא הושלמה${a.status ? ` (קוד ${a.status})` : ""}. נגלה בהודעה הראשונה לבוט.`);
+  else say(false, `לא הצלחתי לוודא שמפתח ${name} עונה${a.status ? ` (קוד ${a.status})` : " (בעיית רשת?)"}. מריצים שוב verify בעוד רגע.`);
+  done();
 }
 
 /** לאיזה חשבון כל טוקן שייך. Claude מראה את זה למשתמש ושואל לפני שיוצרים משהו. */
@@ -285,19 +295,31 @@ async function accounts() {
   if (!e.VERCEL_TOKEN) say(null, id.vercelUser ? `אין VERCEL_TOKEN. במחשב מחובר Vercel של ${id.vercelUser}` : "אין VERCEL_TOKEN, ו-Vercel לא מחובר במחשב");
   else if (!id.vercelUser) say(false, "Vercel לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ.");
   else say(true, `Vercel: ${id.vercelUser}${id.teamName ? `, צוות: ${id.teamName} (${id.teamSlug})` : ""}`);
+  const bot = readState("verified")?.bot;
+  say(Boolean(bot), bot ? `הבוט בטלגרם: @${bot.username}` : "עוד לא נבדק הבוט בטלגרם. מריצים קודם verify.");
   const vercelName = id.teamSlug || id.vercelUser;
-  if (id.github && vercelName) console.log(`\nאחרי שהמשתמש אישר: node scripts/setup.mjs confirm ${id.github} ${vercelName}`);
+  if (id.github && vercelName && bot) console.log(`\nאחרי שהמשתמש אישר: node scripts/setup.mjs confirm ${id.github} ${vercelName} ${bot.username}`);
 }
 
 /** המשתמש אישר. השמות חייבים להתאים לטוקנים ברגע הזה, אחרת לא נשמר אישור. */
 async function confirm() {
-  const [github, vercelName] = process.argv.slice(3);
+  const [github, vercelName, botName] = process.argv.slice(3);
   const id = await identity();
   const now = id.teamSlug || id.vercelUser;
+  const bot = readState("verified")?.bot;
   if (!github || github !== id.github) return say(false, `GitHub שאושר (${github || "-"}) לא תואם לטוקן (${id.github || "-"})`);
   if (!vercelName || vercelName !== now) return say(false, `Vercel שאושר (${vercelName || "-"}) לא תואם לטוקן (${now || "-"})`);
-  writeState("confirmed", { github: id.github, vercelUser: id.vercelUser || null, teamId: id.teamId || null, teamSlug: id.teamSlug || null, at: new Date().toISOString() });
-  say(true, `אושר: GitHub ${id.github}, Vercel ${vercelName}`);
+  if (!bot || botName !== bot.username) return say(false, `הבוט שאושר (${botName || "-"}) לא תואם לטוקן של טלגרם (${bot?.username || "-"})`);
+  writeState("confirmed", { github: id.github, vercelUser: id.vercelUser || null, teamId: id.teamId || null, teamSlug: id.teamSlug || null, botId: bot.id, at: new Date().toISOString() });
+  say(true, `אושר: GitHub ${id.github}, Vercel ${vercelName}, הבוט @${bot.username}`);
+}
+
+/** הכתובת הקבועה של הבוט, כשהמשתמש העתיק אותה מ-Vercel: node scripts/setup.mjs url https://... */
+function url() {
+  const u = String(process.argv[3] || "").replace(/\/+$/, "");
+  if (!/^https:\/\/[a-z0-9.-]+$/i.test(u)) return say(false, "צריך כתובת מלאה, למשל https://telegram-assistant-2.vercel.app");
+  writeFileSync(ENV_FILE, setEnvLine(readFileSync(ENV_FILE, "utf8"), "KIT_URL", u));
+  say(true, `הכתובת נשמרה: ${u}`);
 }
 
 /**
@@ -319,13 +341,38 @@ async function repo() {
   // הרצה חוזרת: התיקייה כבר מחוברת לעותק של המשתמש, ולא יוצרים עוד אחד
   const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
   const current = /github\.com[/:]([^/]+)\/([^/.]+?)(?:\.git)?$/.exec(origin);
+  const auth = {
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: "http.https://github.com/.extraheader",
+    GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${t}`).toString("base64")}`,
+  };
+  /** מושך את העותק ומעביר אליו את התיקייה. GitHub בונה עותק חדש כמה שניות, אז מנסים כמה פעמים. */
+  const pull = async () => {
+    let fetched = false;
+    for (let i = 0; i < 6 && !fetched; i++) {
+      fetched = run("git", ["fetch", "origin"], { quiet: true, env: auth }).ok;
+      if (!fetched) await new Promise((ok) => setTimeout(ok, 3000));
+    }
+    if (!fetched || !run("git", ["reset", "--hard", "origin/main"], { quiet: true }).ok) return false;
+    run("git", ["branch", "--set-upstream-to=origin/main", "main"], { quiet: true });
+    return true;
+  };
+  const dirty = () => Boolean(run("git", ["status", "--porcelain"], { quiet: true }).out.trim());
+
   if (current && current[1] !== "roshilabs-hq") {
     if (current[1].toLowerCase() !== me.data.login.toLowerCase()) return say(false, `התיקייה מחוברת לעותק של ${current[1]}, ולא של ${me.data.login}. עוצרים ושואלים את המשתמש.`);
+    // הרצה חוזרת אחרי שהמשיכה נכשלה: העותק קיים, אבל התיקייה עוד לא עליו
+    // התיקייה מסונכרנת אם היא כבר מבוססת על העותק (גם אם יש בה קומיט חדש שעוד לא נדחף, ואותו לא מוחקים)
+    const based = run("git", ["merge-base", "--is-ancestor", "origin/main", "HEAD"], { quiet: true }).ok;
+    if (!based) {
+      if (dirty()) return say(false, "יש בתיקייה שינויים שלא נשמרו, והיא עוד לא מסונכרנת עם העותק. עוצרים ושואלים את המשתמש.");
+      if (!(await pull())) return say(false, "העותק קיים, אבל לא הצלחתי למשוך אותו. מריצים שוב repo בעוד רגע.");
+    }
     setIdentity();
     return say(true, `כבר יש לך עותק: https://github.com/${current[1]}/${current[2]} (פרטי)`);
   }
   // הקבצים עומדים להתחלף בקבצים של העותק החדש. שינוי מקומי היה נמחק, אז עוצרים.
-  if (run("git", ["status", "--porcelain"], { quiet: true }).out.trim()) return say(false, "יש בתיקייה שינויים שלא נשמרו. עוצרים ושואלים את המשתמש לפני שיוצרים את העותק.");
+  if (dirty()) return say(false, "יש בתיקייה שינויים שלא נשמרו. עוצרים ושואלים את המשתמש לפני שיוצרים את העותק.");
 
   let made;
   for (let i = 1; i <= 9 && !made; i++) {
@@ -338,20 +385,9 @@ async function repo() {
     else if (r.status !== 422) return say(false, `GitHub סירב ליצור את העותק (קוד ${r.status}). הטוקן צריך הרשאות repo ו-workflow.`);
   }
   if (!made) return say(false, "כל השמות telegram-assistant עד telegram-assistant-9 תפוסים בחשבון");
-  // הטוקן עובר בסביבת הפקודה הזו בלבד: לא בשורת הפקודה, ולא נשמר ב-.git/config
-  const auth = {
-    GIT_CONFIG_COUNT: "1",
-    GIT_CONFIG_KEY_0: "http.https://github.com/.extraheader",
-    GIT_CONFIG_VALUE_0: `AUTHORIZATION: basic ${Buffer.from(`x-access-token:${t}`).toString("base64")}`,
-  };
+  // הטוקן עובר בסביבת הפקודה בלבד (auth): לא בשורת הפקודה, ולא נשמר ב-.git/config
   run("git", ["remote", "set-url", "origin", made.clone_url], { quiet: true });
-  let fetched = false;
-  for (let i = 0; i < 6 && !fetched; i++) {
-    fetched = run("git", ["fetch", "origin"], { quiet: true, env: auth }).ok;
-    if (!fetched) await new Promise((ok) => setTimeout(ok, 3000)); // GitHub בונה את העותק כמה שניות
-  }
-  if (!fetched || !run("git", ["reset", "--hard", "origin/main"], { quiet: true }).ok) return say(false, `העותק נוצר (${made.html_url}), אבל לא הצלחתי למשוך אותו`);
-  run("git", ["branch", "--set-upstream-to=origin/main", "main"], { quiet: true });
+  if (!(await pull())) return say(false, `העותק נוצר (${made.html_url}), אבל לא הצלחתי למשוך אותו. מריצים שוב repo: הוא ימשיך מכאן ולא ייצור עותק נוסף.`);
   setIdentity();
   say(true, `העותק שלך: ${made.html_url} (פרטי)`);
 }
@@ -377,11 +413,32 @@ export function productionUrl(output) {
   return all.sort((a, b) => a.length - b.length)[0] || null;
 }
 
-/** פרויקט שמחובר לתיקייה מתאים לה רק אם הוא בצוות שאושר ונקרא כמו העותק (או עם סיומת). */
-export function sameProject(existing, base, teamId) {
+/**
+ * פרויקט שמחובר לתיקייה מתאים לה רק אם הוא בצוות שאושר, נקרא כמו העותק (או עם סיומת),
+ * ומחובר לאותו עותק ב-GitHub (אם הוא כבר מחובר לאחד). בלי שם ידוע, לא מתאים.
+ */
+export function sameProject(existing, base, teamId, repo = null) {
   if (!existing) return true;
   if (teamId && existing.orgId !== teamId) return false;
-  return !existing.name || new RegExp(`^${base}(-\\d+)?$`).test(existing.name);
+  if (!existing.name || !new RegExp(`^${base}(-\\d+)?$`).test(existing.name)) return false;
+  return !existing.repo || !repo || existing.repo.toLowerCase() === repo.toLowerCase();
+}
+
+/** הפרטים של הפרויקט המחובר, מ-Vercel עצמו: השם, והעותק ב-GitHub שהוא מחובר אליו. */
+async function linkedProjectDetails() {
+  const link = linkedProject();
+  const t = envNow()?.VERCEL_TOKEN;
+  if (!link || !t) return link;
+  const p = await vapi(`/v9/projects/${link.id}?teamId=${link.orgId}`, t);
+  if (!p) return { ...link, name: null };
+  return { ...link, name: p.name, repo: p.link?.org && p.link?.repo ? `${p.link.org}/${p.link.repo}` : null };
+}
+
+/** מה יש בפרויקט מפרטי החיבור ל-Supabase: הכול, כלום, או רק חלק (ואז לא מנחשים). */
+export function dbState(envNames) {
+  const has = (re) => re.test(envNames);
+  const parts = [has(/\bSUPABASE_URL\b|NEXT_PUBLIC_SUPABASE_URL/), has(/SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY/), has(/POSTGRES_URL/)];
+  return parts.every(Boolean) ? "full" : parts.some(Boolean) ? "partial" : "none";
 }
 
 async function deploy() {
@@ -399,8 +456,12 @@ async function deploy() {
   const base = (/\/([^/]+?)(?:\.git)?$/.exec(origin)?.[1] || basename(ROOT)).toLowerCase().replace(/[^a-z0-9-]/g, "-").slice(0, 90);
   // הרצה חוזרת: ממשיכים עם הפרויקט שמחובר לתיקייה רק אם הוא שלה. תיקייה שהועתקה מבוט אחר
   // מחוברת לפרויקט שלו, וההגדרות שלו היו נדרסות.
-  const existing = linkedProject();
-  if (!sameProject(existing, base, readState("confirmed")?.teamId)) return say(false, `התיקייה מחוברת לפרויקט אחר ב-Vercel (${existing.name || existing.id}). עוצרים ושואלים את המשתמש.`);
+  const existing = await linkedProjectDetails();
+  const repoName = /github\.com[/:]([^/]+\/[^/.]+?)(?:\.git)?$/.exec(origin)?.[1] || null;
+  if (!sameProject(existing, base, readState("confirmed")?.teamId, repoName)) return say(false, `התיקייה מחוברת לפרויקט אחר ב-Vercel (${existing.name || existing.id}), או שאי אפשר לוודא שהוא שלה. עוצרים ושואלים את המשתמש.`);
+  // בלי אישור מוצלח של מפתח ה-AI לא מעלים: בוט בלי מוח רק ייראה תקין
+  const ai = readState("verified");
+  if (!ai?.ai) return say(false, ai ? "מפתח ה-AI לא עבר את הבדיקה. מתקנים, ומריצים שוב verify." : "עוד לא נבדק מפתח ה-AI. מריצים קודם verify.");
   let project = existing ? existing.name || "הפרויקט הקיים" : null;
   if (!project) {
     // השם לפי העותק ב-GitHub. project add נכשל כשהשם תפוס, ואז מנסים את הבא, כך שלעולם לא נוגעים בפרויקט קיים.
@@ -420,11 +481,12 @@ async function deploy() {
   const gitOk = git.ok || /already connected/i.test(git.out);
   say(gitOk, gitOk ? "Vercel מחובר ל-GitHub" : "Vercel לא התחבר לעותק ב-GitHub. הבוט יעלה, אבל עדכונים שמאשרים לא יעלו לבד. מתקנים ב-Vercel ‹ Settings ‹ Git ‹ Connect.");
 
-  const names = vercel(["env", "ls", "production"], { quiet: true }).out;
-  if (!/POSTGRES_URL|SUPABASE_URL/.test(names)) {
-    const db = vercel(["integration", "add", "supabase", "-m", "region=fra1", "--name", `${project}-db`, "--no-env-pull"]);
+  const db = dbState(vercel(["env", "ls", "production"], { quiet: true }).out);
+  if (db === "partial") return say(false, "יש בפרויקט רק חלק מפרטי החיבור ל-Supabase. לא מחברים מסד נוסף אוטומטית: עוצרים ושואלים את המשתמש.");
+  if (db === "none") {
+    const add = vercel(["integration", "add", "supabase", "-m", "region=fra1", "--name", `${project}-db`, "--no-env-pull"]);
     keepEnv();
-    if (!db.ok) return say(false, "חיבור Supabase לא הושלם. אם נפתח דפדפן, מאשרים שם ומריצים שוב את השלב הזה.");
+    if (!add.ok) return say(false, "חיבור Supabase לא הושלם. אם נפתח דפדפן, מאשרים שם ומריצים שוב את השלב הזה.");
   }
   say(true, "מסד נתונים (Supabase) מחובר");
 
@@ -437,8 +499,9 @@ async function deploy() {
   const d = vercel(["deploy", "--prod", "--yes"], { quiet: true });
   if (!d.ok) return say(false, `העלאה נכשלה:\n${d.out.trim().split("\n").slice(-6).join("\n")}`);
   // הכתובת הקבועה של הפרויקט, ולא הכתובת של ההעלאה הזו: Vercel נועל כתובות של העלאה בודדת מאחורי התחברות
-  const url = (await projectDomain()) || productionUrl(d.out);
-  if (!url) return say(false, "הבוט עלה, אבל לא מצאתי את הכתובת הקבועה שלו. היא מופיעה ב-Vercel תחת Domains.");
+  // בלי VERCEL_TOKEN לא מנחשים: רק כתובת ש-Vercel כתב במפורש שהיא הקבועה (Aliased)
+  const url = (await projectDomain()) || /Aliased:\s*(https:\/\/\S+)/.exec(d.out)?.[1];
+  if (!url) return say(false, "הבוט עלה, אבל לא אימתתי את הכתובת הקבועה שלו. מבקשים מהמשתמש את הכתובת שמופיעה ב-Vercel תחת Domains, וכותבים אותה ל-KIT_URL.");
   writeFileSync(ENV_FILE, setEnvLine(readFileSync(ENV_FILE, "utf8"), "KIT_URL", url.replace(/\/+$/, "")));
   say(true, `הבוט באוויר: ${url}`);
 }
@@ -458,6 +521,17 @@ async function setupApi(body) {
 }
 
 async function activate() {
+  // לפני שמחברים את הבוט לשרת הזה: שזה הבוט שאושר, ושהוא לא מחובר כבר לשרת אחר.
+  // בוט קיים של המשתמש היה מפסיק לעבוד בשקט (ככה נדרס לנו פעם בוט, כשהודבק טוקן של בוט ישן).
+  const e = envNow() || {};
+  const c = readState("confirmed");
+  const me = await fetch(`https://api.telegram.org/bot${e.TELEGRAM_TOKEN}/getMe`).then((x) => x.json()).catch(() => null);
+  if (c?.botId && me?.result?.id !== c.botId) return say(false, "הטוקן של טלגרם הוחלף אחרי האישור. מריצים שוב verify ו-accounts, ומאשרים מחדש.");
+  const hook = await fetch(`https://api.telegram.org/bot${e.TELEGRAM_TOKEN}/getWebhookInfo`).then((x) => x.json()).catch(() => null);
+  const mine = e.KIT_URL ? `${e.KIT_URL.replace(/\/+$/, "")}/api/telegram` : null;
+  if (hook?.result?.url && hook.result.url !== mine && !process.argv.includes("--take-over")) {
+    return say(false, `הבוט @${me?.result?.username} כבר מחובר לשרת אחר (${new URL(hook.result.url).host}). אם זה בוט קיים, עוצרים: יוצרים בוט חדש ב-BotFather. רק אם המשתמש אישר שזה הבוט הנכון: activate --take-over`);
+  }
   const a = await setupApi({ action: "activate" });
   for (const err of a.errors || []) say(false, err);
   // התזמון נבדק לפי ריצה אמיתית, והוא רץ פעם בדקה. אז בדקה הראשונה הוא אדום, וזה תקין: מחכים לו.
@@ -553,7 +627,7 @@ async function redeployProduction() {
   return { ok: false, error: "הבנייה מחדש לוקחת יותר מ-4 דקות" };
 }
 
-const STEPS = { preflight, login, env, verify, accounts, confirm, repo, deploy, activate, updates, briefing, voice };
+const STEPS = { preflight, login, env, verify, accounts, confirm, repo, deploy, url, activate, updates, briefing, voice };
 const step = process.argv[2];
 // רץ ישירות (ולא נטען מבדיקה)
 if (basename(process.argv[1] || "") === "setup.mjs") {

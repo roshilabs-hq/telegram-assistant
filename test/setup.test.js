@@ -64,11 +64,13 @@ test("העמוד יוצר קוד צימוד לבד ומציג קישור לטל�
 test("הפעילו הכול בלי כתובת מסד: מחבר את הבוט ובודק את ה-AI", async () => {
   const realFetch = globalThis.fetch;
   globalThis.fetch = async (url, init) =>
-    String(url).includes("generativelanguage")
-      ? new Response(
-          JSON.stringify({ models: [{ name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] }] })
-        )
-      : realFetch(url, init);
+    String(url).includes(":generateContent")
+      ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "ok" }], role: "model" }, finishReason: "STOP" }], usageMetadata: {} }))
+      : String(url).includes("generativelanguage")
+        ? new Response(
+            JSON.stringify({ models: [{ name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] }] })
+          )
+        : realFetch(url, init);
   const errors = await ACTIONS.activate(mockReq({ headers: {} }));
   assert.deepEqual(errors, []);
   assert.equal((await store.getSettings()).ai_model, "gemini-2.5-flash");
@@ -153,4 +155,16 @@ test("שמירת הגדרות מרחוק עם שעת תדריך בלבד לא מ
   const s = await store.getSettings();
   assert.equal(s.owner_name, "דנה");
   assert.equal(s.briefing_time, "07:30");
+});
+
+test("הפעילו הכול: מפתח בלי יתרה נעצר כבר בבדיקה, ולא נראה תקין", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) =>
+    String(url).includes(":generateContent")
+      ? new Response(JSON.stringify({ error: { code: 429, message: "You exceeded your current quota", status: "RESOURCE_EXHAUSTED" } }), { status: 429 })
+      : String(url).includes("generativelanguage")
+        ? new Response(JSON.stringify({ models: [{ name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] }] }))
+        : realFetch(url, init);
+  const errors = await ACTIONS.activate(mockReq({ headers: {} }));
+  assert.ok(errors.some((e) => /יתרה|תשלום/.test(e)), errors.join(" | "));
 });

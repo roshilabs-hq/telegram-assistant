@@ -72,3 +72,13 @@ test("הרצה חוזרת ממשיכה רק עם פרויקט של התיקיי�
   assert.equal(sameProject({ name: "telegram-assistant", orgId: "team_1" }, "telegram-assistant-2", "team_1"), false);
   assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_work" }, "telegram-assistant-2", "team_1"), false);
 });
+
+test("מסד חלקי לא נחשב מחובר, ופרויקט בלי שם או מעותק אחר לא מתאים", async () => {
+  const { dbState, sameProject } = await import("../scripts/setup.mjs");
+  assert.equal(dbState("SUPABASE_URL  POSTGRES_URL  SUPABASE_SERVICE_ROLE_KEY"), "full");
+  assert.equal(dbState("SUPABASE_URL"), "partial");
+  assert.equal(dbState("TELEGRAM_TOKEN"), "none");
+  assert.equal(sameProject({ name: null, orgId: "team_1" }, "telegram-assistant-2", "team_1"), false);
+  assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_1", repo: "dana/other-bot" }, "telegram-assistant-2", "team_1", "dana/telegram-assistant-2"), false);
+  assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_1", repo: "dana/telegram-assistant-2" }, "telegram-assistant-2", "team_1", "dana/telegram-assistant-2"), true);
+});

@@ -27,7 +27,12 @@ jobs:
         run: |
           for b in $(git ls-remote --heads origin 'chore/template_sync_*' | sed 's#.*refs/heads/##'); do
             if [ -z "$(gh pr list --head "$b" --state open --json number -q '.[].number')" ]; then
-              git push origin --delete "$b"
+              # מוחקים רק ענף שהשינוי האחרון בו נעשה על ידי כלי העדכון. ענף שמישהו עבד עליו נשאר.
+              git fetch --depth=1 origin "$b"
+              case "$(git log -1 --format=%ce FETCH_HEAD)" in
+                *actions-template-sync*|*github-actions*) git push origin --delete "$b" ;;
+                *) echo "::warning::הענף $b נשאר, כי יש בו שינוי של אדם. מוחקים או ממזגים אותו ידנית." ;;
+              esac
             fi
           done
       - uses: AndreasAugustin/actions-template-sync@6e1d0089686f8940604fc15baae62367bf6ee860 # v2.6.0
