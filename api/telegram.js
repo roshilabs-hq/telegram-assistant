@@ -5,6 +5,7 @@ import { converse, isAllowed, tryPair, timezoneOf } from "../lib/core.js";
 import { sendMessage, sendTyping, answerCallback, editMessageText, downloadFile } from "../lib/telegram.js";
 import { voiceEnabled, transcribe, frameTranscript } from "../lib/voice.js";
 import { isQuotaError, QUOTA_MESSAGE } from "../lib/ai.js";
+import { decide } from "../lib/confirm.js";
 
 const FAILURE = "משהו נשבר אצלי ולא הצלחתי לענות 😕 אפשר לנסות שוב עוד רגע.";
 // חיבור Google שפג הוא לא תקלה מסתורית: זה דבר מסוים שמתקנים בדקה, ונשאר שבור עד שמתקנים.
@@ -31,12 +32,17 @@ function when(tz, iso) {
   return `${day}ב-${d.toLocaleTimeString("he-IL", { timeZone: tz, hour: "2-digit", minute: "2-digit" })}`;
 }
 
-/** כפתורים מתחת לתזכורת. לא עוברים דרך המודל בכלל: לחיצה היא פעולה, לא שיחה. */
+/** כפתורים (תזכורת, ואישור לפני שליחה). לא עוברים דרך המודל בכלל: לחיצה היא פעולה, לא שיחה. */
 async function handleCallback(cb, settings) {
   const chatId = String(cb.message?.chat?.id || "");
   if (!isAllowed(chatId, settings) || !(await store.claim(`cb:${cb.id}`))) return answerCallback(cb.id);
 
   const [kind, op, id, mins] = String(cb.data || "").split("|");
+  if (kind === "c" && id && (op === "y" || op === "n")) {
+    const r = await decide(chatId, id, op === "y", timezoneOf(settings));
+    await answerCallback(cb.id, r.ok ? (op === "y" ? "בוצע" : "בוטל") : "לא בוצע");
+    return editMessageText(chatId, cb.message.message_id, r.text);
+  }
   const action = { d: "done", t: "tomorrow", s: "snooze" }[op];
   if (kind !== "r" || !id || !action) return answerCallback(cb.id);
 

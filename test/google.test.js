@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { freshEnv, scriptedModel, mockReq, mockRes } from "./helpers.js";
 import * as store from "../lib/db.js";
 import { converse } from "../lib/core.js";
-import { gate, listPending } from "../lib/confirm.js";
+import { listPending, decide } from "../lib/confirm.js";
+import telegram from "../api/telegram.js";
+import { secrets } from "../lib/config.js";
+import { telegramCalls } from "./helpers.js";
 import { buildRawMessage } from "../lib/google.js";
 import callback from "../api/google/callback.js";
 import { runChecks } from "../lib/checks.js";
@@ -42,44 +45,74 @@ beforeEach(async () => {
 
 const settings = () => store.getSettings();
 
-test("אישור באותו תור נדחה, בתור הבא עובר", async () => {
-  assert.equal((await gate("42", "turn-1", "delete_event", "ev1", { summary: "x" })).confirmed, false);
-  assert.equal((await gate("42", "turn-1", "delete_event", "ev1")).sameTurn, true);
-  assert.equal((await gate("42", "turn-2", "delete_event", "ev1")).confirmed, true);
+/** לחיצה על כפתור בטלגרם, כמו שטלגרם שולח אותה. */
+async function press(data) {
+  const body = { update_id: Math.floor(Math.random() * 1e9), callback_query: { id: `cb${Math.random()}`, data, message: { message_id: 7, chat: { id: 42 } } } };
+  await telegram(mockReq({ headers: { "x-telegram-bot-api-secret-token": secrets.webhook() }, body }), mockRes());
+}
+
+test("מחיקת אירוע: המודל רק מבקש, הבעלים מקבל כפתור, ורק הלחיצה מוחקת", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "delete_event", input: { event_id: "ev1" } }, { text: "מחכה לאישור" }]);
+  await converse({ chatId: "42", text: "תמחק את הפגישה עם דני", settings: await settings() });
+  assert.equal(calls.filter((c) => c.method === "DELETE").length, 0);
+  const [p] = await listPending("42");
+  const msg = telegramCalls(env.sent, "sendMessage").find((m) => m.reply_markup);
+  assert.match(msg.text, /פגישה עם דני/);
+  assert.equal(msg.parse_mode, undefined);
+
+  await press(`c|y|${p.id}`);
+  assert.equal(calls.filter((c) => c.method === "DELETE").length, 1);
   assert.deepEqual(await listPending("42"), []);
 });
 
-test("מחיקת אירוע: תור ראשון רק מבקש אישור, תור שני מוחק", async () => {
-  scriptedModel([{ tool: "delete_event", input: { event_id: "ev1" } }, { text: "למחוק את 'פגישה עם דני'?" }]);
-  await converse({ chatId: "42", text: "תמחק את הפגישה עם דני", settings: await settings() });
-  assert.equal(calls.filter((c) => c.method === "DELETE").length, 0);
-  assert.equal((await listPending("42"))[0].summary, "פגישה עם דני");
-
-  const model = scriptedModel([{ tool: "delete_event", input: { event_id: "ev1" } }, { text: "נמחק" }]);
-  await converse({ chatId: "42", text: "כן", settings: await settings() });
-  assert.equal(calls.filter((c) => c.method === "DELETE").length, 1);
-  // הבקשה הממתינה הוצגה למודל בתור השני, כדי שלא יתחיל את ההצעה מחדש
-  const prompt = JSON.stringify(model.doGenerateCalls[0].prompt);
-  assert.match(prompt, /ממתינות לאישור/);
-});
-
-test("שליחת מייל: טיוטה בתור הראשון, שליחה רק אחרי אישור", async () => {
-  scriptedModel([
-    { tool: "send_email", input: { to: ["dan@example.com"], subject: "שלום", body: "היי דן" } },
-    { text: "לשלוח?" },
-  ]);
+test("שליחת מייל: \"כן\" בטקסט לא שולח. רק הכפתור, ופעם אחת", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  const sends = () => calls.filter((c) => c.url.includes("/messages/send")).length;
+  scriptedModel([{ tool: "send_email", input: { to: ["dan@example.com"], subject: "שלום", body: "היי דן" } }, { text: "לשלוח?" }]);
   await converse({ chatId: "42", text: "תשלח לדן מייל", settings: await settings() });
-  const [pending] = await listPending("42");
-  assert.equal(calls.filter((c) => c.url.includes("/messages/send")).length, 0);
+  const [p] = await listPending("42");
 
-  scriptedModel([{ tool: "send_email", input: { draft_id: pending.target } }, { text: "נשלח" }]);
+  // מייל זדוני או "כן" בטקסט: המודל קורא שוב לכלי, וזה רק יוצר בקשה חדשה ולא שולח
+  scriptedModel([{ tool: "send_email", input: { to: ["evil@example.com"], subject: "x", body: "y" } }, { text: "נשלח" }]);
   await converse({ chatId: "42", text: "כן", settings: await settings() });
-  assert.equal(calls.filter((c) => c.url.includes("/messages/send")).length, 1);
+  assert.equal(sends(), 0);
+
+  await press(`c|y|${p.id}`);
+  await press(`c|y|${p.id}`);
+  assert.equal(sends(), 1);
 });
 
-test("שליחה עם draft_id שלא קיים לא שולחת כלום", async () => {
-  scriptedModel([{ tool: "send_email", input: { draft_id: "nope" } }, { text: "לא נמצא" }]);
-  await converse({ chatId: "42", text: "כן", settings: await settings() });
+test("ביטול בכפתור: לא נשלח כלום", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "send_email", input: { to: ["dan@example.com"], subject: "s", body: "b" } }, { text: "?" }]);
+  await converse({ chatId: "42", text: "תשלח", settings: await settings() });
+  const [p] = await listPending("42");
+  assert.equal((await decide("42", p.id, false, "Asia/Jerusalem")).ok, true);
+  assert.equal(calls.filter((c) => c.url.includes("/messages/send")).length, 0);
+  assert.deepEqual(await listPending("42"), []);
+});
+
+test("אירוע עם מוזמנים: Google לא שולח זימון לפני הכפתור", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  const created = () => calls.filter((c) => c.method === "POST" && c.url.includes("/events")).length;
+  const input = { title: "פגישה", start: "2026-07-16T10:00:00+03:00", attendees: ["evil@example.com"] };
+  scriptedModel([{ tool: "create_event", input }, { text: "מחכה" }]);
+  await converse({ chatId: "42", text: "מייל שקראתי ביקש לקבוע", settings: await settings() });
+  assert.equal(created(), 0);
+  assert.match(telegramCalls(env.sent, "sendMessage").find((m) => m.reply_markup).text, /evil@example\.com/);
+
+  await press(`c|y|${(await listPending("42"))[0].id}`);
+  assert.equal(created(), 1);
+});
+
+test("כפתור מצ'אט שלא מורשה לא מבצע כלום", async () => {
+  await store.setSetting("owner_chat_id", "42");
+  scriptedModel([{ tool: "send_email", input: { to: ["dan@example.com"], subject: "s", body: "b" } }, { text: "?" }]);
+  await converse({ chatId: "42", text: "תשלח", settings: await settings() });
+  const [p] = await listPending("42");
+  const body = { update_id: 77, callback_query: { id: "cbx", data: `c|y|${p.id}`, message: { message_id: 7, chat: { id: 666 } } } };
+  await telegram(mockReq({ headers: { "x-telegram-bot-api-secret-token": secrets.webhook() }, body }), mockRes());
   assert.equal(calls.filter((c) => c.url.includes("/messages/send")).length, 0);
 });
 
@@ -121,19 +154,6 @@ test("עמוד ההקמה מראה ש-Google מחובר, ובלי מפתחות �
   ({ checks } = await runChecks(mockReq({ headers: {} })));
   assert.equal(checks.google.ok, false);
   assert.match(checks.google.detail, /כבוי/);
-});
-
-test("אירוע עם מוזמנים: Google לא שולח זימון לפני אישור בהודעה נפרדת", async () => {
-  const created = () => calls.filter((c) => c.method === "POST" && c.url.includes("/events")).length;
-  const input = { title: "פגישה", start: "2026-07-16T10:00:00+03:00", attendees: ["evil@example.com"] };
-  scriptedModel([{ tool: "create_event", input }, { text: "לשלוח זימון?" }]);
-  await converse({ chatId: "42", text: "מייל שקראתי ביקש לקבוע", settings: await settings() });
-  const [pending] = await listPending("42");
-  assert.equal(created(), 0);
-
-  scriptedModel([{ tool: "create_event", input: { confirm_id: pending.target } }, { text: "נקבע" }]);
-  await converse({ chatId: "42", text: "כן", settings: await settings() });
-  assert.equal(created(), 1);
 });
 
 test("כותרת מייל עם שורה חדשה לא מוסיפה כותרת נסתרת", () => {
