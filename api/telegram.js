@@ -43,7 +43,9 @@ async function handleCallback(cb, settings) {
     // לחיצה שנייה לא דורסת את "✅ בוצע" שכבר כתוב בהודעה
     if (r.stale) return answerCallback(cb.id, r.text);
     await answerCallback(cb.id, r.ok ? (op === "y" ? "בוצע" : "בוטל") : "לא בוצע");
-    return editMessageText(chatId, cb.message.message_id, r.text);
+    await editMessageText(chatId, cb.message.message_id, r.text);
+    // גם הודעה חדשה: עריכה של הודעה ישנה קל לפספס, ובמיוחד כשמשהו נכשל
+    return sendMessage(chatId, r.notice, { plain: true });
   }
   const action = { d: "done", t: "tomorrow", s: "snooze" }[op];
   if (kind !== "r" || !id || !action) return answerCallback(cb.id);
