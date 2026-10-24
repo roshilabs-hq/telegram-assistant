@@ -304,9 +304,8 @@ function renderStuckForm(steps, addons) {
     "    attributes:",
     `      label: ${q("באיזה שלב נתקעתם?")}`,
     "      options:",
+    // בלי required: אחרת GitHub בוחר מראש את השלב הראשון, ורוב האנשים לא נתקעו בו
     ...options.map((o) => `        - ${q(o)}`),
-    "    validations:",
-    "      required: true",
     "  - type: dropdown",
     "    id: guide",
     "    attributes:",
