@@ -100,7 +100,10 @@ let hasVercel;
 // עם VERCEL_TOKEN כל פקודה הולכת לחשבון של הטוקן, ולא לחשבון שבמקרה מחובר במחשב
 const vercel = (args, opts) => {
   const t = envNow()?.VERCEL_TOKEN;
-  const all = t ? [...args, "--token", t] : args;
+  const all = t ? [...args, "--token", t] : [...args];
+  // הצוות של הפרויקט, ולא הצוות שבמקרה מוגדר במחשב. בלי זה פקודה לפי כתובת (redeploy) מחפשת בצוות הלא נכון.
+  const linkFile = join(ROOT, ".vercel", "project.json");
+  if (existsSync(linkFile) && !["login", "whoami", "--version"].includes(args[0])) all.push("--scope", JSON.parse(readFileSync(linkFile, "utf8")).orgId);
   return hasVercelNow() ? run("vercel", all, opts) : run("npx", ["--yes", VERCEL, ...all], opts);
 };
 
