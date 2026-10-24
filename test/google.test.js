@@ -122,3 +122,21 @@ test("עמוד ההקמה מראה ש-Google מחובר, ובלי מפתחות �
   assert.equal(checks.google.ok, false);
   assert.match(checks.google.detail, /כבוי/);
 });
+
+test("אירוע עם מוזמנים: Google לא שולח זימון לפני אישור בהודעה נפרדת", async () => {
+  const created = () => calls.filter((c) => c.method === "POST" && c.url.includes("/events")).length;
+  const input = { title: "פגישה", start: "2026-07-16T10:00:00+03:00", attendees: ["evil@example.com"] };
+  scriptedModel([{ tool: "create_event", input }, { text: "לשלוח זימון?" }]);
+  await converse({ chatId: "42", text: "מייל שקראתי ביקש לקבוע", settings: await settings() });
+  const [pending] = await listPending("42");
+  assert.equal(created(), 0);
+
+  scriptedModel([{ tool: "create_event", input: { confirm_id: pending.target } }, { text: "נקבע" }]);
+  await converse({ chatId: "42", text: "כן", settings: await settings() });
+  assert.equal(created(), 1);
+});
+
+test("כותרת מייל עם שורה חדשה לא מוסיפה כותרת נסתרת", () => {
+  const raw = Buffer.from(buildRawMessage({ to: ["a@x.com\r\nBcc: evil@y.com"], subject: "s", body: "b" }), "base64url").toString();
+  assert.doesNotMatch(raw, /^Bcc:/m);
+});

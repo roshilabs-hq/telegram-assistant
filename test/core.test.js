@@ -174,3 +174,10 @@ test("גרסאות: השוואה, ו-GitHub שלא עונה לא מפיל את �
   assert.equal(await latestVersion(async () => new Response(JSON.stringify({ version: "2.0.0" }))), "2.0.0");
   assert.equal(await latestVersion(async () => { throw new Error("offline"); }), null);
 });
+
+test("צימוד: ניחושים שגויים שנשלחים במקביל נספרים, והקוד נמחק", async () => {
+  await store.setSetting("pairing_code", "123456");
+  const snapshot = await store.getSettings();
+  await Promise.all(Array.from({ length: 5 }, () => tryPair("666", "/start 000000", snapshot)));
+  assert.equal((await store.getSettings()).pairing_code ?? null, null);
+});

@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { randomBytes } from "node:crypto";
 import postgres from "postgres";
 import { env, secrets, baseUrl } from "../lib/config.js";
-import { same, cookies, authed, sessionCookie } from "../lib/session.js";
+import { cookies, authed, sessionCookie, passwordOk, tooManyTries, MIN_PASSWORD } from "../lib/session.js";
 import { googleConfigured, redirectUri } from "../lib/google.js";
 import { VERSION, ownRepo } from "../lib/version.js";
 import { runChecks, cronSql } from "../lib/checks.js";
@@ -309,14 +309,16 @@ export default async function handler(req, res) {
   if (req.method === "POST") {
     const form = await readForm(req);
     if (form.action === "login") {
-      if (!env.setupPassword() || !same(form.password, env.setupPassword())) {
-        return res.status(401).setHeader("content-type", "text/html; charset=utf-8").send(loginPage("הסיסמה לא נכונה."));
-      }
+      const page = (code, msg) => res.status(code).setHeader("content-type", "text/html; charset=utf-8").send(loginPage(msg));
+      if (await tooManyTries(req)) return page(429, "יותר מדי ניסיונות. מחכים דקה ומנסים שוב.");
+      if (env.setupPassword() && env.setupPassword().length < MIN_PASSWORD)
+        return page(401, `הסיסמה שהוגדרה ב-Vercel קצרה מ-${MIN_PASSWORD} תווים. משנים את SETUP_PASSWORD ב-Vercel ‹ Settings ‹ Environment Variables, ואז Redeploy.`);
+      if (!passwordOk(form.password)) return page(401, "הסיסמה לא נכונה.");
       res.setHeader("set-cookie", sessionCookie());
       return res.redirect(303, "/setup");
     }
     if (!authed(req)) return res.status(401).setHeader("content-type", "text/html; charset=utf-8").send(loginPage());
-    const fn = ACTIONS[form.action];
+    const fn = Object.hasOwn(ACTIONS, form.action) ? ACTIONS[form.action] : null;
     let errors = [];
     try {
       errors = fn ? await fn(req, form) : ["פעולה לא מוכרת"];
@@ -333,6 +335,8 @@ export default async function handler(req, res) {
     return res.redirect(303, "/setup");
   }
 
+  // מסלול Claude Code שולח את הסיסמה בכותרת. גם שם סופרים ניסיונות.
+  if (req.headers["x-setup-password"] && (await tooManyTries(req))) return res.status(429).json({ error: "too many tries, wait a minute" });
   if (!authed(req)) {
     if (wantsJson) return res.status(401).json({ error: "unauthorized" });
     return res.status(200).setHeader("content-type", "text/html; charset=utf-8").send(loginPage());

@@ -125,7 +125,7 @@
 **למה:** הבוט צריך מחשב שדולק 24 שעות ביממה. **Vercel** הוא המחשב באינטרנט שהבוט ירוץ עליו, ו-**Supabase** הוא המחברת שבה הבוט זוכר תזכורות, פתקים ורשימות. בשניהם יש מסלול חינמי שמספיק לבוט אישי. בשלב הזה פותחים את שניהם ומעלים את הבוט.
 
 ### מה עושים
-1. לוחצים על הכפתור: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20setup%20password%20you%20choose%20%288%2B%20characters%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
+1. לוחצים על הכפתור: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
 2. Vercel מבקש להתחבר. לוחצים **GitHub**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך, בחינם.) ![](img/deploy-1.png)
    - **יש לך GitHub:** מתחברים, ובחלון של GitHub לוחצים **Authorize**.
    - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. בסוף לוחצים **Authorize**.
@@ -141,7 +141,7 @@
 7. **Add Environment Variables**: ממלאים שלושה שדות: ![](img/deploy-13.png)
    - `TELEGRAM_TOKEN`: הטוקן מ-BotFather, של הבוט **החדש** שיצרת בשלב הראשון. (מי שכבר יש לו בוט אחר: לא הטוקן שלו. כל בוט מחובר להתקנה אחת.)
    - `AI_API_KEY`: המפתח מהשלב הקודם.
-   - `SETUP_PASSWORD`: סיסמה חדשה שבוחרים עכשיו, לפחות 8 תווים. היא תשמש להיכנס לעמוד ההקמה. כדאי לשמור אותה.
+   - `SETUP_PASSWORD`: סיסמה חדשה, ארוכה ואקראית (16 תווים ומעלה). היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. הכי פשוט: לתת לדפדפן או למנהל הסיסמאות ליצור אחת ולשמור אותה שם. לא משתמשים בסיסמה שכבר יש לך במקום אחר.
 8. לוחצים **Deploy** ומחכים כדקה, עד שמופיע **Congratulations!**. ![](img/deploy-14.png)
 9. לוחצים **Continue to Project**. תחת **Domains** מופיעה הכתובת של הבוט, משהו כמו `telegram-assistant-xxxx.vercel.app`. מעתיקים אותה.
 

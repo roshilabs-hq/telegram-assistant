@@ -118,3 +118,21 @@ test("ההדרכות שנוצרו כוללות את כל חלקי התוספת �
     for (const part of ["חלק א׳", "חלק ב׳", "חלק ג׳", "חלק ד׳", "חלק ה׳"]) assert.match(doc, new RegExp(part), `${f}: חסר ${part}`);
   }
 });
+
+test("ניחוש סיסמה: אחרי 10 ניסיונות בדקה מאותה כתובת — 429, גם לסיסמה הנכונה", async () => {
+  const login = async (password) => {
+    const res = mockRes();
+    await handler(mockReq({ headers: { "x-real-ip": "1.2.3.4" }, body: { action: "login", password } }), res);
+    return res.statusCode;
+  };
+  for (let i = 0; i < 10; i++) assert.equal(await login("wrong"), 401);
+  assert.equal(await login("correct-horse"), 429);
+});
+
+test("סיסמה קצרה מ-8 תווים לא פותחת את העמוד, ומסבירה מה לעשות", async () => {
+  freshEnv({ SETUP_PASSWORD: "short" });
+  const res = mockRes();
+  await handler(mockReq({ body: { action: "login", password: "short" } }), res);
+  assert.equal(res.statusCode, 401);
+  assert.match(res.body, /קצרה/);
+});
