@@ -290,7 +290,13 @@ async function deploy() {
 async function activate() {
   const a = await setupApi({ action: "activate" });
   for (const err of a.errors || []) say(false, err);
-  const s = await setupApi();
+  // התזמון נבדק לפי ריצה אמיתית, והוא רץ פעם בדקה. אז בדקה הראשונה הוא אדום, וזה תקין: מחכים לו.
+  let s = await setupApi();
+  for (let i = 0; i < 6 && !a.errors?.length && s?.steps?.some((x) => x.kind !== "addon" && x.id === "activate" && !x.ok); i++) {
+    if (i === 0) console.log("⏳ מחכה שהתזכורות ירוצו פעם ראשונה (עד דקה וחצי)...");
+    await new Promise((ok) => setTimeout(ok, 15000));
+    s = await setupApi();
+  }
   if (!s?.steps) return say(false, "לא הצלחתי לקרוא את עמוד ההקמה");
   for (const step of s.steps.filter((x) => x.kind !== "addon")) say(step.ok, step.title);
   if (s.pair_link) console.log(`\nקישור החיבור (פותחים בטלפון ולוחצים Start):\n${s.pair_link}`);
