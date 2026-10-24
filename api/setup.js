@@ -355,8 +355,11 @@ export default async function handler(req, res) {
     state.settings.pairing_code = (await store.getSettings()).pairing_code;
   }
   if (wantsJson) {
-    const steps = [...STEPS, ...ADDONS].map((s) => ({ id: s.id, title: s.title, ...stepStatus(s.check, state.checks) }));
-    return res.status(200).json({ steps, checks: state.checks });
+    const steps = [...STEPS, ...ADDONS].map((s) => ({ id: s.id, kind: s.kind, title: s.title, ...stepStatus(s.check, state.checks) }));
+    // קישור החיבור, כדי ש-Claude ייתן אותו למשתמש במסלול Claude Code. רק עד שיש בעלים.
+    const code = state.settings.owner_chat_id ? null : state.settings.pairing_code;
+    const pair_link = code && state.bot?.username ? `https://t.me/${state.bot.username}?start=${code}` : null;
+    return res.status(200).json({ steps, checks: state.checks, pair_link });
   }
   return res.status(200).setHeader("content-type", "text/html; charset=utf-8").send(dashboard(state, Array.isArray(flash) ? flash : []));
 }
