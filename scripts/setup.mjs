@@ -205,6 +205,17 @@ async function repo() {
  * מכל כתובות ה-vercel.app בפלט, הקבועה היא הקצרה ביותר: לכתובת של העלאה בודדת
  * Vercel מוסיף קוד ושם חשבון (project-abc123-team.vercel.app).
  */
+/** עם VERCEL_TOKEN שואלים את Vercel ישירות מה הכתובות של הפרויקט. זה הכי אמין. */
+async function projectDomain() {
+  const t = envNow()?.VERCEL_TOKEN;
+  const linkFile = join(ROOT, ".vercel", "project.json");
+  if (!t || !existsSync(linkFile)) return null;
+  const { projectId, orgId } = JSON.parse(readFileSync(linkFile, "utf8"));
+  const r = await fetch(`https://api.vercel.com/v9/projects/${projectId}/domains?teamId=${orgId}`, { headers: { authorization: `Bearer ${t}` } }).catch(() => null);
+  const names = r?.ok ? ((await r.json()).domains || []).map((d) => d.name).filter((n) => n.endsWith(".vercel.app")) : [];
+  return names.length ? `https://${names.sort((a, b) => a.length - b.length)[0]}` : null;
+}
+
 export function productionUrl(output) {
   const alias = /Aliased:\s*(https:\/\/\S+)/.exec(output)?.[1];
   if (alias) return alias.replace(/\/+$/, "");
@@ -212,7 +223,7 @@ export function productionUrl(output) {
   return all.sort((a, b) => a.length - b.length)[0] || null;
 }
 
-function deploy() {
+async function deploy() {
   const e = envNow() || {};
   const missing = REQUIRED.filter((k) => !e[k]);
   if (missing.length) return say(false, `חסר ב-.env.local: ${missing.join(", ")}`);
@@ -255,7 +266,7 @@ function deploy() {
   const d = vercel(["deploy", "--prod", "--yes"], { quiet: true });
   if (!d.ok) return say(false, `העלאה נכשלה:\n${d.out.trim().split("\n").slice(-6).join("\n")}`);
   // הכתובת הקבועה של הפרויקט, ולא הכתובת של ההעלאה הזו: Vercel נועל כתובות של העלאה בודדת מאחורי התחברות
-  const url = productionUrl(d.out);
+  const url = (await projectDomain()) || productionUrl(d.out);
   if (!url) return say(false, "הבוט עלה, אבל לא מצאתי את הכתובת הקבועה שלו. היא מופיעה ב-Vercel תחת Domains.");
   writeFileSync(ENV_FILE, setEnvLine(readFileSync(ENV_FILE, "utf8"), "KIT_URL", url.replace(/\/+$/, "")));
   say(true, `הבוט באוויר: ${url}`);
