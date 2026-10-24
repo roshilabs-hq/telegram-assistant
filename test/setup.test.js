@@ -145,3 +145,12 @@ test("סיסמה בכותרת: גם ב-POST של פעולה וגם בחיבור 
   await start(mockReq({ method: "GET", headers }), res);
   assert.equal(res.statusCode, 429);
 });
+
+test("שמירת הגדרות מרחוק עם שעת תדריך בלבד לא מוחקת את השם", async () => {
+  const headers = { "x-real-ip": "9.9.9.9", "x-setup-password": "correct-horse" };
+  await store.setSetting("owner_name", "דנה");
+  await handler(mockReq({ headers, query: { format: "json" }, body: { action: "save_settings", briefing_time: "07:30" } }), mockRes());
+  const s = await store.getSettings();
+  assert.equal(s.owner_name, "דנה");
+  assert.equal(s.briefing_time, "07:30");
+});

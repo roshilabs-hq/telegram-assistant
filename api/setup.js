@@ -127,9 +127,10 @@ export const ACTIONS = {
     await store.setSetting("pairing_code", newPairingCode());
     return [];
   },
+  // רק שדות שנשלחו משתנים: Claude שולח מרחוק רק את שעת התדריך, ואסור שזה ימחק את השם
   async save_settings(req, form) {
-    const name = String(form.owner_name || "").trim().slice(0, 40);
-    await store.setSetting("owner_name", name || null);
+    if ("owner_name" in form) await store.setSetting("owner_name", String(form.owner_name || "").trim().slice(0, 40) || null);
+    if (!("briefing_time" in form)) return [];
     const t = String(form.briefing_time || "").trim();
     if (t && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) return ["שעת התדריך צריכה להיות בפורמט 07:30"];
     await store.setSetting("briefing_time", t || null);

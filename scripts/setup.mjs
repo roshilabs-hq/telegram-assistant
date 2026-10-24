@@ -11,6 +11,9 @@
  *   node scripts/setup.mjs verify      בודק את הטוקן ואת מפתח ה-AI מול טלגרם והספק
  *   node scripts/setup.mjs deploy      יוצר פרויקט ב-Vercel, מחבר Supabase ו-GitHub, ומעלה
  *   node scripts/setup.mjs activate    "הפעילו הכול" מרחוק, ומחזיר את קישור החיבור
+ *   node scripts/setup.mjs updates     תוספת: עדכונים אוטומטיים (ההגדרה ב-GitHub, דרך הטוקן)
+ *   node scripts/setup.mjs briefing 07:30   תוספת: תדריך בוקר (בלי שעה: מכבה)
+ *   node scripts/setup.mjs voice       תוספת: הודעות קוליות (GROQ_API_KEY עובר ל-Vercel)
  *
  * לעולם לא מדפיס ערך של סוד. הסודות עוברים מ-.env.local ל-Vercel דרך stdin.
  */
@@ -64,6 +67,11 @@ AI_API_KEY=
 
 # סיסמת עמוד ההקמה. Claude כבר יצר אותה, לא צריך לגעת.
 SETUP_PASSWORD=
+
+# --- תוספת "הודעות קוליות" (לא חובה) ---
+# נכנסים עם Google, Create API Key, ומעתיקים (מתחיל ב-gsk_). חינמי.
+# https://console.groq.com/keys
+GROQ_API_KEY=
 `;
 
 const envNow = () => (existsSync(ENV_FILE) ? readEnv(readFileSync(ENV_FILE, "utf8")) : null);
@@ -280,14 +288,9 @@ async function deploy() {
 }
 
 async function activate() {
-  const e = envNow() || {};
-  if (!e.KIT_URL) return say(false, "אין עדיין KIT_URL. מריצים קודם את deploy.");
-  const base = e.KIT_URL.replace(/\/+$/, "");
-  const headers = { "x-setup-password": e.SETUP_PASSWORD, "content-type": "application/json" };
-  const a = await fetch(`${base}/api/setup?format=json`, { method: "POST", headers, body: JSON.stringify({ action: "activate" }) })
-    .then((r) => r.json()).catch((x) => ({ errors: [x.message] }));
+  const a = await setupApi({ action: "activate" });
   for (const err of a.errors || []) say(false, err);
-  const s = await fetch(`${base}/api/setup?format=json`, { headers }).then((r) => r.json()).catch(() => null);
+  const s = await setupApi();
   if (!s?.steps) return say(false, "לא הצלחתי לקרוא את עמוד ההקמה");
   for (const step of s.steps.filter((x) => x.kind !== "addon")) say(step.ok, step.title);
   if (s.pair_link) console.log(`\nקישור החיבור (פותחים בטלפון ולוחצים Start):\n${s.pair_link}`);
@@ -300,7 +303,52 @@ function login() {
 }
 const hasVercelNow = () => (hasVercel ??= run("vercel", ["--version"], { quiet: true }).ok);
 
-const STEPS = { preflight, login, env, accounts, repo, verify, deploy, activate };
+// ---------- תוספות ----------
+
+async function setupApi(body) {
+  const e = envNow() || {};
+  if (!e.KIT_URL) return { errors: ["אין עדיין KIT_URL. מריצים קודם את deploy."] };
+  const headers = { "x-setup-password": e.SETUP_PASSWORD, "content-type": "application/json" };
+  return fetch(`${e.KIT_URL.replace(/\/+$/, "")}/api/setup?format=json`, body ? { method: "POST", headers, body: JSON.stringify(body) } : { headers })
+    .then((r) => r.json()).catch((x) => ({ errors: [x.message] }));
+}
+
+/** עדכונים אוטומטיים: ההגדרה האחת ב-GitHub (ש-Actions יוכל לפתוח בקשת עדכון), דרך הטוקן. */
+async function updates() {
+  const t = envNow()?.GITHUB_TOKEN;
+  if (!t) return say(false, "GITHUB_TOKEN חסר ב-.env.local. בלעדיו מפעילים בעמוד: addons/05-updates.md");
+  const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
+  const repo = /github\.com[/:]([^/]+\/[^/.]+?)(?:\.git)?$/.exec(origin)?.[1];
+  if (!repo) return say(false, "לא מצאתי את העותק ב-GitHub");
+  const r = await gh(`/repos/${repo}/actions/permissions/workflow`, t, {
+    method: "PUT",
+    body: JSON.stringify({ default_workflow_permissions: "write", can_approve_pull_request_reviews: true }),
+  });
+  say(r.status === 204, r.status === 204 ? "עדכונים אוטומטיים פועלים: פעם בשבוע תגיע בקשת עדכון, ומאשרים בלחיצה" : `GitHub סירב (קוד ${r.status})`);
+}
+
+/** תדריך בוקר: node scripts/setup.mjs briefing 07:30 (ובלי שעה: מכבה). */
+async function briefing() {
+  const time = process.argv[3] || "";
+  const r = await setupApi({ action: "save_settings", briefing_time: time });
+  if (r.errors?.length) return r.errors.forEach((x) => say(false, x));
+  say(true, time ? `תדריך בוקר כל יום ב-${time}` : "תדריך הבוקר כבוי");
+}
+
+/** הודעות קוליות: GROQ_API_KEY מ-.env.local עובר ל-Vercel, והבוט עולה מחדש. */
+async function voice() {
+  const k = envNow()?.GROQ_API_KEY;
+  if (!k) return say(false, "GROQ_API_KEY חסר ב-.env.local (הקישור ליצירה נמצא בקובץ)");
+  const r = await fetch("https://api.groq.com/openai/v1/models", { headers: { authorization: `Bearer ${k}` } }).catch(() => null);
+  if (!r?.ok) return say(false, `Groq דחה את המפתח${r ? ` (קוד ${r.status})` : ""}. מעתיקים אותו שוב, כולו.`);
+  say(true, "מפתח Groq תקין");
+  if (!vercel(["env", "add", "GROQ_API_KEY", "production", "--force", "--yes"], { input: k, quiet: true }).ok) return say(false, "לא הצלחתי להעביר את המפתח ל-Vercel");
+  say(true, "GROQ_API_KEY הועבר ל-Vercel");
+  const d = vercel(["deploy", "--prod", "--yes"], { quiet: true });
+  say(d.ok, d.ok ? "הבוט עלה מחדש עם הודעות קוליות. שולחים לו הודעה קולית כדי לבדוק" : "ההעלאה מחדש נכשלה");
+}
+
+const STEPS = { preflight, login, env, accounts, repo, verify, deploy, activate, updates, briefing, voice };
 const step = process.argv[2];
 // רץ ישירות (ולא נטען מבדיקה)
 if (basename(process.argv[1] || "") === "setup.mjs") {
