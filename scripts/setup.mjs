@@ -6,6 +6,8 @@
  *   node scripts/setup.mjs preflight   מה מותקן, ומה צריך לפני שמתחילים
  *   node scripts/setup.mjs login       התחברות ל-Vercel (נפתח דפדפן)
  *   node scripts/setup.mjs env         יוצר את .env.local ומייצר סיסמת הקמה
+ *   node scripts/setup.mjs accounts    לאיזה חשבון GitHub ו-Vercel שייך כל טוקן
+ *   node scripts/setup.mjs repo        יוצר את העותק הפרטי מהתבנית בחשבון של GITHUB_TOKEN
  *   node scripts/setup.mjs verify      בודק את הטוקן ואת מפתח ה-AI מול טלגרם והספק
  *   node scripts/setup.mjs deploy      יוצר פרויקט ב-Vercel, מחבר Supabase ו-GitHub, ומעלה
  *   node scripts/setup.mjs activate    "הפעילו הכול" מרחוק, ומחזיר את קישור החיבור
@@ -45,6 +47,15 @@ export function setEnvLine(text, key, value) {
 export const TEMPLATE = `# הסודות של הבוט. הקובץ הזה נשאר רק במחשב שלך (הוא ב-.gitignore), ו-Claude לא קורא אותו.
 # מדביקים אחרי ה-= בלי רווחים ובלי מירכאות.
 
+# --- שני טוקנים להקמה בלבד. הם קובעים באיזה חשבון הכול נוצר, ולא עולים לבוט. ---
+# GitHub: נכנסים לקישור, בוחרים Expiration של 30 יום, לוחצים Generate token ומעתיקים (מתחיל ב-ghp_)
+# https://github.com/settings/tokens/new?scopes=repo,workflow&description=telegram-assistant-setup
+GITHUB_TOKEN=
+# Vercel: נכנסים לקישור, Create Token, נותנים שם, Expiration של 30 יום, Create ומעתיקים
+# https://vercel.com/account/settings/tokens
+VERCEL_TOKEN=
+
+# --- הבוט ---
 # הטוקן מ-BotFather, נראה כמו 123456789:AAH...
 TELEGRAM_TOKEN=
 
@@ -78,7 +89,24 @@ function run(cmd, args, { input, quiet = false } = {}) {
 
 // Vercel CLI שכבר מותקן חוסך הורדה. אם אין, npx מוריד גרסה קבועה.
 let hasVercel;
-const vercel = (args, opts) => (hasVercelNow() ? run("vercel", args, opts) : run("npx", ["--yes", VERCEL, ...args], opts));
+// עם VERCEL_TOKEN כל פקודה הולכת לחשבון של הטוקן, ולא לחשבון שבמקרה מחובר במחשב
+const vercel = (args, opts) => {
+  const t = envNow()?.VERCEL_TOKEN;
+  const all = t ? [...args, "--token", t] : args;
+  return hasVercelNow() ? run("vercel", all, opts) : run("npx", ["--yes", VERCEL, ...all], opts);
+};
+
+const gh = async (path, token, init = {}) => {
+  const r = await fetch(`https://api.github.com${path}`, {
+    ...init,
+    headers: { authorization: `Bearer ${token}`, accept: "application/vnd.github+json", "content-type": "application/json", ...init.headers },
+  }).catch(() => null);
+  return { status: r?.status || 0, data: r ? await r.json().catch(() => ({})) : {} };
+};
+const vercelUser = async (token) => {
+  const r = await fetch("https://api.vercel.com/v2/user", { headers: { authorization: `Bearer ${token}` } }).catch(() => null);
+  return r?.ok ? (await r.json()).user?.username : null;
+};
 
 // ---------- השלבים ----------
 
@@ -90,8 +118,10 @@ function preflight() {
   if (gh.ok) say(true, "GitHub CLI מחובר (אפשר ליצור את העותק בפקודה)");
   else say(null, /not logged|auth login/i.test(gh.out) ? "GitHub CLI מותקן אבל לא מחובר: מריצים gh auth login --web" : "אין GitHub CLI: את העותק יוצרים בלחיצה אחת ב-GitHub");
   if (/[^\x20-\x7E]/.test(hostname())) say(null, "שם המחשב בעברית. Vercel CLI נשבר מזה, ואנחנו עוקפים את זה אוטומטית.");
+  if (envNow()?.VERCEL_TOKEN) return;
+  // החשבון שמחובר במחשב הוא רק גיבוי. בדרך הרגילה החשבון נקבע לפי הטוקן בשלב הבא.
   const who = vercel(["whoami"], { quiet: true });
-  say(who.ok, who.ok ? `Vercel מחובר (${who.out.trim().split("\n").pop()})` : "Vercel לא מחובר: מריצים npx vercel login ומאשרים בדפדפן");
+  say(null, who.ok ? `Vercel מחובר במחשב לחשבון ${who.out.trim().split("\n").pop()}. נשתמש בו רק אם תאשר.` : "Vercel: נחבר עם טוקן בשלב הבא");
 }
 
 function env() {
@@ -121,6 +151,54 @@ async function verify() {
   const r = await fetch(...req).catch(() => null);
   const name = { google: "Gemini", openai: "ChatGPT", anthropic: "Claude" }[p];
   say(r?.ok, r?.ok ? `מפתח ${name} תקין` : `הספק (${name}) דחה את המפתח${r ? ` (קוד ${r.status})` : ""}. בודקים שהועתק כולו, ושיש אמצעי תשלום בחשבון.`);
+}
+
+/** לאיזה חשבון כל טוקן שייך. Claude מראה את זה למשתמש ושואל לפני שיוצרים משהו. */
+async function accounts() {
+  const e = envNow() || {};
+  if (!e.GITHUB_TOKEN) say(false, "GITHUB_TOKEN חסר ב-.env.local");
+  else {
+    const u = await gh("/user", e.GITHUB_TOKEN);
+    say(u.status === 200, u.status === 200 ? `GitHub: ${u.data.login}` : "GitHub לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ, ומעתיקים את כולו.");
+  }
+  if (!e.VERCEL_TOKEN) say(null, "אין VERCEL_TOKEN: נעבוד עם החשבון שמחובר במחשב (אחרי אישור)");
+  else {
+    const name = await vercelUser(e.VERCEL_TOKEN);
+    say(Boolean(name), name ? `Vercel: ${name}` : "Vercel לא מכיר את הטוקן. יוצרים חדש בקישור שבקובץ.");
+  }
+}
+
+/**
+ * יוצר את העותק הפרטי מהתבנית בחשבון של GITHUB_TOKEN, ומעביר את התיקייה הזו אליו.
+ * הקבצים לא משתנים (אותה תבנית), ו-.env.local נשאר כי הוא ב-.gitignore.
+ */
+async function repo() {
+  const t = envNow()?.GITHUB_TOKEN;
+  if (!t) return say(false, "GITHUB_TOKEN חסר ב-.env.local");
+  const me = await gh("/user", t);
+  if (me.status !== 200) return say(false, "GitHub לא מכיר את הטוקן");
+  let name, made;
+  for (let i = 1; i <= 9 && !made; i++) {
+    name = i === 1 ? "telegram-assistant" : `telegram-assistant-${i}`;
+    const r = await gh("/repos/roshilabs-hq/telegram-assistant/generate", t, {
+      method: "POST",
+      body: JSON.stringify({ owner: me.data.login, name, private: true, description: "העוזר האישי שלי בטלגרם" }),
+    });
+    if (r.status === 201) made = r.data;
+    else if (r.status !== 422) return say(false, `GitHub סירב ליצור את העותק (קוד ${r.status}). הטוקן צריך הרשאות repo ו-workflow.`);
+  }
+  if (!made) return say(false, "כל השמות telegram-assistant עד telegram-assistant-9 תפוסים בחשבון");
+  // הטוקן עובר בכותרת של הפקודה הזו בלבד, ולא נשמר ב-.git/config
+  const auth = `http.https://github.com/.extraheader=AUTHORIZATION: basic ${Buffer.from(`x-access-token:${t}`).toString("base64")}`;
+  run("git", ["remote", "set-url", "origin", made.clone_url], { quiet: true });
+  let fetched = false;
+  for (let i = 0; i < 6 && !fetched; i++) {
+    fetched = run("git", ["-c", auth, "fetch", "origin"], { quiet: true }).ok;
+    if (!fetched) await new Promise((ok) => setTimeout(ok, 3000)); // GitHub בונה את העותק כמה שניות
+  }
+  if (!fetched || !run("git", ["reset", "--hard", "origin/main"], { quiet: true }).ok) return say(false, `העותק נוצר (${made.html_url}), אבל לא הצלחתי למשוך אותו`);
+  run("git", ["branch", "--set-upstream-to=origin/main", "main"], { quiet: true });
+  say(true, `העותק שלך: ${made.html_url} (פרטי)`);
 }
 
 function deploy() {
@@ -180,7 +258,7 @@ function login() {
 }
 const hasVercelNow = () => (hasVercel ??= run("vercel", ["--version"], { quiet: true }).ok);
 
-const STEPS = { preflight, login, env, verify, deploy, activate };
+const STEPS = { preflight, login, env, accounts, repo, verify, deploy, activate };
 const step = process.argv[2];
 // רץ ישירות (ולא נטען מבדיקה)
 if (basename(process.argv[1] || "") === "setup.mjs") {
