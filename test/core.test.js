@@ -27,6 +27,15 @@ test("המודל מפעיל כלי, התזכורת נשמרת, והתשובה ח
     ["user", "assistant"]
   );
   assert.equal(env.tables.get("bot_turns").at(-1).ok, true);
+  // בהיסטוריה רואים שהתזכורת באמת נקבעה, כדי שהתור הבא לא ייצור אותה שוב
+  assert.equal(history[1].content, "סגור, אזכיר מחר ב-9:00\n\n[פעולות שבוצעו: create_reminder]");
+});
+
+test("רישום הפעולות מההיסטוריה לא מגיע למשתמש, ותשובה בלי כלים נשמרת כמו שהיא", async () => {
+  scriptedModel([{ text: "שלום!\n\n[פעולות שבוצעו: create_reminder]" }]);
+  const out = await converse({ chatId: "42", text: "היי", settings: {} });
+  assert.equal(out.text, "שלום!");
+  assert.equal((await store.getHistory("42"))[1].content, "שלום!");
 });
 
 test("כלי לא יכול לגעת בשיחה של מישהו אחר", async () => {
