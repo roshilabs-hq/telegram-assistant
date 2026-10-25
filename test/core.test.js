@@ -159,14 +159,15 @@ test("צימוד: אחרי 5 ניחושים שגויים הקוד נמחק", asy
   assert.equal(isAllowed("666", await store.getSettings()), false);
 });
 
-test("הודעות משתמש מאתמול מקבלות תאריך, ושל היום לא", async () => {
+test("הודעות משתמש קודמות מקבלות זמן: תאריך מאתמול, שעה מהיום, וכלום מהדקות האחרונות", async () => {
   const { datedHistory } = await import("../lib/brain.js");
   const now = new Date("2026-10-18T07:00:00Z");
   const out = datedHistory(
     [
       { role: "user", content: "מה יש לי מחר?", created_at: "2026-10-17T09:06:00Z" },
       { role: "assistant", content: "מחר, יום ראשון", created_at: "2026-10-17T09:06:10Z" },
-      { role: "user", content: "תודה", created_at: "2026-10-18T06:00:00Z" },
+      { role: "user", content: "תזכיר לי בעוד 2 דקות", created_at: "2026-10-18T06:03:00Z" },
+      { role: "user", content: "תודה", created_at: "2026-10-18T06:55:00Z" },
     ],
     "Asia/Jerusalem",
     now,
@@ -174,6 +175,7 @@ test("הודעות משתמש מאתמול מקבלות תאריך, ושל הי�
   assert.deepEqual(out, [
     { role: "user", content: "[17.10] מה יש לי מחר?" },
     { role: "assistant", content: "מחר, יום ראשון" },
+    { role: "user", content: "[09:03] תזכיר לי בעוד 2 דקות" },
     { role: "user", content: "תודה" },
   ]);
 });
