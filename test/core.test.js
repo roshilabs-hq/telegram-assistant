@@ -133,6 +133,10 @@ test("בחירת המודל החדש ביותר", async () => {
       })
     );
   assert.deepEqual(await resolveModel("google", "AIza", fakeFetch), { ok: true, model: "gemini-2.5-flash" });
+  // Claude: ה-Haiku החדש ביותר, גם כש-Opus ברשימה ראשון
+  const claude = async () =>
+    new Response(JSON.stringify({ data: ["claude-opus-5-5", "claude-haiku-4-5-20251001", "claude-haiku-4-5", "claude-haiku-5-5", "claude-sonnet-5-5"].map((id) => ({ id })) }));
+  assert.deepEqual(await resolveModel("anthropic", "sk-ant-x", claude), { ok: true, model: "claude-haiku-5-5" });
   const denied = async () => new Response("{}", { status: 401 });
   assert.deepEqual(await resolveModel("anthropic", "sk-ant-x", denied), { ok: false, status: 401 });
 });

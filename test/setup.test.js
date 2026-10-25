@@ -5,6 +5,7 @@ import { freshEnv, mockReq, mockRes, telegramCalls } from "./helpers.js";
 import * as store from "../lib/db.js";
 import { secrets } from "../lib/config.js";
 import handler, { stepStatus, ACTIONS } from "../api/setup.js";
+import { runChecks } from "../lib/checks.js";
 
 let env;
 beforeEach(() => {
@@ -77,6 +78,15 @@ test("הפעילו הכול בלי כתובת מסד: מחבר את הבוט ו�
   const [hook] = telegramCalls(env.sent, "setWebhook");
   assert.equal(hook.url, "https://bot.example.vercel.app/api/telegram");
   assert.equal(hook.secret_token, secrets.webhook());
+});
+
+test("Opus שנשמר לפני 1.3.5 מסומן למעבר ל-Haiku, ו-AI_MODEL שנקבע בכוונה גובר", async () => {
+  process.env.AI_API_KEY = "sk-ant-test";
+  await store.setSetting("ai_provider", "anthropic");
+  await store.setSetting("ai_model", "claude-opus-5-5");
+  assert.equal((await runChecks(mockReq({ headers: {} }))).checks.ai_model.ok, false);
+  process.env.AI_MODEL = "claude-opus-5-5";
+  assert.equal((await runChecks(mockReq({ headers: {} }))).checks.ai_model.ok, true);
 });
 
 test("אחרי פעולה עם שגיאה: חזרה לעמוד, והשגיאה עוברת בעוגייה קצרה", async () => {
