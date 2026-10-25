@@ -3,6 +3,7 @@ id: say-hello
 title: שולחים הודעה ראשונה
 minutes: 1
 check: none
+wizard: one
 ---
 
 ## בקצרה

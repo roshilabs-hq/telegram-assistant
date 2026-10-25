@@ -8,6 +8,7 @@
  *   docs/claude-code.md     כל השלבים במסלול Claude Code
  *   docs/quick.md           המדריך המקוצר ("יש לי ניסיון"), מתוך "## בקצרה" של כל שלב
  *   lib/steps.generated.js  רשימת השלבים לעמוד /setup
+ *   docs/index.html         האשף לטלפון (GitHub Pages): מסך לכל צעד, מאותו מקור
  *   .github/ISSUE_TEMPLATE/stuck.yml  טופס "נתקעתי" עם רשימת השלבים (רק כש-package.json מגדיר repository)
  *
  * שימוש:  node scripts/build-guide.mjs          כותב את הקבצים
@@ -114,6 +115,7 @@ function loadDir(dir, kind) {
         minutes: Number(meta.minutes),
         check: meta.check,
         only,
+        wizard: meta.wizard,
         quick: splitByPath(s["בקצרה"]),
         why: s["למה"],
         how,
@@ -291,6 +293,205 @@ function renderModule(steps, addons) {
   ].join("\n");
 }
 
+// ---------- האשף: docs/index.html (GitHub Pages) ----------
+// אותו מקור כמו ההדרכה, מסך אחד לכל צעד ממוספר ב"מה עושים" של מסלול הדפדפן.
+// שלב עם `wizard: one` ב-front matter נשאר מסך אחד (למשל רשימת הודעות לשליחה).
+
+const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+/** קישור מתוך שלב: תמונות יחסית ל-docs/, מסמכים אחרים לריפו ב-GitHub, וכל השאר כמו שהוא. */
+function wizardUrl(u) {
+  if (/^(https?:|mailto:|#)/.test(u)) return u;
+  const p = u.replace(/^\.\//, "");
+  if (p.startsWith("docs/img/")) return p.slice("docs/".length);
+  // בשלבים הנתיבים מראש הריפו (docs/x.md). שם קובץ בלי תיקייה הוא מתוך docs/, כמו בהדרכה עצמה.
+  const inRepo = p.includes("/") ? p : `docs/${p}`;
+  return REPO ? `https://github.com/${REPO}/blob/main/${inRepo}` : inRepo;
+}
+
+function mdInline(s) {
+  let h = htmlEsc(s);
+  const a = (href, inner) => `<a href="${wizardUrl(href)}" target="_blank" rel="noopener">${inner}</a>`;
+  h = h.replace(/\[!\[([^\]]*)\]\(([^)\s]+)\)\]\(([^)\s]+)\)/g, (_, alt, src, href) => a(href, `<img class="inline" src="${wizardUrl(src)}" alt="${alt}">`));
+  h = h.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, src) => `<img src="${wizardUrl(src)}" alt="${alt || "צילום מסך"}" loading="lazy">`);
+  h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, href) => a(href, t));
+  h = h.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+  h = h.replace(/`([^`]+)`/g, '<code dir="ltr">$1</code>');
+  return h;
+}
+
+const indentOf = (l) => l.match(/^\s*/)[0].length;
+const ITEM = /^\s*(?:[-*]|\d+\.)\s+(.*)$/;
+
+function mdList(lines, i) {
+  const ind = indentOf(lines[i]);
+  const ordered = /^\s*\d+\./.test(lines[i]);
+  const items = [];
+  for (; i < lines.length; i++) {
+    const l = lines[i];
+    if (!l.trim()) {
+      const next = lines.slice(i + 1).find((x) => x.trim());
+      if (!next || indentOf(next) < ind || (indentOf(next) === ind && !ITEM.test(next))) break;
+      continue;
+    }
+    if (indentOf(l) < ind) break;
+    if (indentOf(l) === ind) {
+      const m = ITEM.exec(l);
+      if (!m) break;
+      items.push({ text: m[1], sub: [] });
+    } else items.at(-1).sub.push(l.slice(ind));
+  }
+  const tag = ordered ? "ol" : "ul";
+  return [`<${tag}>${items.map((it) => `<li>${mdInline(it.text)}${it.sub.length ? mdBlock(it.sub.join("\n")) : ""}</li>`).join("")}</${tag}>`, i];
+}
+
+function mdBlock(md) {
+  const lines = md.split(/\r?\n/);
+  const out = [];
+  for (let i = 0; i < lines.length; ) {
+    const l = lines[i];
+    const t = l.trim();
+    const widget = /^<!--\s*wizard:([\w-]+)\s*-->$/.exec(t);
+    if (!t || (/^<\/?(details|summary|a|div)\b/.test(t) && !widget)) i++;
+    else if (widget) (out.push(WIDGETS[widget[1]] || ""), i++);
+    else if (/^\s*>/.test(l)) {
+      const q = [];
+      while (i < lines.length && /^\s*>/.test(lines[i])) q.push(lines[i++].replace(/^\s*>\s?/, ""));
+      out.push(`<div class="note">${mdBlock(q.join("\n"))}</div>`);
+    } else if (ITEM.test(l)) {
+      const [html, next] = mdList(lines, i);
+      out.push(html);
+      i = next;
+    } else {
+      const p = [];
+      while (i < lines.length && lines[i].trim() && !/^\s*>/.test(lines[i]) && !ITEM.test(lines[i])) p.push(lines[i++].trim());
+      out.push(`<p>${mdInline(p.join(" "))}</p>`);
+    }
+  }
+  return out.join("\n");
+}
+
+/** כלים קטנים בתוך מסכים מסוימים. רצים בדפדפן של המשתמש, ושום דבר לא נשמר. */
+const WIDGETS = {
+  "telegram-check": `<div class="tool"><b>בדיקה מהירה:</b> מדביקים כאן את הטוקן ולוחצים "בדיקה". הטלפון שואל את טלגרם ישירות, והטוקן לא נשמר ולא נשלח לשום מקום אחר.
+<input id="tg" dir="ltr" autocomplete="off" spellcheck="false" placeholder="123456789:AAH..."><button type="button" onclick="checkTg()">בדיקה</button><div id="tgout" class="out"></div></div>`,
+  password: `<div class="tool"><b>סיסמה מוכנה:</b> נוצרה עכשיו בטלפון שלך, ואף אחד אחר לא רואה אותה. מעתיקים אותה לפתק, ואז מדביקים בשדה <code dir="ltr">SETUP_PASSWORD</code>.
+<div id="pw" class="pw" dir="ltr"></div><button type="button" onclick="copyPw(this)">העתקה</button> <button type="button" class="ghost" onclick="newPw()">סיסמה אחרת</button></div>`,
+};
+
+/** מפצל את "מה עושים" למסכים: כל צעד ממוספר בעמודה הראשונה הוא מסך, ושורות שבין הצעדים הולכות למסך הבא. */
+function wizardScreens(how, one) {
+  const lines = how.split(/\r?\n/);
+  if (one) return [mdBlock(how)];
+  const screens = [];
+  let pending = [];
+  for (const l of lines) {
+    if (/^\d+\.\s/.test(l)) {
+      screens.push({ lead: pending, item: [l.replace(/^\d+\.\s+/, "")] });
+      pending = [];
+    } else if (screens.length && (indentOf(l) > 0 || !l.trim()) && !pending.length) screens.at(-1).item.push(l);
+    else pending.push(l);
+  }
+  if (!screens.length) return [mdBlock(how)];
+  if (pending.join("").trim()) screens.at(-1).tail = pending;
+  return screens.map((s) => {
+    const [first, ...rest] = s.item;
+    return [mdBlock(s.lead.join("\n")), `<p class="act">${mdInline(first)}</p>`, mdBlock(rest.map((l) => l.replace(/^ {3}/, "")).join("\n")), mdBlock((s.tail || []).join("\n"))].join("\n");
+  });
+}
+
+function renderWizard(steps, addons) {
+  const core = steps.filter((s) => s.only !== "claude");
+  const total = core.reduce((n, s) => n + s.minutes, 0);
+  const stuck = STUCK_LINE ? mdInline(STUCK_LINE.replace("(support.md)", "(docs/support.md)")) : "";
+  const sections = [];
+  sections.push(`<section data-step="0"><h1>${htmlEsc(`${String(PKG.description || "").split(" — ")[0]}: הקמה צעד אחרי צעד`)}</h1>
+<p>${core.length} שלבים, בערך ${total} דקות. מסך אחד לכל פעולה. הטלפון זוכר איפה עצרת.</p>
+<div class="note">📱 <b>משאירים את העמוד הזה פתוח.</b> כל קישור נפתח בלשונית חדשה. בסוף כל פעולה חוזרים לכאן (בכפתור הלשוניות של הדפדפן) ולוחצים "הבא". את הטוקן, המפתח והסיסמה שומרים בפתק בטלפון.</div>
+<p>לא עוצרים באמצע הרשמה, או לפני ששמרת מפתח שמוצג פעם אחת. בין שלב לשלב אפשר לעצור ולחזור.</p>
+<p><a href="${wizardUrl("docs/choose-path.md#requirements")}" target="_blank" rel="noopener">מה צריך לפני שמתחילים</a> · <a href="${wizardUrl("docs/browser.md")}" target="_blank" rel="noopener">כל ההדרכה בעמוד אחד</a></p></section>`);
+  core.forEach((s, si) => {
+    const screens = wizardScreens(s.how.browser, s.wizard === "one");
+    screens.forEach((body, k) => {
+      const head = `<div class="where">שלב ${si + 1} מתוך ${core.length} · ${htmlEsc(s.title)}${screens.length > 1 ? ` · צעד ${k + 1} מתוך ${screens.length}` : ""}</div>`;
+      const why = k === 0 ? `<details><summary>למה צריך את זה?</summary>${mdBlock(s.why)}</details>` : "";
+      const done = k === screens.length - 1 ? `<div class="done"><b>✅ איך יודעים שהצליח</b>${mdBlock(s.done)}</div>` : "";
+      sections.push(`<section data-step="${si + 1}">${head}${why}${body}${done}<details><summary>נתקעתי</summary>${mdBlock(s.stuck)}${stuck ? `<p>${stuck}</p>` : ""}</details></section>`);
+    });
+  });
+  const extra = addons.filter((s) => s.only !== "claude");
+  sections.push(`<section data-step="${core.length}"><h1>🎉 סיימת!</h1><p>הבוט עובד. מכאן הכול קורה בטלגרם ובעמוד ההקמה של הבוט.</p>
+${extra.length ? `<p><b>תוספות (לא חובה):</b></p><ul>${extra.map((a) => `<li><a href="${wizardUrl(`docs/browser.md#${anchor(a)}`)}" target="_blank" rel="noopener">${htmlEsc(a.title)}</a></li>`).join("")}</ul>` : ""}
+${existsSync(join(ROOT, "docs/turn-off.md")) ? `<p><a href="${wizardUrl("docs/turn-off.md")}" target="_blank" rel="noopener">איך מכבים הכול</a></p>` : ""}</section>`);
+
+  const words = "apple river table green happy cloud stone light music garden silver window orange forest candle yellow bridge rabbit summer winter pencil yogurt rocket planet tiger lemon cookie dragon island jacket kitten ladder magnet napkin ocean pepper puzzle quiet robot saddle tomato turtle violin wagon zebra anchor banana basket button camera castle cherry circle copper desert doctor engine falcon feather flower ginger hammer helmet honey jungle kettle laptop marble meadow mirror monkey morning noodle orbit palace parrot peanut pillow pirate pocket potato pumpkin rainbow ribbon saturn shadow sketch spider sponge spring sugar sunset tunnel velvet walnut wizard".split(" ");
+  return `<!doctype html>
+<!-- נוצר אוטומטית מתוך steps/ — לא לערוך ידנית. להרצה: npm run guide -->
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${htmlEsc(`${String(PKG.description || "").split(" — ")[0]}: הקמה צעד אחרי צעד`)}</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--line:#e5e5e0;--accent:#2563eb;--note:#fff8e1;--done:#e8f5ec}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#f1f1f1;--muted:#a0a0a0;--line:#333;--accent:#60a5fa;--note:#2b2616;--done:#16281d}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+main{max-width:560px;margin:0 auto;padding:12px 16px 110px}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0 8px;z-index:2}.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
+section{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}section.on{display:block}
+h1{font-size:1.35rem;margin:0 0 8px}.where{color:var(--muted);font-size:.9rem;margin-bottom:8px}.act{font-size:1.1rem;font-weight:600}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:block}img.inline{display:inline-block;border:0;margin:4px 0}
+code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 4px;font-size:.9em;word-break:break-all}
+.note{background:var(--note);border-radius:10px;padding:10px 12px;margin:10px 0}.done{background:var(--done);border-radius:10px;padding:10px 12px;margin:12px 0}
+details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;color:var(--accent);font-weight:600}
+a{color:var(--accent)}ul,ol{padding-inline-start:22px}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+nav div{max-width:560px;margin:0 auto;display:flex;gap:10px}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;cursor:pointer}
+nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}button:disabled{opacity:.35}
+.tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.pw{font:600 1.15rem ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0;word-break:break-all;text-align:center}.out{margin-top:8px;font-weight:600}
+.restart{display:block;text-align:center;color:var(--muted);font-size:.85rem;margin-top:14px}
+</style></head><body><main>
+<div class="bar"><div class="track"><div class="fill" id="fill"></div></div></div>
+${sections.join("\n")}
+<a class="restart" href="#" onclick="go(0);return false">חזרה להתחלה</a>
+</main>
+<nav><div><button type="button" class="ghost" id="prev" onclick="go(i-1)">‹ חזרה</button><button type="button" id="next" onclick="go(i+1)">הבא ›</button></div></nav>
+<script>
+const S = [...document.querySelectorAll("section")], KEY = "wizard:${REPO || "kit"}";
+let i = 0;
+try { i = Math.min(Number(localStorage.getItem(KEY)) || 0, S.length - 1); } catch {}
+function go(n) {
+  i = Math.max(0, Math.min(n, S.length - 1));
+  S.forEach((s, k) => s.classList.toggle("on", k === i));
+  document.getElementById("prev").disabled = i === 0;
+  const next = document.getElementById("next");
+  next.disabled = i === S.length - 1;
+  next.textContent = i === 0 ? "מתחילים ›" : "הבא ›";
+  document.getElementById("fill").style.width = (100 * i / (S.length - 1)) + "%";
+  try { localStorage.setItem(KEY, i); } catch {}
+  window.scrollTo(0, 0);
+}
+go(i);
+async function checkTg() {
+  const t = document.getElementById("tg").value.trim(), out = document.getElementById("tgout");
+  if (!/^\\d+:[\\w-]{30,}$/.test(t)) { out.textContent = "❌ זה לא נראה כמו טוקן. הוא מתחיל במספרים, אחריהם נקודתיים, ואחריהם אותיות. מעתיקים שוב."; return; }
+  out.textContent = "בודק...";
+  try {
+    const r = await (await fetch("https://api.telegram.org/bot" + t + "/getMe")).json();
+    out.textContent = r.ok ? "✅ הטוקן תקין: הבוט @" + r.result.username + ". אפשר להמשיך." : "❌ טלגרם לא מכיר את הטוקן. מעתיקים אותו שוב מ-BotFather, כולו.";
+  } catch { out.textContent = "לא הצלחתי לבדוק עכשיו (אין אינטרנט?). אפשר להמשיך, והבדיקה תקרה שוב בעמוד ההקמה."; }
+}
+const W = ${JSON.stringify(words)};
+function newPw() {
+  const r = crypto.getRandomValues(new Uint32Array(6)), cap = (w) => w[0].toUpperCase() + w.slice(1);
+  const el = document.getElementById("pw");
+  if (el) el.textContent = [0, 1, 2, 3, 4].map((k) => cap(W[r[k] % W.length])).join("") + (r[5] % 900 + 100);
+}
+function copyPw(b) { navigator.clipboard.writeText(document.getElementById("pw").textContent).then(() => { b.textContent = "הועתק ✓"; }); }
+newPw();
+</script></body></html>
+`;
+}
+
 /** טופס Issue ב-GitHub. JSON.stringify נותן מחרוזות שגם YAML קורא. */
 function renderStuckForm(steps, addons) {
   const q = JSON.stringify;
@@ -346,6 +547,7 @@ const outputs = {
   "CHECKLIST.md": renderChecklist(steps, addons),
   "lib/steps.generated.js": renderModule(steps, addons),
   ...(STUCK_URL ? { ".github/ISSUE_TEMPLATE/stuck.yml": renderStuckForm(steps, addons) } : {}),
+  "docs/index.html": renderWizard(steps, addons),
 };
 
 let stale = [];
