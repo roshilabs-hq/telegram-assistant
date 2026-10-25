@@ -23,6 +23,8 @@ check: deploy
 
 ## מה עושים
 ### בדפדפן
+> 🌐 **בשלב הזה נפתחים כמה אתרים באנגלית.** המסך אצלך שונה מהתמונה? לא מנחשים על מה ללחוץ. מחפשים את המילה המודגשת שכתובה בצעד. היא לא מופיעה? פותחים "נתקעתי" לפני שממשיכים.
+
 1. לוחצים על הכפתור: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
 2. Vercel מבקש להתחבר. לוחצים **GitHub**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך, בחינם.) ![](docs/img/deploy-1.png)
    - **יש לך GitHub:** מתחברים, ובחלון של GitHub לוחצים **Authorize**.
@@ -31,7 +33,7 @@ check: deploy
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
    - **יש לך חשבון של עבודה** ב-Vercel או ב-GitHub: הבוט נוצר בחשבון שמחובר עכשיו. בודקים בפינה השמאלית העליונה של Vercel, ובשדה **Git Scope**, שמופיע השם **האישי** שלך ולא של העבודה. אם לא, מחליפים שם (לוחצים על השם ובוחרים את החשבון האישי), או מתחברים לחשבון האישי בחלון גלישה בסתר.
    - אם מופיע מסך **Secure Your Account with 2FA**: זו לא שגיאה. Vercel מציע אבטחה בשני שלבים, כלומר קוד נוסף בכל כניסה. כדי לא להוסיף עכשיו עוד אפליקציה, לוחצים למטה **Skip securing my account**. כדאי להפעיל את זה אחר כך, בהגדרות החשבון ב-Vercel. ![](docs/img/deploy-2fa.png)
-3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories**, גוללים למטה ולוחצים **Install**. זה נותן ל-Vercel גישה לקוד בחשבון ה-GitHub שלך. בחשבון חדש אין בו עדיין כלום חוץ מהבוט, וזה בטוח. **בחשבון קיים עם פרויקטים אחרים:** Vercel יוכל לקרוא גם אותם (הוא לא משנה אותם בלי שתחבר/י אותם אליו). מי שלא רוצה את זה פותח/ת חשבון GitHub חדש רק לבוט. ![](docs/img/deploy-6.png)
+3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories**, גוללים למטה ולוחצים **Install**. זה נותן ל-Vercel גישה לקוד בחשבון ה-GitHub שלך. בחשבון חדש אין בו עדיין כלום חוץ מהבוט, וזה בטוח. **בחשבון קיים עם פרויקטים אחרים:** Vercel יוכל לקרוא גם אותם (הוא לא משנה אותם בלי שתחבר/י אותם אליו). מי שלא רוצה את זה פותח/ת חשבון GitHub חדש רק לבוט. (בחירה של חלק מהריפואים בלבד לא עובדת כאן: Vercel לא יוכל ליצור את עותק הקוד החדש.) ![](docs/img/deploy-6.png)
    - **במקום Git Scope מופיעים כפתורים GitHub / GitLab / Bitbucket** (קורה למי שכבר יש לו Vercel): לוחצים **GitHub**, ושם החשבון שלך מופיע לבד. ממשיכים לסעיף הבא. ![](docs/img/deploy-providers.png)
 4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](docs/img/deploy-7.png)
 5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](docs/img/deploy-8.png)
@@ -40,7 +42,7 @@ check: deploy
 6. נפתח חלון באנגלית. הוא פותח את "המחברת" של הבוט, בחינם. ב-**Primary Region** בוחרים **Frankfurt, Germany** (ברירת המחדל היא Washington, צריך להחליף) (הכי קרוב לישראל). בשדה **Public Environment Variables Prefix** לא נוגעים. גוללים למטה ובודקים שמסומן **Supabase Free Plan**. **מופיע מחיר בדולרים לחודש (Pro, Team)? עוצרים ולא מאשרים**, וקוראים "נתקעתי". לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
 7. **Add Environment Variables**: יש שתי שורות. בכל שורה לוחצים על התיבה הריקה מימין (**Value**) וממלאים: ![](docs/img/deploy-13.png)
    - `TELEGRAM_TOKEN`: מדביקים (לחיצה ארוכה בתיבה ‹ **הדבק** / **Paste**) את הטוקן מ-BotFather, של הבוט **החדש** שיצרת בשלב הראשון. (מי שכבר יש לו בוט אחר: לא הטוקן שלו. כל בוט מחובר להתקנה אחת.)
-   - `SETUP_PASSWORD`: ממציאים סיסמה חדשה, **16 תווים ומעלה**. היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. הכי פשוט: ארבע מילים באנגלית ומספר, צמודים, למשל `BlueCatEatsPizza2026` (אבל לא בדיוק זו). לא סיסמה שכבר יש לך במקום אחר. **כותבים אותה בפתק** ליד הטוקן: עוד רגע נכנסים איתה.
+   - `SETUP_PASSWORD`: ממציאים סיסמה חדשה, **16 תווים ומעלה**. היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. באשף יש סיסמה מוכנה, עם כפתור העתקה. בלי האשף, הכי פשוט: ארבע מילים באנגלית ומספר, צמודים, למשל `BlueCatEatsPizza2026` (אבל לא בדיוק זו). לא סיסמה שכבר יש לך במקום אחר. **כותבים אותה בפתק** ליד הטוקן: עוד רגע נכנסים איתה.
    <!-- wizard:password -->
    - לא לוחצים **Deploy** לפני ששתי השורות מלאות. (את המפתח של Claude, "המוח", מוסיפים רק בסוף, בעמוד ההקמה. בינתיים לא צריך כרטיס אשראי.)
 8. לוחצים **Deploy** ומחכים חצי דקה עד דקה, עד שמופיע **Congratulations!**. ![](docs/img/deploy-14.png)
