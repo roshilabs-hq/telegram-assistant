@@ -33,14 +33,17 @@ export async function deliverDueReminders(tz, send = sendMessage, now = new Date
     const r = await store.claimReminder(id);
     if (!r) continue; // ריצה אחרת כבר תפסה אותה
 
+    const text = `⏰ תזכורת: ${r.text}`;
     try {
-      await send(r.chat_id, `⏰ תזכורת: ${r.text}`, reminderKeyboard(r.id));
+      await send(r.chat_id, text, reminderKeyboard(r.id));
       sent++;
     } catch (e) {
       console.error("reminder send failed, releasing", r.id, e);
       await store.patchReminder(r.id, { done: false });
       continue;
     }
+    // גם התזכורת שנשלחה נכנסת לשיחה. בלי זה, אחרי שהיא נשלחה המודל לא מוצא אותה ו"מתקן" שהיא לא קיימת.
+    await store.saveMessage(r.chat_id, "assistant", text).catch((e) => console.error("reminder history failed", r.id, e));
 
     // תזכורת חוזרת: אותה שורה מתגלגלת למופע הבא, במקום להישאר "בוצע".
     if (r.recurrence_kind) {

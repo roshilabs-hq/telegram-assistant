@@ -33,6 +33,8 @@ test("תזכורת שהגיע זמנה נשלחת פעם אחת, עם כפתור
   assert.equal(await deliverDueReminders(TZ, send, now), 0);
   assert.equal(out[0].text, "⏰ תזכורת: מים");
   assert.equal(out[0].opts.reply_markup.inline_keyboard[0].length, 3);
+  // התזכורת שנשלחה נמצאת בהיסטוריה, כדי שהמודל יידע שהיא כבר הגיעה
+  assert.deepEqual((await store.getHistory("42")).map((m) => m.content), ["⏰ תזכורת: מים"]);
 });
 
 test("תזכורת חוזרת מתגלגלת למחר באותה שעה", async () => {

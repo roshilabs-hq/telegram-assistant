@@ -6,9 +6,10 @@ check: updates
 ---
 
 ## בקצרה
-1. ב-GitHub, בריפו `telegram-assistant` שלך: **Settings** ‹ **Actions** ‹ **General**.
-2. תחת **Workflow permissions** מסמנים **Allow GitHub Actions to create and approve pull requests** ‹ **Save**.
-3. כשמגיעה בקשת עדכון: **Merge pull request** ‹ **Confirm merge**.
+1. בדפדפן: בעמוד ההקמה **הוספת קובץ העדכונים ל-GitHub** ‹ **Commit changes...** ‹ **Commit changes**.
+2. ב-GitHub, בריפו `telegram-assistant` שלך: **Settings** ‹ **Actions** ‹ **General**.
+3. תחת **Workflow permissions** מסמנים **Allow GitHub Actions to create and approve pull requests** ‹ **Save**.
+4. כשמגיעה בקשת עדכון: **Merge pull request** ‹ **Confirm merge**.
 
 ## למה
 כשמשהו בערכה משתפר או מתוקן, הבוט שלך יכול לקבל את זה. פעם בשבוע GitHub בודק אם יצאה גרסה חדשה, ואם כן, פותח לך **בקשת עדכון**. שום דבר לא משתנה בבוט עד שאת/ה מאשר/ת בלחיצה.
@@ -16,16 +17,19 @@ check: updates
 ## מה עושים
 ### בדפדפן
 **חלק א׳: הגדרה חד-פעמית**
-1. בעמוד ההקמה, בתוספת "עדכונים אוטומטיים", לוחצים **ההגדרה ב-GitHub (חד-פעמי)**. (אפשר גם ידנית: ב-GitHub נכנסים לריפו `telegram-assistant` שלך ‹ **Settings** ‹ **Actions** ‹ **General**.)
-2. גוללים למטה עד **Workflow permissions**.
-3. מסמנים את התיבה **Allow GitHub Actions to create and approve pull requests**. ![](docs/img/update-1.png)
-4. לוחצים **Save** שמתחת לתיבה.
+1. בעמוד ההקמה, בתוספת "עדכונים אוטומטיים", לוחצים **1. הוספת קובץ העדכונים ל-GitHub**. נפתח ב-GitHub קובץ חדש, עם השם והתוכן כבר מוכנים. (Vercel לא מעתיק את הקובץ הזה כשהוא יוצר את עותק הקוד, ולכן מוסיפים אותו פעם אחת.) ![](docs/img/update-0.png)
+2. לוחצים **Commit changes...**, ובחלון שנפתח שוב **Commit changes**. חוזרים לעמוד ההקמה.
+   - כתוב "A file with the same name already exists"? הקובץ כבר קיים. ממשיכים לסעיף הבא.
+3. לוחצים **2. ההגדרה ב-GitHub**. (אפשר גם ידנית: ב-GitHub נכנסים לריפו `telegram-assistant` שלך ‹ **Settings** ‹ **Actions** ‹ **General**.)
+4. גוללים למטה עד **Workflow permissions**.
+5. מסמנים את התיבה **Allow GitHub Actions to create and approve pull requests**. ![](docs/img/update-1.png)
+6. לוחצים **Save** שמתחת לתיבה.
 
 **חלק ב׳: כשמגיע עדכון**
 1. GitHub שולח מייל "🔄 עדכון לבוט מהערכה", ובעמוד ההקמה מופיע **יש גרסה חדשה**. לוחצים על הקישור במייל, או בעמוד ההקמה על **🔄 לבקשת העדכון ב-GitHub**.
 2. בעמוד הבקשה גוללים למטה ולוחצים **Merge pull request**. ![](docs/img/update-3.png)
 3. לוחצים **Confirm merge**. (אם יש חץ ליד הכפתור, בוחרים **Create a merge commit** ולא Squash.)
-4. מחכים דקה או שתיים, ובעמוד ההקמה לוחצים **🚀 הפעילו הכול**.
+4. מחכים דקה או שתיים ומרעננים את עמוד ההקמה. בתחתית כתוב מספר הגרסה החדשה. אם משהו לא ירוק, לוחצים **🚀 הפעילו הכול**. (כשהכול ירוק הכפתור לא מופיע, ואין צורך בו.)
 
 ### עם Claude Code
 1. Claude מפעיל את ההגדרה החד-פעמית ב-GitHub בעצמו, עם הטוקן שבקובץ `.env.local`.

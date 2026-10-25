@@ -239,9 +239,13 @@ function askPanel(s, url) {
 function updatesPanel(check) {
   const repo = ownRepo();
   if (!repo) return "";
-  return check?.ok
-    ? `<p class="muted"><a href="${repo}/settings/actions" target="_blank" rel="noopener">ההגדרה ב-GitHub (חד-פעמי)</a></p>`
-    : `<a class="btn" href="${repo}/pulls" target="_blank" rel="noopener">🔄 לבקשת העדכון ב-GitHub</a>`;
+  // Vercel לא מעתיק את .github/workflows כשהוא יוצר את הריפו, ולכן מוסיפים את קובץ העדכון ידנית:
+  // הקישור פותח ב-GitHub קובץ חדש עם השם והתוכן מוכנים, ונשאר רק לאשר.
+  const newFile = `${repo}/new/main?filename=.github/workflows/update.yml&value=`;
+  const raw = "https://raw.githubusercontent.com/roshilabs-hq/telegram-assistant/main/.github/workflows/update.yml";
+  const setup = `<p class="muted">1. <a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הוספת קובץ העדכונים ל-GitHub (חד-פעמי)</a><br>
+2. <a href="${repo}/settings/actions" target="_blank" rel="noopener">ההגדרה ב-GitHub (חד-פעמי)</a></p>`;
+  return check?.ok ? setup : `<a class="btn" href="${repo}/pulls" target="_blank" rel="noopener">🔄 לבקשת העדכון ב-GitHub</a>${setup}`;
 }
 
 const copyField = (id, label, value) => `<p class="muted">${label}</p>
