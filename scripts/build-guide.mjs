@@ -409,7 +409,8 @@ function renderWizard(steps, addons) {
 <p>${core.length} שלבים, בערך ${total} דקות. מסך אחד לכל פעולה. הטלפון זוכר איפה עצרת.</p>
 <div class="note">📱 <b>משאירים את העמוד הזה פתוח.</b> כל קישור נפתח בלשונית חדשה. בסוף כל פעולה חוזרים לכאן (בכפתור הלשוניות של הדפדפן) ולוחצים "הבא". את הטוקן, המפתח והסיסמה שומרים בפתק בטלפון.</div>
 <p>לא עוצרים באמצע הרשמה, או לפני ששמרת מפתח שמוצג פעם אחת. בין שלב לשלב אפשר לעצור ולחזור.</p>
-<p><a href="${wizardUrl("docs/choose-path.md#requirements")}" target="_blank" rel="noopener">מה צריך לפני שמתחילים</a> · <a href="${wizardUrl("docs/browser.md")}" target="_blank" rel="noopener">כל ההדרכה בעמוד אחד</a></p></section>`);
+<p><a href="${wizardUrl("docs/choose-path.md#requirements")}" target="_blank" rel="noopener">מה צריך לפני שמתחילים</a> · <a href="${wizardUrl("docs/browser.md")}" target="_blank" rel="noopener">כל ההדרכה בעמוד אחד</a></p>
+${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude באפליקציה? <a href="${wizardUrl("docs/help-from-claude.md")}" target="_blank" rel="noopener">אפשר להיעזר בו לאורך הדרך</a>.</p>` : ""}</section>`);
   core.forEach((s, si) => {
     const screens = wizardScreens(s.how.browser, s.wizard === "one");
     screens.forEach((body, k) => {
