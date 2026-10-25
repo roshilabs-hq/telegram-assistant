@@ -70,6 +70,10 @@ test("רשימות: הוספה, סימון, ביטול סימון, מחיקה", 
   assert.equal((await store.listShow("42", "קניות")).text, "לחם");
   await store.listCheck("42", "קניות", ["חלב"], true);
   assert.equal((await store.listShow("42", "קניות")).text, "חלב\nלחם");
+  // פריט שכבר ברשימה לא נוסף פעמיים
+  const again = await store.listAdd("42", "קניות", ["חלב", "ביצים"]);
+  assert.deepEqual(again.already_there, ["חלב"]);
+  assert.equal((await store.listShow("42", "קניות")).text, "חלב\nלחם\nביצים");
   await store.listRemove("42", "קניות", null, true);
   assert.deepEqual((await store.listsAll("42")).lists, []);
 });
