@@ -26,22 +26,23 @@ check: deploy
 1. לוחצים על הכפתור: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
 2. Vercel מבקש להתחבר. לוחצים **GitHub**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך, בחינם.) ![](docs/img/deploy-1.png)
    - **יש לך GitHub:** מתחברים, ובחלון של GitHub לוחצים **Authorize**.
-   - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל. בסוף לוחצים **Authorize**.
+   - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. ממלאים מייל, סיסמה ושם משתמש באנגלית. אם מופיעה חידה ("Verify you are human"), פותרים אותה. מקלידים את הקוד שמגיע במייל, ובסוף לוחצים **Authorize**. ממשיכים רק כשמופיע המסך **New Project** של Vercel. לא חזרת אליו לבד? לוחצים שוב על כפתור ה-Deploy בהדרכה.
    - **יש לך כבר Vercel** (נכנסת בעבר עם מייל או Google): מתחברים כמו תמיד. בסעיף הבא מחברים אליו את GitHub.
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
    - **יש לך חשבון של עבודה** ב-Vercel או ב-GitHub: הבוט נוצר בחשבון שמחובר עכשיו. בודקים בפינה השמאלית העליונה של Vercel, ובשדה **Git Scope**, שמופיע השם **האישי** שלך ולא של העבודה. אם לא, מחליפים שם (לוחצים על השם ובוחרים את החשבון האישי), או מתחברים לחשבון האישי בחלון גלישה בסתר.
-   - אם מופיע מסך **Secure Your Account with 2FA** (אבטחה בשני שלבים), לוחצים למטה **Skip securing my account**. אפשר להגדיר את זה אחר כך. ![](docs/img/deploy-2fa.png)
-3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories** ולוחצים **Install**. זה נותן ל-Vercel גישה לחשבון ה-GitHub שלך. בחשבון חדש אין בו עדיין כלום חוץ מהבוט. בחשבון קיים Vercel יכול לראות גם את שאר הריפואים, אבל הוא נוגע רק במה שמחברים אליו. ![](docs/img/deploy-6.png)
+   - אם מופיע מסך **Secure Your Account with 2FA**: זו לא שגיאה. Vercel מציע אבטחה בשני שלבים, כלומר קוד נוסף בכל כניסה. כדי לא להוסיף עכשיו עוד אפליקציה, לוחצים למטה **Skip securing my account**. כדאי להפעיל את זה אחר כך, בהגדרות החשבון ב-Vercel. ![](docs/img/deploy-2fa.png)
+3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories**, גוללים למטה ולוחצים **Install**. זה נותן ל-Vercel גישה לקוד בחשבון ה-GitHub שלך. בחשבון חדש אין בו עדיין כלום חוץ מהבוט, וזה בטוח. **בחשבון קיים עם פרויקטים אחרים:** Vercel יוכל לקרוא גם אותם (הוא לא משנה אותם בלי שתחבר/י אותם אליו). מי שלא רוצה את זה פותח/ת חשבון GitHub חדש רק לבוט. ![](docs/img/deploy-6.png)
    - **במקום Git Scope מופיעים כפתורים GitHub / GitLab / Bitbucket** (קורה למי שכבר יש לו Vercel): לוחצים **GitHub**, ושם החשבון שלך מופיע לבד. ממשיכים לסעיף הבא. ![](docs/img/deploy-providers.png)
 4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](docs/img/deploy-7.png)
 5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](docs/img/deploy-8.png)
    - **יש לך כבר Supabase:** בכל זאת יוצרים כאן חדש **(מומלץ)**. הוא נפתח בלחיצה, בלי הרשמה, ולא נוגע בפרויקטים הקיימים שלך. אצל מי שכבר יצר Supabase דרך Vercel אין מסך **Accept and Create**, ועוברים ישר לבחירת האזור.
    - **שימו לב:** בחינם אפשר להחזיק **2 פרויקטים פעילים ב-Supabase לאדם**, גם כשהם נפתחים דרך Vercel, וכולל מה שכבר יש לך. זה הבוט השלישי? ראו "נתקעתי".
-6. ב-**Primary Region** בוחרים **Frankfurt, Germany** (ברירת המחדל היא Washington, צריך להחליף) (הכי קרוב לישראל). התוכנית החינמית (**Free Plan**) כבר מסומנת. לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
-7. **Add Environment Variables**: ממלאים שלושה שדות: ![](docs/img/deploy-13.png)
-   - `TELEGRAM_TOKEN`: הטוקן מ-BotFather, של הבוט **החדש** שיצרת בשלב הראשון. (מי שכבר יש לו בוט אחר: לא הטוקן שלו. כל בוט מחובר להתקנה אחת.)
-   - `AI_API_KEY`: המפתח מהשלב הקודם.
-   - `SETUP_PASSWORD`: סיסמה חדשה, ארוכה ואקראית (16 תווים ומעלה). היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. הכי פשוט: לתת לדפדפן או למנהל הסיסמאות ליצור אחת ולשמור אותה שם. לא משתמשים בסיסמה שכבר יש לך במקום אחר.
+6. נפתח חלון באנגלית. הוא פותח את "המחברת" של הבוט, בחינם. ב-**Primary Region** בוחרים **Frankfurt, Germany** (ברירת המחדל היא Washington, צריך להחליף) (הכי קרוב לישראל). בשדה **Public Environment Variables Prefix** לא נוגעים. גוללים למטה ובודקים שמסומן **Supabase Free Plan**. **מופיע מחיר בדולרים לחודש (Pro, Team)? עוצרים ולא מאשרים**, וקוראים "נתקעתי". לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
+7. **Add Environment Variables**: יש שלוש שורות. בכל שורה לוחצים על התיבה הריקה מימין (**Value**) וממלאים: ![](docs/img/deploy-13.png)
+   - `TELEGRAM_TOKEN`: מדביקים (לחיצה ארוכה בתיבה ‹ **הדבק** / **Paste**) את הטוקן מ-BotFather, של הבוט **החדש** שיצרת בשלב הראשון. (מי שכבר יש לו בוט אחר: לא הטוקן שלו. כל בוט מחובר להתקנה אחת.)
+   - `AI_API_KEY`: מדביקים את המפתח מהשלב הקודם.
+   - `SETUP_PASSWORD`: ממציאים סיסמה חדשה, **16 תווים ומעלה**. היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. הכי פשוט: ארבע מילים באנגלית ומספר, צמודים, למשל `BlueCatEatsPizza2026` (אבל לא בדיוק זו). לא סיסמה שכבר יש לך במקום אחר. **כותבים אותה בפתק** ליד הטוקן והמפתח: עוד רגע נכנסים איתה.
+   - לא לוחצים **Deploy** לפני שכל שלוש השורות מלאות.
 8. לוחצים **Deploy** ומחכים חצי דקה עד דקה, עד שמופיע **Congratulations!**. ![](docs/img/deploy-14.png)
 9. גוללים למטה (בטלפון הכפתור בתחתית) ולוחצים **Continue to Project**.
 10. לוחצים **Visit**. נפתח עמוד "העוזר האישי פועל". לוחצים בו **לעמוד ההקמה**. ![](docs/img/deploy-15.png)
@@ -67,7 +68,7 @@ check: deploy
 - **בחלון של Supabase כתוב "Upgrade your plan", ומופיעות רק תוכניות בתשלום (Pro, Team)**: כבר יש לך 2 פרויקטים חינמיים פעילים ב-Supabase. **לא בוחרים תוכנית בתשלום.** סוגרים את החלון, מפנים מקום, ולוחצים שוב **Add**: ![](docs/img/supabase-limit.png)
   - בוט ישן שלא צריך: מוחקים אותו לפי [איך מכבים הכול](docs/turn-off.md), סעיף 3.
   - פרויקט אחר ב-[Supabase](https://supabase.com/dashboard) שלא בשימוש: נכנסים אליו ‹ **Pause project**. פרויקט מושהה לא נספר.
-- **ב-Deploy כתוב "Build Failed"**: לוחצים **Redeploy**. אם זה חוזר, מצלמים את המסך ופונים אלינו.
+- **ב-Deploy כתוב "Build Failed"**: ההעלאה לא הושלמה, ושום דבר לא נמחק. לוחצים **Redeploy** אם הוא מופיע במסך. אם זה חוזר, **לא מוחקים את הפרויקט ולא פותחים חשבון חדש**. מצלמים את המסך ופונים אלינו.
 - **לא הופיעה הצעה ליצור Supabase**: בדשבורד של הפרויקט ב-Vercel נכנסים ל-**Storage** ‹ **Create Database** ‹ **Supabase** ‹ **Frankfurt** ‹ **Connect**. אחר כך **Deployments** ‹ **Redeploy**.
 - **בעמוד ההקמה כתוב "חסרים SUPABASE_URL..."**: Supabase לא חובר לפרויקט. עושים את מה שכתוב בסעיף הקודם.
 - **שכחתי את סיסמת ההקמה**: ב-Vercel ‹ **Settings** ‹ **Environment Variables** משנים את `SETUP_PASSWORD`, ואז **Redeploy**. בעמוד ההקמה לוחצים שוב "הפעילו הכול".
