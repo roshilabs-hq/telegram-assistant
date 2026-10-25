@@ -280,7 +280,7 @@ async function verify() {
   const a = model ? await tryAnswer(p, k, model) : { ok: null };
   result.ai = a.ok === true;
   if (a.ok) say(true, `מפתח ${name} תקין, והוא עונה`);
-  else if (a.billing) say(false, `המפתח של ${name} תקין, אבל אין בחשבון יתרה או אמצעי תשלום. מחברים תשלום לפי השלב "מוציאים מפתח לבינה המלאכותית", ומריצים שוב.`);
+  else if (a.billing) say(false, `המפתח של ${name} תקין, אבל אין בחשבון יתרה או אמצעי תשלום. מחברים תשלום לפי השלב "מוסיפים לבוט מוח", ומריצים שוב.`);
   else if (a.ok === false) say(false, `${name} דחה את המפתח. בודקים שהועתק כולו.`);
   else say(false, `לא הצלחתי לוודא שמפתח ${name} עונה${a.status ? ` (קוד ${a.status})` : " (בעיית רשת?)"}. מריצים שוב verify בעוד רגע.`);
   done();

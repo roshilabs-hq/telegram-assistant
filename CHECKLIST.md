@@ -11,10 +11,10 @@
 
 - [ ] **מדביקים שורה אחת ב-Claude Code** · כ-2 דק׳ · [עם Claude Code](docs/claude-code.md#step-get-code)
 - [ ] **יוצרים בוט בטלגרם** · כ-3 דק׳ · [בדפדפן](docs/browser.md#step-create-bot) · [עם Claude Code](docs/claude-code.md#step-create-bot)
-- [ ] **מוציאים מפתח לבינה המלאכותית** · כ-10 דק׳ · [בדפדפן](docs/browser.md#step-ai-key) · [עם Claude Code](docs/claude-code.md#step-ai-key)
 - [ ] **מעלים את הבוט לאוויר** · כ-10 דק׳ · [בדפדפן](docs/browser.md#step-deploy) · [עם Claude Code](docs/claude-code.md#step-deploy)
 - [ ] **לוחצים "הפעילו הכול"** · כ-2 דק׳ · [בדפדפן](docs/browser.md#step-activate) · [עם Claude Code](docs/claude-code.md#step-activate)
 - [ ] **מחברים את הבוט אליך** · כ-1 דק׳ · [בדפדפן](docs/browser.md#step-pair) · [עם Claude Code](docs/claude-code.md#step-pair)
+- [ ] **מוסיפים לבוט מוח** · כ-10 דק׳ · [בדפדפן](docs/browser.md#step-ai-key) · [עם Claude Code](docs/claude-code.md#step-ai-key)
 - [ ] **שולחים הודעה ראשונה** · כ-1 דק׳ · [בדפדפן](docs/browser.md#step-say-hello) · [עם Claude Code](docs/claude-code.md#step-say-hello)
 
 ## תוספות (לא חובה)

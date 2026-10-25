@@ -15,26 +15,19 @@
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-create-bot)
 
-<a id="step-ai-key"></a>
-### 2. מוציאים מפתח לבינה המלאכותית · כ-10 דק׳
-1. ב-[Claude Console](https://platform.claude.com) נרשמים (**Individual**), וטוענים **$5** (לא את ה-20 שמסומנים מראש). ב-5 דולר אין טעינה אוטומטית, וכך היתרה היא התקרה.
-2. ב-**API keys** לוחצים **Create key**, ואז **Continue with an API key**. ב-**Expires** בוחרים **Never** (ברירת המחדל, 30 יום, עוצרת את הבוט אחרי חודש), ומעתיקים את המפתח (מתחיל ב-`sk-ant-`). כבר יש חשבון? יוצרים בו מפתח חדש רק לבוט.
-
-[הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-ai-key)
-
 <a id="step-deploy"></a>
-### 3. מעלים את הבוט לאוויר · כ-10 דק׳
+### 2. מעלים את הבוט לאוויר · כ-10 דק׳
 > אין GitHub? פותחים בדרך (**Create an account** בחלון ההתחברות). יש Supabase? בכל זאת חדש כאן. בחינם יש עד 2 פרויקטים פעילים **לאדם**, כולל מה שכבר יש לך.
 
-1. [כפתור ה-Deploy](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CAI_API_KEY%2CSETUP_PASSWORD&envDescription=BotFather%20token%2C%20AI%20key%2C%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D) ‹ התחברות עם GitHub ‹ **Create**.
+1. [כפתור ה-Deploy](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D) ‹ התחברות עם GitHub ‹ **Create**.
 2. Supabase: **Add** ‹ **Frankfurt** ‹ **Create** ‹ **Done**.
-3. שלושה משתנים: `TELEGRAM_TOKEN`, `AI_API_KEY`, `SETUP_PASSWORD` (ארוכה ואקראית, 16 תווים ומעלה) ‹ **Deploy**.
+3. שני משתנים: `TELEGRAM_TOKEN`, `SETUP_PASSWORD` (ארוכה ואקראית, 16 תווים ומעלה) ‹ **Deploy**. (המפתח של Claude בא בסוף, בעמוד ההקמה.)
 4. **Continue to Project** ‹ **Visit** ‹ **לעמוד ההקמה**.
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-deploy)
 
 <a id="step-activate"></a>
-### 4. לוחצים "הפעילו הכול" · כ-2 דק׳
+### 3. לוחצים "הפעילו הכול" · כ-2 דק׳
 1. נכנסים ל-`/setup` בכתובת של הבוט, עם סיסמת ההקמה.
 2. **🚀 הפעילו הכול**.
 3. אם מופיעה תיבת SQL: **העתקה** ‹ עורך ה-SQL של Supabase ‹ **Run**.
@@ -42,11 +35,19 @@
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-activate)
 
 <a id="step-pair"></a>
-### 5. מחברים את הבוט אליך · כ-1 דק׳
+### 4. מחברים את הבוט אליך · כ-1 דק׳
 1. בעמוד ההקמה: **📲 פתיחת הבוט בטלגרם** ‹ **Start**.
 2. מהמחשב: שולחים לבוט את שש הספרות שבעמוד ההקמה.
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-pair)
+
+<a id="step-ai-key"></a>
+### 5. מוסיפים לבוט מוח · כ-10 דק׳
+1. ב-[Claude Console](https://platform.claude.com) נרשמים (**Individual**), וטוענים **$5** (לא את ה-20 שמסומנים מראש). ב-5 דולר אין טעינה אוטומטית, וכך היתרה היא התקרה.
+2. ב-**API keys** לוחצים **Create key**, ואז **Continue with an API key**. ב-**Expires** בוחרים **Never** (ברירת המחדל, 30 יום, עוצרת את הבוט אחרי חודש), ומעתיקים את המפתח (מתחיל ב-`sk-ant-`). כבר יש חשבון? יוצרים בו מפתח חדש רק לבוט.
+3. בעמוד ההקמה מדביקים בתיבה **המפתח של Claude** ‹ **🧠 שמירה ובדיקה**.
+
+[הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-ai-key)
 
 <a id="step-say-hello"></a>
 ### 6. שולחים הודעה ראשונה · כ-1 דק׳

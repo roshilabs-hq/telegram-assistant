@@ -38,6 +38,16 @@ test("רישום הפעולות מההיסטוריה לא מגיע למשתמש,
   assert.equal((await store.getHistory("42"))[1].content, "שלום!");
 });
 
+test("בלי מפתח AI הבוט אומר שחסר לו מוח, ולא שומר את ההודעה", async () => {
+  delete process.env.AI_API_KEY;
+  const out = await converse({ chatId: "42", text: "היי", settings: {} });
+  assert.match(out.text, /חסר לי רק מוח/);
+  assert.deepEqual(await store.getHistory("42"), []);
+  // מפתח שהודבק בעמוד ההקמה מספיק
+  scriptedModel([{ text: "שלום!" }]);
+  assert.equal((await converse({ chatId: "42", text: "היי", settings: { ai_key: "sk-ant-pasted" } })).text, "שלום!");
+});
+
 test("כלי לא יכול לגעת בשיחה של מישהו אחר", async () => {
   await store.createReminder("other", { text: "סוד", due_at: "2026-07-16T09:00:00+03:00" });
   scriptedModel([{ tool: "delete_reminder", input: { id: 1 } }, { text: "נמחק" }]);

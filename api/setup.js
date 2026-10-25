@@ -8,7 +8,7 @@ import { googleConfigured, redirectUri } from "../lib/google.js";
 import { VERSION, ownRepo } from "../lib/version.js";
 import { runChecks, cronSql } from "../lib/checks.js";
 import { generateText } from "ai";
-import { detectProvider, resolveModel, languageModel, isQuotaError } from "../lib/ai.js";
+import { detectProvider, resolveModel, languageModel, isQuotaError, aiKeyOf } from "../lib/ai.js";
 import * as store from "../lib/db.js";
 import { newPairingCode } from "../lib/core.js";
 import { setWebhook } from "../lib/telegram.js";
@@ -28,7 +28,8 @@ const FLASH = "setup_flash";
 
 const COMPOSITE = {
   deploy: ["setup_password", "supabase_env"],
-  activate: ["database", "ai_model", "telegram_webhook", "scheduler"],
+  activate: ["database", "telegram_webhook", "scheduler"],
+  brain: ["ai_key", "ai_model"],
 };
 
 export function stepStatus(check, checks) {
@@ -64,10 +65,10 @@ async function waitForTables(tries = 15) {
   }
 }
 
-async function checkAi() {
-  const key = env.aiKey();
+/** בדיקה אמיתית של מפתח: מזהה ספק, בוחר מודל, ומבקש תשובה של מילה. null = עובד. */
+async function checkAi(key) {
   const provider = detectProvider(key);
-  if (!provider) return "לא זוהה ספק AI. בדקו את AI_API_KEY.";
+  if (!provider) return "זה לא נראה כמו מפתח של Claude. מעתיקים אותו שוב, כולו (הוא מתחיל ב-sk-ant-).";
   const r = await resolveModel(provider, key);
   if (!r.ok) {
     return r.status === 401 || r.status === 403
@@ -78,10 +79,10 @@ async function checkAi() {
   }
   // רשימת המודלים נפתחת גם למפתח בלי יתרה. תשובה אמיתית אחת, של מילה, מוכיחה שהבוט יוכל לענות.
   try {
-    await generateText({ model: languageModel({ ai_provider: provider, ai_model: r.model }).model, prompt: "hi", maxOutputTokens: 1 });
+    await generateText({ model: languageModel({ ai_provider: provider, ai_model: r.model, ai_key: key }).model, prompt: "hi", maxOutputTokens: 1 });
   } catch (e) {
     return isQuotaError(e)
-      ? "המפתח תקין, אבל אין בחשבון אצל הספק יתרה או אמצעי תשלום. מחברים תשלום (השלב \"מוציאים מפתח לבינה המלאכותית\"), ולוחצים שוב."
+      ? "המפתח תקין, אבל אין בחשבון אצל הספק יתרה או אמצעי תשלום. מחברים תשלום (השלב \"מוסיפים לבוט מוח\"), ולוחצים שוב."
       : `הספק לא ענה לבקשת בדיקה: ${String(e.message).slice(0, 160)}`;
   }
   await store.setSetting("ai_model", r.model);
@@ -101,11 +102,15 @@ export const ACTIONS = {
         errors.push(`יצירת הטבלאות נכשלה: ${e.message}`);
       }
     }
-    try {
-      const e = await checkAi();
-      if (e) errors.push(e);
-    } catch (e) {
-      errors.push(`בדיקת ה-AI נכשלה: ${e.message}`);
+    // המוח בא בסוף: בלי מפתח עדיין לא בודקים AI, וזו לא שגיאה
+    const key = aiKeyOf(await store.getSettings().catch(() => ({})));
+    if (key) {
+      try {
+        const e = await checkAi(key);
+        if (e) errors.push(e);
+      } catch (e) {
+        errors.push(`בדיקת ה-AI נכשלה: ${e.message}`);
+      }
     }
     const hook = await setWebhook(`${url}/api/telegram`, secrets.webhook()).catch((e) => ({ ok: false, description: e.message }));
     if (!hook.ok) errors.push(`חיבור הבוט לטלגרם נכשל: ${hook.description || ""}`);
@@ -119,8 +124,17 @@ export const ACTIONS = {
     return errors;
   },
   async check_ai() {
-    const e = await checkAi();
+    const e = await checkAi(aiKeyOf(await store.getSettings()));
     return e ? [e] : [];
+  },
+  // "המוח בסוף": המפתח מודבק כאן ונשמר במסד, רק אחרי שהוכח שהוא עונה
+  async save_ai_key(req, form) {
+    const key = String(form.ai_key || "").trim();
+    if (!key) return ["מדביקים את המפתח בתיבה, ואז לוחצים על הכפתור."];
+    const e = await checkAi(key);
+    if (e) return [e];
+    await store.setSetting("ai_key", key);
+    return [];
   },
   async set_webhook(req) {
     const hook = await setWebhook(`${baseUrl(req)}/api/telegram`, secrets.webhook());
@@ -196,7 +210,15 @@ function actionPanel(check, checks, ctx) {
   const btn = (action, label, cls = "") =>
     `<form method="post"><input type="hidden" name="action" value="${action}"><button class="${cls}" type="submit">${label}</button></form>`;
 
-  if (check === "deploy" || check === "telegram_token" || check === "ai_key") {
+  if (check === "brain") {
+    // מפתח שהוגדר ב-Vercel גובר. אז נשאר רק לבדוק אותו.
+    if (env.aiKey()) return btn("check_ai", "🧠 בדיקת המפתח");
+    return `<p>מדביקים כאן את המפתח של Claude (מתחיל ב-<span dir="ltr">sk-ant-</span>). הוא נבדק מול Claude ונשמר רק אצלך, במסד של הבוט.</p>
+<form method="post"><input type="hidden" name="action" value="save_ai_key">
+<label for="ak">המפתח של Claude</label><input id="ak" name="ai_key" type="password" autocomplete="off" spellcheck="false" dir="ltr" placeholder="sk-ant-..." required>
+<button type="submit">🧠 שמירה ובדיקה</button></form>`;
+  }
+  if (check === "deploy" || check === "telegram_token") {
     return `<p>חסר משהו בהגדרות של Vercel. נכנסים ל-<a href="https://vercel.com/dashboard" target="_blank" rel="noopener">Vercel</a> ‹ הפרויקט ‹ <b>Settings</b> ‹ <b>Environment Variables</b>, מתקנים, ואז <b>Deployments</b> ‹ <b>Redeploy</b>.</p>`;
   }
   if (check === "activate") {
@@ -279,7 +301,7 @@ function dashboard({ checks, settings, bot, url }, errors) {
       if (isNext) nextShown = true;
       const parts =
         st.parts.length > 1 || !ok
-          ? `<ul class="parts">${st.parts.map((p) => `<li>${p.ok ? "✅" : "▫️"} ${esc(p.detail)}</li>`).join("")}</ul>`
+          ? `<ul class="parts">${st.parts.filter((p) => p.detail).map((p) => `<li>${p.ok ? "✅" : "▫️"} ${esc(p.detail)}</li>`).join("")}</ul>`
           : `<span class="muted">${esc(st.parts[0]?.detail)}</span>`;
       return `<div class="card step ${isNext ? "next" : ""}"><span class="icon">${ok ? "✅" : isNext ? "👉" : "⬜"}</span>
 <div style="flex:1"><span class="t">שלב ${s.n} מתוך ${all.length} · ${esc(s.title)}</span>${s.check === "none" ? "" : parts}
@@ -305,7 +327,10 @@ ${checks.database?.ok ? settingsPanel(settings) : ""}
 ${ADDONS.length ? `<h2>תוספות (לא חובה)</h2>${addons}` : ""}
 ${checks.owner?.ok ? `<h2>אזור מתקדם</h2><form method="post" class="card"><input type="hidden" name="action" value="reset_owner">
 <label for="c">ניתוק הבוט מהחשבון שלך (למשל כדי לחבר טלפון אחר). כתבו "כן" לאישור:</label><input id="c" name="confirm">
-<button class="ghost" type="submit">ניתוק</button></form>` : ""}`);
+<button class="ghost" type="submit">ניתוק</button></form>` : ""}
+${checks.ai_model?.ok && !env.aiKey() ? `<form method="post" class="card"><input type="hidden" name="action" value="save_ai_key">
+<label for="ak2">החלפת המפתח של Claude (למשל אם פג או נמחק). המפתח החדש נבדק לפני שהוא מחליף את הישן:</label><input id="ak2" name="ai_key" type="password" autocomplete="off" spellcheck="false" dir="ltr" placeholder="sk-ant-..." required>
+<button class="ghost" type="submit">החלפה ובדיקה</button></form>` : ""}`);
 }
 
 async function readForm(req) {

@@ -80,6 +80,31 @@ test("הפעילו הכול בלי כתובת מסד: מחבר את הבוט ו�
   assert.equal(hook.secret_token, secrets.webhook());
 });
 
+test("המוח בסוף: בלי מפתח, הפעילו הכול עובר. מפתח שמודבק נשמר רק אחרי שענה", async () => {
+  delete process.env.AI_API_KEY;
+  const realFetch = globalThis.fetch;
+  let answers = true;
+  globalThis.fetch = async (url, init) =>
+    String(url).includes(":generateContent")
+      ? answers
+        ? new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: "ok" }], role: "model" }, finishReason: "STOP" }], usageMetadata: {} }))
+        : new Response(JSON.stringify({ error: { message: "API key not valid" } }), { status: 400 })
+      : String(url).includes("generativelanguage")
+        ? new Response(JSON.stringify({ models: [{ name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] }] }))
+        : realFetch(url, init);
+  assert.deepEqual(await ACTIONS.activate(mockReq({ headers: {} })), []);
+  assert.equal((await runChecks(mockReq({ headers: {} }))).checks.ai_key.ok, false);
+  assert.match((await ACTIONS.save_ai_key(mockReq({}), { ai_key: "not-a-key" }))[0], /לא נראה כמו מפתח/);
+  answers = false;
+  assert.equal((await ACTIONS.save_ai_key(mockReq({}), { ai_key: "AIza-pasted" })).length, 1);
+  assert.equal((await store.getSettings()).ai_key, undefined);
+  answers = true;
+  assert.deepEqual(await ACTIONS.save_ai_key(mockReq({}), { ai_key: " AIza-pasted " }), []);
+  assert.equal((await store.getSettings()).ai_key, "AIza-pasted");
+  const { checks } = await runChecks(mockReq({ headers: {} }));
+  assert.equal(checks.ai_key.ok && checks.ai_model.ok, true);
+});
+
 test("Opus שנשמר לפני 1.3.5 מסומן למעבר ל-Haiku, ו-AI_MODEL שנקבע בכוונה גובר", async () => {
   process.env.AI_API_KEY = "sk-ant-test";
   await store.setSetting("ai_provider", "anthropic");

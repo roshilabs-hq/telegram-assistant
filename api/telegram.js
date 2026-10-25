@@ -4,7 +4,7 @@ import * as store from "../lib/db.js";
 import { converse, isAllowed, tryPair, timezoneOf } from "../lib/core.js";
 import { sendMessage, sendTyping, answerCallback, editMessageText, downloadFile } from "../lib/telegram.js";
 import { voiceEnabled, transcribe, frameTranscript } from "../lib/voice.js";
-import { isQuotaError, QUOTA_MESSAGE } from "../lib/ai.js";
+import { isQuotaError, QUOTA_MESSAGE, aiKeyOf, NO_BRAIN } from "../lib/ai.js";
 import { decide } from "../lib/confirm.js";
 
 const FAILURE = "משהו נשבר אצלי ולא הצלחתי לענות 😕 אפשר לנסות שוב עוד רגע.";
@@ -89,7 +89,7 @@ export default async function handler(req, res) {
     if (!isAllowed(chatId, settings)) {
       // הזר היחיד שמקבל תשובה הוא מי ששלח את קוד הצימוד הנכון, וזה עובד רק פעם אחת.
       if (await tryPair(chatId, msg.text, settings)) {
-        await sendMessage(chatId, WELCOME(settings.owner_name));
+        await sendMessage(chatId, WELCOME(settings.owner_name) + (aiKeyOf(settings) ? "" : `\n\n${NO_BRAIN}`));
       }
       return res.status(200).send("ok");
     }
