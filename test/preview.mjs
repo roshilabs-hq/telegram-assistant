@@ -1,6 +1,6 @@
 /**
  * תצוגה מקומית של עמוד ההקמה, עם מסד מזויף ובלי לצאת לרשת. לבדיקה בעין.
- *   node test/preview.mjs [state]   state: fresh | half | done
+ *   node test/preview.mjs [state]   state: fresh | half | brain | done
  */
 import { createServer } from "node:http";
 import { freshEnv } from "./helpers.js";
@@ -20,6 +20,11 @@ if (state !== "fresh") {
   await store.setSetting("ai_model", "gemini-2.5-flash");
   await store.setSetting("ai_provider", "google");
   await store.heartbeat();
+}
+if (state === "brain") {
+  // הכול מוכן חוץ מהמפתח של Claude ("המוח בסוף")
+  delete process.env.AI_API_KEY;
+  await store.setSetting("owner_chat_id", "42");
 }
 if (state === "done") {
   await store.setSetting("owner_chat_id", "42");

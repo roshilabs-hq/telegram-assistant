@@ -213,7 +213,7 @@ function actionPanel(check, checks, ctx) {
   if (check === "brain") {
     // מפתח שהוגדר ב-Vercel גובר. אז נשאר רק לבדוק אותו.
     if (env.aiKey()) return btn("check_ai", "🧠 בדיקת המפתח");
-    return `<p>מדביקים כאן את המפתח של Claude (מתחיל ב-<span dir="ltr">sk-ant-</span>). הוא נבדק מול Claude ונשמר רק אצלך, במסד של הבוט.</p>
+    return `<p>מדביקים כאן את המפתח של Claude. הוא מתחיל ב: <bdi dir="ltr">sk-ant-</bdi>. הוא נבדק מול Claude ונשמר רק אצלך, במסד של הבוט.</p>
 <form method="post"><input type="hidden" name="action" value="save_ai_key">
 <label for="ak">המפתח של Claude</label><input id="ak" name="ai_key" type="password" autocomplete="off" spellcheck="false" dir="ltr" placeholder="sk-ant-..." required>
 <button type="submit">🧠 שמירה ובדיקה</button></form>`;
@@ -296,7 +296,8 @@ function dashboard({ checks, settings, bot, url }, errors) {
   const rows = all
     .map((s) => {
       const st = stepStatus(s.check, checks);
-      const ok = s.check === "none" ? checks.owner?.ok : st.ok;
+      // שלב בלי בדיקה (ההודעה הראשונה) ירוק רק כשכל מה שלפניו ירוק
+      const ok = s.check === "none" ? !nextShown && checks.owner?.ok : st.ok;
       const isNext = !ok && !nextShown;
       if (isNext) nextShown = true;
       const parts =
