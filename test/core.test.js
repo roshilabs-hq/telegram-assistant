@@ -159,7 +159,7 @@ test("צימוד: אחרי 5 ניחושים שגויים הקוד נמחק", asy
   assert.equal(isAllowed("666", await store.getSettings()), false);
 });
 
-test("הודעות משתמש קודמות מקבלות זמן: תאריך מאתמול, שעה מהיום, וכלום מהדקות האחרונות", async () => {
+test("כל הודעת משתמש קודמת מקבלת זמן: תאריך מאתמול, שעה מהיום (גם מלפני 5 דקות)", async () => {
   const { datedHistory } = await import("../lib/brain.js");
   const now = new Date("2026-10-18T07:00:00Z");
   const out = datedHistory(
@@ -176,7 +176,7 @@ test("הודעות משתמש קודמות מקבלות זמן: תאריך מא�
     { role: "user", content: "[17.10] מה יש לי מחר?" },
     { role: "assistant", content: "מחר, יום ראשון" },
     { role: "user", content: "[09:03] תזכיר לי בעוד 2 דקות" },
-    { role: "user", content: "תודה" },
+    { role: "user", content: "[09:55] תודה" },
   ]);
 });
 
