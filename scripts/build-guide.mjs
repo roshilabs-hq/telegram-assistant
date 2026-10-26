@@ -438,7 +438,7 @@ main{max-width:560px;margin:0 auto;padding:12px 16px 110px}
 .bar{position:sticky;top:0;background:var(--bg);padding:10px 0 8px;z-index:2}.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
 section{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}section.on{display:block}
 h1{font-size:1.35rem;margin:0 0 8px}.where{color:var(--muted);font-size:.9rem;margin-bottom:8px}.act{font-size:1.1rem;font-weight:600}
-img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:block}img.inline{display:inline-block;border:0;margin:4px 0}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:block}img.inline{display:inline-block;border:0;margin:6px 0;height:48px;width:auto}
 code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 4px;font-size:.9em;word-break:break-all}
 .note{background:var(--note);border-radius:10px;padding:10px 12px;margin:10px 0}.done{background:var(--done);border-radius:10px;padding:10px 12px;margin:12px 0}
 details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;color:var(--accent);font-weight:600}
