@@ -430,7 +430,7 @@ function forkScreens(contact) {
   return [
     `<section data-step="1" data-fork="1"><h1>איך ממשיכים?</h1><p>יש לך טוקן, והחלק של טלגרם מאחוריך. מכאן בוחרים דרך אחת:</p>
 ${opt("self", "🧭", "אני אעשה בעצמי, צעד אחרי צעד", "מהטלפון, בלי להתקין כלום. נפתח חשבונות חינמיים ב-GitHub וב-Vercel, ובסוף מפתח של Claude בתשלום קטן.")}
-${contact ? opt("install", "🙋", "תתקינו לי", "בתשלום. עושים את זה יחד, בחשבונות שלך.") : ""}
+${contact ? opt("install", "🙋", "תתקינו לי", "עושים את זה יחד, בחשבונות שלך.") : ""}
 ${contact ? `<div id="p-install" hidden>${contact}<p>🔒 את הטוקן לא שולחים בהודעה. בזמן ההתקנה מדביקים אותו בעצמך.</p><p><b>מכאן ממשיכים יחד איתנו, ואין צורך להמשיך בהדרכה הזו.</b></p></div>` : ""}
 ${cc ? opt("cc", "💻", "יש לי Claude Code", "במחשב, עם VS Code. Claude עושה את רוב העבודה.") : ""}
 ${cc}</section>`,
@@ -445,7 +445,7 @@ function renderWizard(steps, addons) {
   const total = core.reduce((n, s) => n + s.minutes, 0);
   const stuck = STUCK_LINE ? mdInline(STUCK_LINE.replace("(support.md)", "(docs/support.md)")) : "";
   const contact = CONTACT.length
-    ? `<div class="contact"><b>נתקעת? נתקין בשבילך.</b> ההתקנה בתשלום, לפי אותה הדרכה ובחשבונות שלך. כותבים לנו:<div class="btns">${CONTACT.map((c) => `<a class="${c.cls}" href="${htmlEsc(c.url)}" target="_blank" rel="noopener">${c.label}</a>`).join("")}</div></div>`
+    ? `<div class="contact"><b>נתקעת? נתקין בשבילך.</b> לפי אותה הדרכה, בחשבונות שלך. כותבים לנו:<div class="btns">${CONTACT.map((c) => `<a class="${c.cls}" href="${htmlEsc(c.url)}" target="_blank" rel="noopener">${c.label}</a>`).join("")}</div></div>`
     : "";
   const sections = [];
   sections.push(`<section data-step="0"><h1>${htmlEsc(`${String(PKG.description || "").split(" — ")[0]}: הקמה צעד אחרי צעד`)}</h1>
