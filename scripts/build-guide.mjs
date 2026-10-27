@@ -425,13 +425,13 @@ function wizardScreens(how, one) {
 function forkScreens(contact) {
   const opt = (id, icon, title, sub) => `<button type="button" class="opt" onclick="choose('${id}')"><b>${icon} ${title}</b><span>${sub}</span></button>`;
   const cc = CC_LINE
-    ? `<div class="tool" id="p-cc" hidden><p>פותחים תיקייה ריקה ב-VS Code, ומדביקים ב-Claude Code את השורה הזו:</p><div class="pw" dir="ltr" id="ccline">${htmlEsc(CC_LINE)}</div><button type="button" onclick="copyText('ccline',this)">העתקה</button><p>🔒 את הטוקן Claude יבקש להדביק בקובץ במחשב, ולא בצ'אט. <a href="${wizardUrl("docs/claude-code.md")}" target="_blank" rel="noopener">ההסבר המלא</a></p></div>`
+    ? `<div class="tool" id="p-cc" hidden><p>פותחים תיקייה ריקה ב-VS Code, ומדביקים ב-Claude Code את השורה הזו:</p><div class="pw" dir="ltr" id="ccline">${htmlEsc(CC_LINE)}</div><button type="button" onclick="copyText('ccline',this)">העתקה</button><p>🔒 את הטוקן Claude יבקש להדביק בקובץ במחשב, ולא בצ'אט. <a href="${wizardUrl("docs/claude-code.md")}" target="_blank" rel="noopener">ההסבר המלא</a></p><p><b>מכאן Claude מוביל אותך, ואין צורך להמשיך בהדרכה הזו.</b></p></div>`
     : "";
   return [
     `<section data-step="1" data-fork="1"><h1>איך ממשיכים?</h1><p>יש לך טוקן, והחלק של טלגרם מאחוריך. מכאן בוחרים דרך אחת:</p>
 ${opt("self", "🧭", "אני אעשה בעצמי, צעד אחרי צעד", "מהטלפון, בלי להתקין כלום. נפתח חשבונות חינמיים ב-GitHub וב-Vercel, ובסוף מפתח של Claude בתשלום קטן.")}
 ${contact ? opt("install", "🙋", "תתקינו לי", "בתשלום. עושים את זה יחד, בחשבונות שלך.") : ""}
-${contact ? `<div id="p-install" hidden>${contact}<p>🔒 את הטוקן לא שולחים בהודעה. בזמן ההתקנה מדביקים אותו בעצמך.</p></div>` : ""}
+${contact ? `<div id="p-install" hidden>${contact}<p>🔒 את הטוקן לא שולחים בהודעה. בזמן ההתקנה מדביקים אותו בעצמך.</p><p><b>מכאן ממשיכים יחד איתנו, ואין צורך להמשיך בהדרכה הזו.</b></p></div>` : ""}
 ${cc ? opt("cc", "💻", "יש לי Claude Code", "במחשב, עם VS Code. Claude עושה את רוב העבודה.") : ""}
 ${cc}</section>`,
     `<section data-step="1"><h1>יש לך כבר חשבון ב-GitHub, ב-Vercel או ב-Supabase?</h1><p>לפי התשובה נראה לך רק את מה שרלוונטי אליך. אפשר לשנות אחר כך.</p>
@@ -530,7 +530,8 @@ function go(n) {
   S.forEach((s, k) => s.classList.toggle("on", k === i));
   document.getElementById("prev").disabled = i === 0;
   const next = document.getElementById("next");
-  next.disabled = i === S.length - 1;
+  // במסך בחירה מתקדמים רק דרך הבחירה: "תתקינו לי" ו-Claude Code לא ממשיכים להדרכה.
+  next.disabled = i === S.length - 1 || !!S[i].querySelector(".opt");
   next.textContent = i === 0 ? "מתחילים ›" : "הבא ›";
   document.getElementById("fill").style.width = (100 * i / (S.length - 1)) + "%";
   try { localStorage.setItem(KEY, i); } catch {}
