@@ -76,6 +76,7 @@
 2. Vercel מבקש להתחבר. לוחצים **GitHub**. (GitHub הוא המקום שבו נשמר עותק של הקוד, שלך, בחינם.) ![](img/deploy-1.png)
    - **יש לך GitHub:** מתחברים, ובחלון של GitHub לוחצים **Authorize**.
    - **אין לך GitHub:** בחלון של GitHub לוחצים **Create an account**. **יש לך Gmail? הכי פשוט ללחוץ Continue with Google** ולבחור את החשבון שלך, בלי סיסמה חדשה. אחרת ממלאים מייל, סיסמה ושם משתמש באנגלית. אם מופיעה חידה ("Verify you are human"), פותרים אותה. מקלידים את הקוד שמגיע במייל, ובסוף לוחצים **Authorize**. ממשיכים רק כשמופיע המסך **New Project** של Vercel. לא חזרת אליו לבד? לוחצים שוב על כפתור ה-Deploy בהדרכה.
+   - **מופיע מסך Verification שמבקש מספר טלפון:** Vercel מוודא שאתה אדם אמיתי. מקלידים את מספר הנייד שלך, לוחצים **Continue**, ומקלידים את הקוד שמגיע ב-SMS. Vercel לא שולח הודעות אחרות. **כל מספר טלפון מתאים לחשבון Vercel אחד בלבד.**
    - **יש לך כבר Vercel** (נכנסת בעבר עם מייל או Google): מתחברים כמו תמיד. בסעיף הבא מחברים אליו את GitHub.
    - אם אחרי ההתחברות מופיע **404**, זו תקלה של Vercel: חוזרים להדרכה ולוחצים שוב על הכפתור. ההתחברות כבר נשמרה.
    - **יש לך חשבון של עבודה** ב-Vercel או ב-GitHub: הבוט נוצר בחשבון שמחובר עכשיו. בודקים בפינה השמאלית העליונה של Vercel, ובשדה **Git Scope**, שמופיע השם **האישי** שלך ולא של העבודה. אם לא, מחליפים שם (לוחצים על השם ובוחרים את החשבון האישי), או מתחברים לחשבון האישי בחלון גלישה בסתר.
@@ -106,6 +107,7 @@
 <summary><b>נתקעתי</b></summary>
 
 - **ב-GitHub כתוב "We could not validate the response from your social login provider"**: ההתחברות דרך Google לא הושלמה. לרוב זה קורה כשהדפדפן עדיין מחובר לחשבון GitHub אחר (בכותרת כתוב **Add an account**). לוחצים **Sign out** בתחתית, ואז שוב על כפתור ה-Deploy בהדרכה ‹ **Continue with Google**. אם זה חוזר, פותחים את ההדרכה ב-Safari או ב-Chrome, או נרשמים עם מייל וסיסמה.
+- **כתוב "This phone number is already associated with a Vercel account"**: כבר פתחת בעבר Vercel עם הנייד הזה. לא פותחים חשבון חדש: לוחצים שוב על כפתור ה-Deploy בהדרכה ונכנסים לחשבון הקיים (עם המייל, Google או GitHub שבהם נרשמת אז). לא זוכרים איך? **Continue with Email** עם המייל שלך, ואז נשלח אליו קוד.
 - **כתוב "There is already an account associated with your GitHub email"**: כבר יש לך Vercel עם אותו מייל. לוחצים **Login with Email**, מקלידים את המייל, ומקלידים את הקוד שמגיע במייל. אחר כך לוחצים שוב על כפתור ה-Deploy בהדרכה, וממשיכים מהסעיף של **Git Scope**.
 - **אחרי ההתחברות ל-Vercel מופיע 404**: לוחצים שוב על כפתור ה-Deploy בהדרכה. ההתחברות כבר נשמרה, והפעם הטופס ייפתח.
 - **כתוב "A repository named telegram-assistant already exists"**: יש לך כבר עותק קוד (ריפו) בשם הזה ב-GitHub. בשדה **Private Repository Name** כותבים שם אחר, למשל `telegram-assistant-2` (ואם גם הוא תפוס, `telegram-assistant-3`), ולוחצים שוב **Create**. גם הכתובת של הבוט תהיה בשם הזה. ![](img/deploy-exists.png)
