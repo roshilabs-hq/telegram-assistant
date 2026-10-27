@@ -42,6 +42,15 @@ const CONTACT = [
   ["fb", "מסנג'ר", /https:\/\/m\.me\/[^)\s]+/],
 ].map(([cls, label, re]) => ({ cls, label, url: re.exec(SUPPORT_MD)?.[0] })).filter((c) => c.url);
 
+// `<!-- only:fresh -->` / `<!-- only:existing -->` בסוף שורה: האשף מציג אותה רק למי שבחר "אין לי חשבונות" / "יש לי".
+// בהדרכה בעמוד אחד מופיע הכול, חוץ משורות "fresh" (הטקסט של "existing" כבר כתוב כתנאי: "יש לך...").
+const ONLY = /\s*<!--\s*only:(fresh|existing)\s*-->/;
+const mdOnly = (t) => t && t.split(/\r?\n/).filter((l) => ONLY.exec(l)?.[1] !== "fresh").map((l) => l.replace(ONLY, "")).join("\n");
+
+// השורה של Claude Code, מתוך README (מסך "איך ממשיכים?" באשף).
+const README = existsSync(join(ROOT, "README.md")) ? readFileSync(join(ROOT, "README.md"), "utf8") : "";
+const CC_LINE = /id="claude-code"[\s\S]*?```\r?\n([^\r\n]+)\r?\n```/.exec(README)?.[1];
+
 const PATHS = {
   browser: { label: "בדפדפן", file: "docs/browser.md", title: "מסלול א׳: מהדפדפן" },
   claude: { label: "עם Claude Code", file: "docs/claude-code.md", title: "מסלול ב׳: עם Claude Code" },
@@ -152,7 +161,7 @@ function renderPath(pathKey, steps, addons) {
   const total = core.reduce((n, s) => n + s.minutes, 0);
 
   const block = (s, i, n, label) => {
-    const how = s.how[pathKey];
+    const how = mdOnly(s.how[pathKey]);
     if (!how) throw new Error(`${s.file}: אין הוראות למסלול "${P.label}"`);
     return [
       `<a id="${anchor(s)}"></a>`,
@@ -170,7 +179,7 @@ function renderPath(pathKey, steps, addons) {
       "<details>",
       "<summary><b>נתקעתי</b></summary>",
       "",
-      s.stuck,
+      mdOnly(s.stuck),
       ...(STUCK_LINE ? ["", STUCK_LINE] : []),
       "",
       "</details>",
@@ -348,11 +357,12 @@ function mdList(lines, i) {
     if (indentOf(l) === ind) {
       const m = ITEM.exec(l);
       if (!m) break;
-      items.push({ text: m[1], sub: [] });
+      const only = ONLY.exec(m[1])?.[1];
+      items.push({ text: m[1].replace(ONLY, ""), sub: [], only });
     } else items.at(-1).sub.push(l.slice(ind));
   }
   const tag = ordered ? "ol" : "ul";
-  return [`<${tag}>${items.map((it) => `<li>${mdInline(it.text)}${it.sub.length ? mdBlock(it.sub.join("\n")) : ""}</li>`).join("")}</${tag}>`, i];
+  return [`<${tag}>${items.map((it) => `<li${it.only ? ` class="only-${it.only}"` : ""}>${mdInline(it.text)}${it.sub.length ? mdBlock(it.sub.join("\n")) : ""}</li>`).join("")}</${tag}>`, i];
 }
 
 function mdBlock(md) {
@@ -367,7 +377,9 @@ function mdBlock(md) {
     else if (/^\s*>/.test(l)) {
       const q = [];
       while (i < lines.length && /^\s*>/.test(lines[i])) q.push(lines[i++].replace(/^\s*>\s?/, ""));
-      out.push(`<div class="note">${mdBlock(q.join("\n"))}</div>`);
+      const only = ONLY.exec(q[0] || "")?.[1];
+      if (only) q[0] = q[0].replace(ONLY, "");
+      out.push(`<div class="note${only ? ` only-${only}` : ""}">${mdBlock(q.join("\n"))}</div>`);
     } else if (ITEM.test(l)) {
       const [html, next] = mdList(lines, i);
       out.push(html);
@@ -410,6 +422,24 @@ function wizardScreens(how, one) {
   });
 }
 
+function forkScreens(contact) {
+  const opt = (id, icon, title, sub) => `<button type="button" class="opt" onclick="choose('${id}')"><b>${icon} ${title}</b><span>${sub}</span></button>`;
+  const cc = CC_LINE
+    ? `<div class="tool" id="p-cc" hidden><p>פותחים תיקייה ריקה ב-VS Code, ומדביקים ב-Claude Code את השורה הזו:</p><div class="pw" dir="ltr" id="ccline">${htmlEsc(CC_LINE)}</div><button type="button" onclick="copyText('ccline',this)">העתקה</button><p>🔒 את הטוקן Claude יבקש להדביק בקובץ במחשב, ולא בצ'אט. <a href="${wizardUrl("docs/claude-code.md")}" target="_blank" rel="noopener">ההסבר המלא</a></p></div>`
+    : "";
+  return [
+    `<section data-step="1" data-fork="1"><h1>איך ממשיכים?</h1><p>יש לך טוקן, והחלק של טלגרם מאחוריך. מכאן בוחרים דרך אחת:</p>
+${opt("self", "🧭", "אני אעשה בעצמי, צעד אחרי צעד", "מהטלפון, בלי להתקין כלום. נפתח חשבונות חינמיים ב-GitHub וב-Vercel, ובסוף מפתח של Claude בתשלום קטן.")}
+${contact ? opt("install", "🙋", "תתקינו לי", "בתשלום. עושים את זה יחד, בחשבונות שלך.") : ""}
+${contact ? `<div id="p-install" hidden>${contact}<p>🔒 את הטוקן לא שולחים בהודעה. בזמן ההתקנה מדביקים אותו בעצמך.</p></div>` : ""}
+${cc ? opt("cc", "💻", "יש לי Claude Code", "במחשב, עם VS Code. Claude עושה את רוב העבודה.") : ""}
+${cc}</section>`,
+    `<section data-step="1"><h1>יש לך כבר חשבון ב-GitHub, ב-Vercel או ב-Supabase?</h1><p>לפי התשובה נראה לך רק את מה שרלוונטי אליך. אפשר לשנות אחר כך.</p>
+${opt("fresh", "🌱", "לא, אין לי (מומלץ)", "פותחים הכול מאפס, בלחיצה על Continue with Google. הכי פשוט.")}
+${opt("existing", "🗂️", "כן, יש לי חשבון באחד מהם", "נראה לך גם מה עושים כשכבר יש לך חשבונות ופרויקטים.")}</section>`,
+  ];
+}
+
 function renderWizard(steps, addons) {
   const core = steps.filter((s) => s.only !== "claude");
   const total = core.reduce((n, s) => n + s.minutes, 0);
@@ -435,6 +465,8 @@ ${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude
       const done = k === screens.length - 1 ? `<div class="done"><b>✅ איך יודעים שהצליח</b>${mdBlock(s.done)}</div>` : "";
       sections.push(`<section data-step="${si + 1}">${head}${k ? lost : ""}${why}${body}${done}<details><summary>נתקעתי</summary>${mdBlock(s.stuck)}${stuck ? `<p>${stuck}</p>` : ""}${contact}</details></section>`);
     });
+    // אחרי השלב הראשון (זהה לכולם): בוחרים איך ממשיכים, ומי שממשיך לבד אומר אם כבר יש לו חשבונות.
+    if (si === 0) sections.push(...forkScreens(contact));
   });
   const extra = addons.filter((s) => s.only !== "claude");
   sections.push(`<section data-step="${core.length}"><h1>🎉 סיימת!</h1><p>הבוט עובד. מכאן הכול קורה בטלגרם ובעמוד ההקמה של הבוט.</p>
@@ -467,6 +499,8 @@ nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border
 .tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .pw{font:600 1.15rem ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0;word-break:break-all;text-align:center}.out{margin-top:8px;font-weight:600}
 .restart{display:block;text-align:center;color:var(--muted);font-size:.85rem;margin-top:14px}
+.opt{display:block;width:100%;text-align:start;background:var(--card);color:var(--ink);border:2px solid var(--line);margin:10px 0;padding:12px 14px}.opt b{display:block;font-size:1.05rem}.opt span{display:block;font-weight:400;color:var(--muted);font-size:.92rem}.opt.picked{border-color:var(--accent)}
+body:not(.m-fresh) .only-fresh,body.m-fresh .only-existing{display:none}
 .brand{display:block;color:var(--muted);font-size:.85rem;font-weight:600;text-decoration:none;padding-top:4px}
 .contact{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .btns a{flex:1 1 90px;text-align:center;font-weight:600;border-radius:10px;padding:10px;text-decoration:none;color:#fff}.wa{background:#1f9d55}.ig{background:#c13584}.fb{background:#1877f2}
@@ -474,13 +508,23 @@ nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border
 <a class="brand" href="${SITE.url}" target="_blank" rel="noopener">${htmlEsc(SITE.name)}</a>
 <div class="bar"><div class="track"><div class="fill" id="fill"></div></div></div>
 ${sections.join("\n")}
-<a class="restart" href="#" onclick="go(0);return false">חזרה להתחלה</a>
+<a class="restart" href="#" onclick="go(FORK);return false">החלפת דרך</a><a class="restart" href="#" onclick="go(0);return false">חזרה להתחלה</a>
 </main>
 <nav><div><button type="button" class="ghost" id="prev" onclick="go(i-1)">‹ חזרה</button><button type="button" id="next" onclick="go(i+1)">הבא ›</button></div></nav>
 <script>
 const S = [...document.querySelectorAll("section")], KEY = "wizard:${REPO || "kit"}";
 let i = 0;
 try { i = Math.min(Number(localStorage.getItem(KEY)) || 0, S.length - 1); } catch {}
+const MODE = KEY + ":mode", FORK = S.findIndex((s) => s.dataset.fork);
+function setMode(m) { document.body.classList.toggle("m-fresh", m === "fresh"); document.body.classList.toggle("m-existing", m === "existing"); }
+try { setMode(localStorage.getItem(MODE)); } catch {}
+function choose(c) {
+  document.querySelectorAll("#p-install,#p-cc").forEach((p) => (p.hidden = p.id !== "p-" + c));
+  document.querySelectorAll(".opt").forEach((b) => b.classList.toggle("picked", b.getAttribute("onclick") === "choose('" + c + "')"));
+  if (c === "self") return go(i + 1);
+  if (c === "fresh" || c === "existing") { setMode(c); try { localStorage.setItem(MODE, c); } catch {} return go(i + 1); }
+}
+function copyText(id, b) { navigator.clipboard.writeText(document.getElementById(id).textContent).then(() => { b.textContent = "הועתק ✓"; }); }
 function go(n) {
   i = Math.max(0, Math.min(n, S.length - 1));
   S.forEach((s, k) => s.classList.toggle("on", k === i));
