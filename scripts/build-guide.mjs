@@ -33,6 +33,15 @@ const STUCK_LINE = STUCK_URL
     (existsSync(join(ROOT, "docs/support.md")) ? " אין לכם GitHub? [דרכים נוספות](support.md)." : "")
   : null;
 
+// האשף יושב באתר של רועי (kits.roshinovic.co.il), עם המותג וכפתורי "נתקין בשבילך" מתוך docs/support.md.
+const SITE = { name: "רושינוביץ · אוטומציה לעסקים", url: "https://roshinovic.co.il" };
+const SUPPORT_MD = existsSync(join(ROOT, "docs/support.md")) ? readFileSync(join(ROOT, "docs/support.md"), "utf8") : "";
+const CONTACT = [
+  ["wa", "וואטסאפ", /https:\/\/wa\.me\/[^)\s]+/],
+  ["ig", "אינסטגרם", /https:\/\/ig\.me\/[^)\s]+/],
+  ["fb", "מסנג'ר", /https:\/\/m\.me\/[^)\s]+/],
+].map(([cls, label, re]) => ({ cls, label, url: re.exec(SUPPORT_MD)?.[0] })).filter((c) => c.url);
+
 const PATHS = {
   browser: { label: "בדפדפן", file: "docs/browser.md", title: "מסלול א׳: מהדפדפן" },
   claude: { label: "עם Claude Code", file: "docs/claude-code.md", title: "מסלול ב׳: עם Claude Code" },
@@ -404,26 +413,30 @@ function renderWizard(steps, addons) {
   const core = steps.filter((s) => s.only !== "claude");
   const total = core.reduce((n, s) => n + s.minutes, 0);
   const stuck = STUCK_LINE ? mdInline(STUCK_LINE.replace("(support.md)", "(docs/support.md)")) : "";
+  const contact = CONTACT.length
+    ? `<div class="contact"><b>נתקעת? נתקין בשבילך.</b> ההתקנה בתשלום, לפי אותה הדרכה ובחשבונות שלך. כותבים לנו:<div class="btns">${CONTACT.map((c) => `<a class="${c.cls}" href="${htmlEsc(c.url)}" target="_blank" rel="noopener">${c.label}</a>`).join("")}</div></div>`
+    : "";
   const sections = [];
   sections.push(`<section data-step="0"><h1>${htmlEsc(`${String(PKG.description || "").split(" — ")[0]}: הקמה צעד אחרי צעד`)}</h1>
 <p>${core.length} שלבים. בפעם הראשונה כדאי לפנות 45–60 דקות, בלי לחץ. מסך אחד לכל פעולה. הטלפון זוכר איפה עצרת.</p>
 <div class="note">📱 <b>משאירים את העמוד הזה פתוח.</b> כל קישור נפתח בלשונית חדשה. בסוף כל פעולה חוזרים לכאן (בכפתור הלשוניות של הדפדפן) ולוחצים "הבא". את הטוקן, המפתח והסיסמה שומרים במנהל הסיסמאות של הטלפון, או בפתק נעול.</div>
 <p>לא עוצרים באמצע הרשמה, או לפני ששמרת מפתח שמוצג פעם אחת. בין שלב לשלב אפשר לעצור ולחזור.</p>
 <p><a href="${wizardUrl("docs/choose-path.md#requirements")}" target="_blank" rel="noopener">מה צריך לפני שמתחילים</a> · <a href="${wizardUrl("docs/browser.md")}" target="_blank" rel="noopener">כל ההדרכה בעמוד אחד</a></p>
-${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude באפליקציה? <a href="${wizardUrl("docs/help-from-claude.md")}" target="_blank" rel="noopener">אפשר להיעזר בו לאורך הדרך</a>.</p>` : ""}</section>`);
+${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude באפליקציה? <a href="${wizardUrl("docs/help-from-claude.md")}" target="_blank" rel="noopener">אפשר להיעזר בו לאורך הדרך</a>.</p>` : ""}${contact}</section>`);
   core.forEach((s, si) => {
     const screens = wizardScreens(s.how.browser, s.wizard === "one");
     screens.forEach((body, k) => {
       const head = `<div class="where">שלב ${si + 1} מתוך ${core.length} · ${htmlEsc(s.title)}${screens.length > 1 ? ` · צעד ${k + 1} מתוך ${screens.length}` : ""}</div>`;
       const why = k === 0 ? `<details><summary>למה צריך את זה?</summary>${mdBlock(s.why)}</details>` : "";
       const done = k === screens.length - 1 ? `<div class="done"><b>✅ איך יודעים שהצליח</b>${mdBlock(s.done)}</div>` : "";
-      sections.push(`<section data-step="${si + 1}">${head}${why}${body}${done}<details><summary>נתקעתי</summary>${mdBlock(s.stuck)}${stuck ? `<p>${stuck}</p>` : ""}</details></section>`);
+      sections.push(`<section data-step="${si + 1}">${head}${why}${body}${done}<details><summary>נתקעתי</summary>${mdBlock(s.stuck)}${stuck ? `<p>${stuck}</p>` : ""}${contact}</details></section>`);
     });
   });
   const extra = addons.filter((s) => s.only !== "claude");
   sections.push(`<section data-step="${core.length}"><h1>🎉 סיימת!</h1><p>הבוט עובד. מכאן הכול קורה בטלגרם ובעמוד ההקמה של הבוט.</p>
 ${extra.length ? `<p><b>תוספות (לא חובה):</b></p><ul>${extra.map((a) => `<li><a href="${wizardUrl(`docs/browser.md#${anchor(a)}`)}" target="_blank" rel="noopener">${htmlEsc(a.title)}</a></li>`).join("")}</ul>` : ""}
-${existsSync(join(ROOT, "docs/turn-off.md")) ? `<p><a href="${wizardUrl("docs/turn-off.md")}" target="_blank" rel="noopener">איך מכבים הכול</a></p>` : ""}</section>`);
+${existsSync(join(ROOT, "docs/turn-off.md")) ? `<p><a href="${wizardUrl("docs/turn-off.md")}" target="_blank" rel="noopener">איך מכבים הכול</a></p>` : ""}
+<p>רוצים עוד כלים כאלה? <a href="${SITE.url}" target="_blank" rel="noopener">${htmlEsc(SITE.name)}</a></p></section>`);
 
   const words = "apple river table green happy cloud stone light music garden silver window orange forest candle yellow bridge rabbit summer winter pencil yogurt rocket planet tiger lemon cookie dragon island jacket kitten ladder magnet napkin ocean pepper puzzle quiet robot saddle tomato turtle violin wagon zebra anchor banana basket button camera castle cherry circle copper desert doctor engine falcon feather flower ginger hammer helmet honey jungle kettle laptop marble meadow mirror monkey morning noodle orbit palace parrot peanut pillow pirate pocket potato pumpkin rainbow ribbon saturn shadow sketch spider sponge spring sugar sunset tunnel velvet walnut wizard".split(" ");
   return `<!doctype html>
@@ -450,7 +463,11 @@ nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border
 .tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
 .pw{font:600 1.15rem ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0;word-break:break-all;text-align:center}.out{margin-top:8px;font-weight:600}
 .restart{display:block;text-align:center;color:var(--muted);font-size:.85rem;margin-top:14px}
+.brand{display:block;color:var(--muted);font-size:.85rem;font-weight:600;text-decoration:none;padding-top:4px}
+.contact{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btns a{flex:1 1 90px;text-align:center;font-weight:600;border-radius:10px;padding:10px;text-decoration:none;color:#fff}.wa{background:#1f9d55}.ig{background:#c13584}.fb{background:#1877f2}
 </style></head><body><main>
+<a class="brand" href="${SITE.url}" target="_blank" rel="noopener">${htmlEsc(SITE.name)}</a>
 <div class="bar"><div class="track"><div class="fill" id="fill"></div></div></div>
 ${sections.join("\n")}
 <a class="restart" href="#" onclick="go(0);return false">חזרה להתחלה</a>
