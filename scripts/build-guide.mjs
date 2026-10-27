@@ -471,6 +471,9 @@ function go(n) {
   try { localStorage.setItem(KEY, i); } catch {}
   window.scrollTo(0, 0);
 }
+// קישור ישיר למסך (#s-12), למשל מדף הביקורת
+const deep = /^#s-(\d+)$/.exec(location.hash);
+if (deep) i = Number(deep[1]);
 go(i);
 async function checkTg() {
   const t = document.getElementById("tg").value.trim(), out = document.getElementById("tgout");
