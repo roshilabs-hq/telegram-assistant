@@ -112,6 +112,7 @@ Claude עונה בעברית, שואל כמה הסבר אתה רוצה, ומתח
 <details>
 <summary><b>נתקעתי</b></summary>
 
+- **ב-GitHub כתוב "We could not validate the response from your social login provider"**: ההתחברות דרך Google לא הושלמה. לרוב זה קורה כשהדפדפן עדיין מחובר לחשבון GitHub אחר (בכותרת כתוב **Add an account**). לוחצים **Sign out** בתחתית, ואז שוב על כפתור ה-Deploy בהדרכה ‹ **Continue with Google**. אם זה חוזר, פותחים את ההדרכה ב-Safari או ב-Chrome, או נרשמים עם מייל וסיסמה.
 - **כתוב "There is already an account associated with your GitHub email"**: כבר יש לך Vercel עם אותו מייל. לוחצים **Login with Email**, מקלידים את המייל, ומקלידים את הקוד שמגיע במייל. אחר כך לוחצים שוב על כפתור ה-Deploy בהדרכה, וממשיכים מהסעיף של **Git Scope**.
 - **אחרי ההתחברות ל-Vercel מופיע 404**: לוחצים שוב על כפתור ה-Deploy בהדרכה. ההתחברות כבר נשמרה, והפעם הטופס ייפתח.
 - **כתוב "A repository named telegram-assistant already exists"**: יש לך כבר עותק קוד (ריפו) בשם הזה ב-GitHub. בשדה **Private Repository Name** כותבים שם אחר, למשל `telegram-assistant-2` (ואם גם הוא תפוס, `telegram-assistant-3`), ולוחצים שוב **Create**. גם הכתובת של הבוט תהיה בשם הזה. ![](img/deploy-exists.png)
