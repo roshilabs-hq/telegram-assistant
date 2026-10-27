@@ -105,6 +105,7 @@
 <details>
 <summary><b>נתקעתי</b></summary>
 
+- **כתוב "There is already an account associated with your GitHub email"**: כבר יש לך Vercel עם אותו מייל. לוחצים **Login with Email**, מקלידים את המייל, ומקלידים את הקוד שמגיע במייל. אחר כך לוחצים שוב על כפתור ה-Deploy בהדרכה, וממשיכים מהסעיף של **Git Scope**.
 - **אחרי ההתחברות ל-Vercel מופיע 404**: לוחצים שוב על כפתור ה-Deploy בהדרכה. ההתחברות כבר נשמרה, והפעם הטופס ייפתח.
 - **כתוב "A repository named telegram-assistant already exists"**: יש לך כבר עותק קוד (ריפו) בשם הזה ב-GitHub. בשדה **Private Repository Name** כותבים שם אחר, למשל `telegram-assistant-2` (ואם גם הוא תפוס, `telegram-assistant-3`), ולוחצים שוב **Create**. גם הכתובת של הבוט תהיה בשם הזה. ![](img/deploy-exists.png)
 - **Vercel לא מצליח ליצור את הריפו, או כתוב שאין לו גישה**: בעבר נתת ל-Vercel גישה לחלק מעותקי הקוד שלך ב-GitHub, ולא לכולם. ב-GitHub ‹ **Settings** ‹ **Applications** ‹ **Vercel** ‹ **Configure** בוחרים **All repositories** ושומרים, ולוחצים שוב על כפתור ה-Deploy.
