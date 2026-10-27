@@ -125,6 +125,7 @@ function loadDir(dir, kind) {
         check: meta.check,
         only,
         wizard: meta.wizard,
+        lost: meta.lost,
         quick: splitByPath(s["בקצרה"]),
         why: s["למה"],
         how,
@@ -425,11 +426,14 @@ function renderWizard(steps, addons) {
 ${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude באפליקציה? <a href="${wizardUrl("docs/help-from-claude.md")}" target="_blank" rel="noopener">אפשר להיעזר בו לאורך הדרך</a>.</p>` : ""}${contact}</section>`);
   core.forEach((s, si) => {
     const screens = wizardScreens(s.how.browser, s.wizard === "one");
+    const first = sections.length;
+    // `lost:` ב-front matter: בכל מסך אחרי הראשון, תזכורת לחזור לתחילת השלב (למשל לכפתור ה-Deploy).
+    const lost = s.lost ? `<div class="note">🔄 ${mdInline(s.lost)} <a href="#s-${first}" onclick="go(${first});return false">חזרה לתחילת השלב ›</a></div>` : "";
     screens.forEach((body, k) => {
       const head = `<div class="where">שלב ${si + 1} מתוך ${core.length} · ${htmlEsc(s.title)}${screens.length > 1 ? ` · צעד ${k + 1} מתוך ${screens.length}` : ""}</div>`;
       const why = k === 0 ? `<details><summary>למה צריך את זה?</summary>${mdBlock(s.why)}</details>` : "";
       const done = k === screens.length - 1 ? `<div class="done"><b>✅ איך יודעים שהצליח</b>${mdBlock(s.done)}</div>` : "";
-      sections.push(`<section data-step="${si + 1}">${head}${why}${body}${done}<details><summary>נתקעתי</summary>${mdBlock(s.stuck)}${stuck ? `<p>${stuck}</p>` : ""}${contact}</details></section>`);
+      sections.push(`<section data-step="${si + 1}">${head}${k ? lost : ""}${why}${body}${done}<details><summary>נתקעתי</summary>${mdBlock(s.stuck)}${stuck ? `<p>${stuck}</p>` : ""}${contact}</details></section>`);
     });
   });
   const extra = addons.filter((s) => s.only !== "claude");
@@ -489,7 +493,7 @@ function go(n) {
   window.scrollTo(0, 0);
 }
 // קישור ישיר למסך (#s-12), למשל מדף הביקורת
-const deep = /^#s-(\d+)$/.exec(location.hash);
+const deep = /^#s-(\\d+)$/.exec(location.hash);
 if (deep) i = Number(deep[1]);
 go(i);
 async function checkTg() {

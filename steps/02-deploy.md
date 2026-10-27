@@ -3,6 +3,7 @@ id: deploy
 title: מעלים את הבוט לאוויר
 minutes: 10
 check: deploy
+lost: **מתברברים?** לא נורא, זה קורה לכולם. חוזרים לכפתור ה-**Deploy** ומתחילים שוב. מה שכבר עשית נשמר. (אחרי הלחיצה האחרונה על **Deploy** כבר לא חוזרים: מחכים שהבנייה תסתיים.)
 ---
 
 ## בקצרה
@@ -23,7 +24,7 @@ check: deploy
 
 ## מה עושים
 ### בדפדפן
-> 🌐 **בשלב הזה נפתחים כמה אתרים באנגלית.** המסך אצלך שונה מהתמונה? לא מנחשים על מה ללחוץ. מחפשים את המילה המודגשת שכתובה בצעד. היא לא מופיעה? פותחים "נתקעתי" לפני שממשיכים.
+> 🌐 **בשלב הזה נפתחים כמה אתרים באנגלית.** המסך אצלך שונה מהתמונה? לא מנחשים על מה ללחוץ. מחפשים את המילה המודגשת שכתובה בצעד. היא לא מופיעה? פותחים "נתקעתי" לפני שממשיכים. **הלכת לאיבוד באמצע?** חוזרים לכפתור ה-Deploy שבצעד 1 ומתחילים שוב. מה שכבר עשית נשמר.
 
 1. **סיימנו עם טלגרם.** חוזרים ללשונית של ההדרכה בדפדפן (לא בטלגרם). לוחצים כאן על הכפתור השחור **Deploy**: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
    - לא רואים את הכפתור? [לוחצים כאן](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D).

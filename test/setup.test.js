@@ -137,6 +137,12 @@ test("קבצי ההדרכה מעודכנים (npm run guide לא משנה כלו
   execFileSync(process.execPath, ["scripts/build-guide.mjs", "--check"], { stdio: "pipe" });
 });
 
+test("באשף, קישור ישיר למסך (#s-12) מזוהה", async () => {
+  const html = (await import("node:fs")).readFileSync("docs/index.html", "utf8");
+  const src = /const deep = (\/.+\/)\.exec/.exec(html)[1];
+  assert.deepEqual(eval(src).exec("#s-12")?.[1], "12");
+});
+
 test("דף הבית ומדיניות הפרטיות (Google דורש את שתיהן לפני Publish)", async () => {
   const { default: home } = await import("../api/home.js");
   const page = mockRes();
