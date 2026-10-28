@@ -232,7 +232,7 @@ ${manual ? `<p>יש עוד פעולה אחת שאני לא יכול לעשות �
     const code = ctx.settings.pairing_code;
     if (!code) return btn("new_pairing", "יצירת קוד צימוד");
     const link = ctx.bot ? `https://t.me/${ctx.bot.username}?start=${code}` : null;
-    return `<p>זה הקוד שמחבר בין הבוט לבינך. בטלפון לוחצים על הכפתור, ובטלגרם לוחצים <b>Start</b> (או <b>התחל</b>).</p>
+    return `<p>זה הקוד שמחבר בין הבוט לבינך. בטלפון לוחצים על הכפתור, ובטלגרם לוחצים <b>Start</b> (או <b>התחל</b>). הקוד עובר לבד דרך הכפתור, ובצ'אט יופיע רק /start.</p>
 ${link ? `<a class="btn" href="${esc(link)}">📲 פתיחת הבוט בטלגרם</a>` : ""}
 <p class="muted">מהמחשב: שולחים לבוט את הקוד הזה</p><div class="code">${esc(code)}</div>`;
   }
