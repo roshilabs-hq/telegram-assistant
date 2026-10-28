@@ -117,13 +117,13 @@ test("Opus שנשמר לפני 1.3.5 מסומן למעבר ל-Haiku, ו-AI_MODEL
 test("אחרי פעולה עם שגיאה: חזרה לעמוד, והשגיאה עוברת בעוגייה קצרה", async () => {
   const res = mockRes();
   const cookie = `setup_session=${secrets.session()}`;
-  await handler(mockReq({ headers: { cookie }, body: { action: "save_settings", briefing_time: "7" } }), res);
+  await handler(mockReq({ headers: { cookie }, body: { action: "save_settings", briefing_time: "25:99" } }), res);
   assert.equal(res.statusCode, 303);
   assert.match(res.headers["set-cookie"], /setup_flash=/);
   const flash = res.headers["set-cookie"].split(";")[0];
   const page = mockRes();
   await handler(mockReq({ method: "GET", headers: { cookie: `${cookie}; ${flash}` } }), page);
-  assert.match(page.body, /שעת התדריך צריכה להיות בפורמט 07:30/);
+  assert.match(page.body, /שעת התדריך צריכה להיות שעה ביום/);
 });
 
 test("שלב מורכב ירוק רק כשכל החלקים ירוקים", () => {
@@ -187,6 +187,15 @@ test("סיסמה בכותרת: גם ב-POST של פעולה וגם בחיבור 
   const res = mockRes();
   await start(mockReq({ method: "GET", headers }), res);
   assert.equal(res.statusCode, 429);
+});
+
+test("שעת תדריך ממקלדת ספרות (7, 730, 7.30) נשמרת כ-HH:MM", async () => {
+  const save = async (v) => (await ACTIONS.save_settings(mockReq({}), { briefing_time: v }), (await store.getSettings()).briefing_time);
+  assert.equal(await save("7"), "07:00");
+  assert.equal(await save("730"), "07:30");
+  assert.equal(await save("7.30"), "07:30");
+  assert.equal(await save("07:30"), "07:30");
+  assert.ok(!(await save("")));
 });
 
 test("שמירת הגדרות מרחוק עם שעת תדריך בלבד לא מוחקת את השם", async () => {

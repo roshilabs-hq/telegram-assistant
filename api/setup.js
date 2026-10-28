@@ -154,8 +154,10 @@ export const ACTIONS = {
   async save_settings(req, form) {
     if ("owner_name" in form) await store.setSetting("owner_name", String(form.owner_name || "").trim().slice(0, 40) || null);
     if (!("briefing_time" in form)) return [];
-    const t = String(form.briefing_time || "").trim();
-    if (t && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) return ["שעת התדריך צריכה להיות בפורמט 07:30"];
+    // מקבלים גם 7, 07, 730 או 7.30 (מקלדת ספרות בטלפון), ושומרים תמיד כ-07:30.
+    const m = /^(\d{1,2})(?:[:.]?(\d{2}))?$/.exec(String(form.briefing_time || "").trim());
+    const t = m ? `${m[1].padStart(2, "0")}:${m[2] || "00"}` : String(form.briefing_time || "").trim();
+    if (t && !/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) return ["שעת התדריך צריכה להיות שעה ביום, למשל 07:30 (או פשוט 7)"];
     await store.setSetting("briefing_time", t || null);
     return [];
   },
@@ -249,7 +251,7 @@ ${link ? `<a class="btn" href="${esc(link)}">📲 פתיחת הבוט בטלגר
 function settingsPanel(s) {
   return `<h2>הגדרות</h2><form method="post" class="card"><input type="hidden" name="action" value="save_settings">
 <label for="n">איך הבוט יקרא לך? (לא חובה)</label><input id="n" name="owner_name" value="${esc(s.owner_name || "")}" maxlength="40">
-<label for="b">תדריך בוקר — באיזו שעה? (ריק = כבוי)</label><input id="b" name="briefing_time" value="${esc(s.briefing_time || "")}" placeholder="07:30" inputmode="numeric" dir="ltr">
+<label for="b">תדריך בוקר — באיזו שעה? (ריק = כבוי)</label><input id="b" name="briefing_time" value="${esc(s.briefing_time || "")}" type="time" placeholder="07:30" dir="ltr">
 <button type="submit">שמירה</button></form>`;
 }
 
