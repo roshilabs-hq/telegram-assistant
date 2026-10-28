@@ -8,13 +8,13 @@ import * as store from "../lib/db.js";
 import setup from "../api/setup.js";
 
 const state = process.argv[2] || "half";
-freshEnv({ GOOGLE_CLIENT_ID: state === "done" ? "x" : "" });
+freshEnv();
 const telegram = globalThis.fetch;
 globalThis.fetch = async (url, init) =>
   String(url).endsWith("/getWebhookInfo") && state !== "fresh"
     ? new Response(JSON.stringify({ ok: true, result: { url: "https://bot.example.vercel.app/api/telegram" } }))
-    : String(url).includes("googleapis")
-      ? new Response(JSON.stringify({ access_token: "a", expires_in: 3600 }))
+    : String(url).includes("script.google.com")
+      ? new Response(JSON.stringify({ ok: true, email: "dana@example.com" }))
       : telegram(url, init);
 if (state !== "fresh") {
   await store.setSetting("ai_model", "gemini-2.5-flash");
@@ -30,7 +30,7 @@ if (state === "done") {
   await store.setSetting("owner_chat_id", "42");
   await store.setSetting("owner_name", "דנה");
   await store.setSetting("briefing_time", "07:30");
-  await store.setSetting("google", { refresh_token: "r", email: "dana@example.com" });
+  await store.setSetting("google", { secret: "s", url: "https://script.google.com/macros/s/x/exec", email: "dana@example.com" });
 }
 
 createServer(async (req, res) => {

@@ -22,7 +22,7 @@
 - [ ] **הודעות קוליות** · כ-4 דק׳ · [בדפדפן](docs/browser.md#step-voice) · [עם Claude Code](docs/claude-code.md#step-voice)
 - [ ] **תדריך בוקר** · כ-1 דק׳ · [בדפדפן](docs/browser.md#step-briefing) · [עם Claude Code](docs/claude-code.md#step-briefing)
 - [ ] **לדבר עם הבוט דרך Siri** · כ-6 דק׳ · [בדפדפן](docs/browser.md#step-siri) · [עם Claude Code](docs/claude-code.md#step-siri)
-- [ ] **יומן Google ו-Gmail** · כ-15 דק׳ · [בדפדפן](docs/browser.md#step-google) · [עם Claude Code](docs/claude-code.md#step-google)
+- [ ] **יומן Google ו-Gmail** · כ-5 דק׳ · [בדפדפן](docs/browser.md#step-google) · [עם Claude Code](docs/claude-code.md#step-google)
 - [ ] **עדכונים אוטומטיים** · כ-1 דק׳ · [בדפדפן](docs/browser.md#step-updates) · [עם Claude Code](docs/claude-code.md#step-updates)
 
 </div>

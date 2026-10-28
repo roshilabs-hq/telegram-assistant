@@ -25,8 +25,8 @@
 > 💡 בחשבון החינמי של Supabase אפשר להחזיק שני בוטים פעילים לכל אדם. מחיקת מסד הנתונים מפנה מקום לבוט חדש.
 
 ## 4. מנתקים את Google (רק אם חיברת את התוספת)
-1. ב-[הרשאות של חשבון Google](https://myaccount.google.com/permissions) לוחצים על האפליקציה ‹ **Remove access**.
-2. ב-[Google Cloud](https://console.cloud.google.com/iam-admin/settings) בוחרים את הפרויקט `telegram-bot` ‹ **Shut down**.
+1. ב-[הרשאות של חשבון Google](https://myaccount.google.com/permissions) לוחצים על "פרויקט ללא שם" ‹ **Remove access**.
+2. ב-[Apps Script](https://script.google.com/home) לוחצים על שלוש הנקודות ליד "פרויקט ללא שם" ‹ **הסרה** (Remove).
 
 ## 5. מוחקים את מפתח הקול (רק אם חיברת את התוספת)
 ב-[Groq](https://console.groq.com/keys) מוחקים את המפתח `telegram-bot`.

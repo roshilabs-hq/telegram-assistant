@@ -8,11 +8,6 @@ import { isQuotaError, QUOTA_MESSAGE, aiKeyOf, NO_BRAIN } from "../lib/ai.js";
 import { decide } from "../lib/confirm.js";
 
 const FAILURE = "משהו נשבר אצלי ולא הצלחתי לענות 😕 אפשר לנסות שוב עוד רגע.";
-// חיבור Google שפג הוא לא תקלה מסתורית: זה דבר מסוים שמתקנים בדקה, ונשאר שבור עד שמתקנים.
-const GOOGLE_EXPIRED =
-  "🔑 החיבור ל-Google פג, ולכן אין לי גישה ליומן ולמייל.\n" +
-  'מתקנים בעמוד ההקמה (/setup): בתוספת "יומן Google ו-Gmail" לוחצים "🔗 חיבור מחדש".\n' +
-  "תזכורות, פתקים ורשימות ממשיכים לעבוד כרגיל.";
 const NO_VOICE =
   "עוד לא חיברו אותי להודעות קוליות 🎙️ בינתיים אפשר לכתוב לי.\n(מי שהקים את הבוט יכול להוסיף את זה: תוספת \"הודעות קוליות\".)";
 const WELCOME = (name) =>
@@ -129,7 +124,7 @@ export default async function handler(req, res) {
     return res.status(200).send("ok");
   } catch (e) {
     console.error("telegram handler failed", e);
-    if (replyTo) await sendMessage(replyTo, e?.expired ? GOOGLE_EXPIRED : isQuotaError(e) ? QUOTA_MESSAGE : FAILURE).catch(() => {});
+    if (replyTo) await sendMessage(replyTo, isQuotaError(e) ? QUOTA_MESSAGE : FAILURE).catch(() => {});
     return res.status(200).send("ok");
   }
 }

@@ -4,7 +4,7 @@ import * as store from "../lib/db.js";
 import { timezoneOf } from "../lib/core.js";
 import { sendMessage } from "../lib/telegram.js";
 import { nextOccurrence, dayKey, hhmm, atWallTime } from "../lib/time.js";
-import { googleConfigured, listEvents } from "../lib/google.js";
+import { googleConnected, listEvents } from "../lib/google.js";
 import { VERSION, latestVersion, isNewer } from "../lib/version.js";
 
 /**
@@ -101,7 +101,7 @@ export async function maybeBriefing(settings, tz, send = sendMessage, now = new 
     const horizon = new Date(now.getTime() + 7 * 86400000).toISOString();
     const rows = await store.upcomingReminders(String(owner), now.toISOString(), horizon);
     let events = [];
-    if (googleConfigured() && settings.google?.refresh_token) {
+    if (googleConnected(settings)) {
       // יומן שלא עונה לא מפיל את התדריך: שולחים בלי האירועים.
       const endOfDay = atWallTime(tz, 1, 0, 0, now).toISOString();
       const r = await listEvents(tz, { time_min: now.toISOString(), time_max: endOfDay }).catch(() => null);
@@ -122,9 +122,15 @@ export async function maybeAnnounceUpdate(settings, send = sendMessage, version 
   if (!(await store.claim(`version:${version}`))) return false; // ריצה מקבילה כבר שלחה
   await store.setSetting("version_seen", version);
   if (!settings.version_seen || !settings.owner_chat_id) return false;
+  // חיבור Google מהדרך הישנה (לפני 2.0.0) לא עובד יותר, וזה הדבר היחיד שדורש פעולה
+  const google = settings.google?.refresh_token && !settings.google?.url;
   await send(
     settings.owner_chat_id,
-    `✅ הבוט עודכן לבד לגרסה ${version}. אין צורך לעשות כלום.
+    google
+      ? `✅ הבוט עודכן לבד לגרסה ${version}.
+📆 דבר אחד לעשות: החיבור ליומן ול-Gmail עבר לדרך פשוטה יותר, וצריך לחבר אותו מחדש פעם אחת (כ-5 דקות). בעמוד ההקמה, בתוספת "יומן Google ו-Gmail", עוברים על ארבעת הצעדים.
+מה חדש: ${CHANGELOG}`
+      : `✅ הבוט עודכן לבד לגרסה ${version}. אין צורך לעשות כלום.
 מה חדש: ${CHANGELOG}`
   );
   return true;

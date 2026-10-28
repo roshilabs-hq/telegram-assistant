@@ -4,7 +4,8 @@ import { randomBytes } from "node:crypto";
 import postgres from "postgres";
 import { env, secrets, baseUrl } from "../lib/config.js";
 import { cookies, authed, sessionCookie, passwordOk, tooManyTries, MIN_PASSWORD } from "../lib/session.js";
-import { googleConfigured, redirectUri } from "../lib/google.js";
+import { scriptSecret, connect as connectGoogle } from "../lib/google.js";
+import { scriptSource } from "../lib/google-script.js";
 import { VERSION, ownRepo } from "../lib/version.js";
 import { runChecks, cronSql } from "../lib/checks.js";
 import { generateText } from "ai";
@@ -139,6 +140,10 @@ export const ACTIONS = {
   async set_webhook(req) {
     const hook = await setWebhook(`${baseUrl(req)}/api/telegram`, secrets.webhook());
     return hook.ok ? [] : [`חיבור הבוט לטלגרם נכשל: ${hook.description || ""}`];
+  },
+  async google_connect(req, form) {
+    const r = await connectGoogle(form.url);
+    return r.ok ? [] : [r.error];
   },
   async new_pairing() {
     await store.setSetting("pairing_code", newPairingCode());
@@ -284,18 +289,18 @@ const copyField = (id, label, value) => `<p class="muted">${label}</p>
 <button class="ghost" type="button" onclick="navigator.clipboard.writeText(document.getElementById('${id}').value);this.textContent='הועתק ✓'">העתקה</button>`;
 
 /**
- * תוספת יומן ו-Gmail. את הכתובות המשתמש צריך להעתיק ל-Google Cloud בדיוק
- * כמו שהן, ולכן הן מוצגות כאן מוכנות להעתקה, ולא כהוראה "תרכיבו כתובת".
+ * תוספת יומן ו-Gmail: הקוד להדבקה ב-script.google.com (עם הסיסמה של הבוט הזה בתוכו),
+ * ותיבה לכתובת שחוזרת מהפריסה. מחובר: רק "חיבור מחדש" מקופל.
  */
-function googlePanel(check, url, wasConnected) {
-  const copy =
-    copyField("gh", "דף הבית (Application home page):", url) +
-    copyField("gp", "מדיניות פרטיות (Application privacy policy link):", `${url}/privacy`) +
-    copyField("ru", "כתובת החזרה (Authorized redirect URI):", redirectUri(url));
-  if (!googleConfigured()) return copy;
-  // מי שהתחבר בעבר רואה "חיבור מחדש": זה השם שההודעות על חיבור שפג מפנות אליו.
-  const label = wasConnected ? "🔗 חיבור מחדש" : "🔗 חיבור לחשבון Google";
-  return `<a class="btn ${check?.ok ? "ghost" : ""}" href="/api/google/start">${label}</a>${check?.ok ? "" : copy}`;
+function googlePanel(check, secret) {
+  const form = `<p>1. מעתיקים את הקוד (יש בו סיסמה, לא שולחים אותו לאף אחד):</p>
+<textarea id="gs" readonly dir="ltr" style="height:48px">${esc(scriptSource(secret))}</textarea>
+<button type="button" onclick="navigator.clipboard.writeText(document.getElementById('gs').value);this.textContent='הועתק ✓'">📋 העתקת הקוד</button>
+<p>2. פותחים <a href="https://script.google.com/create" target="_blank" rel="noopener">script.google.com/create</a>, מוחקים את מה שכתוב שם, מדביקים ושומרים (Ctrl+S).</p>
+<p>3. <b>פריסה</b> ‹ <b>פריסה חדשה</b> ‹ ⚙️ <b>אפליקציית אינטרנט</b> ‹ "למי יש גישה": <b>כולם</b> ‹ <b>פריסה</b>, ומאשרים את הגישה.</p>
+<p>4. מדביקים כאן את הכתובת שמתקבלת (מסתיימת ב-<bdi>/exec</bdi>):</p>
+<form method="post"><input type="hidden" name="action" value="google_connect"><input name="url" placeholder="https://script.google.com/macros/s/.../exec" dir="ltr"><button type="submit">חיבור</button></form>`;
+  return check?.ok ? `<details><summary class="muted">חיבור מחדש</summary>${form}</details>` : form;
 }
 
 function dashboard({ checks, settings, bot, url }, errors) {
@@ -323,7 +328,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
   const addons = ADDONS.map((a) => {
     const ok = checks[a.check]?.ok;
     return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><span class="t">${esc(a.title)}</span>
-<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, url, Boolean(settings.google?.refresh_token)) : ""}${a.check === "updates" ? updatesPanel(checks.updates) : ""}
+<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, settings.google?.secret) : ""}${a.check === "updates" ? updatesPanel(checks.updates) : ""}
 <div><a href="${DOCS}/browser.md#step-${a.id}" target="_blank" rel="noopener">איך מוסיפים</a></div></div></div>`;
   }).join("");
 
@@ -405,6 +410,11 @@ export default async function handler(req, res) {
   if (state.checks.database.ok && !state.settings.owner_chat_id && !state.settings.pairing_code) {
     await store.setSetting("pairing_code", newPairingCode());
     state.settings.pairing_code = (await store.getSettings()).pairing_code;
+  }
+  // הסיסמה לקוד של Google נוצרת מראש, כדי שהקוד להעתקה יהיה מוכן בתוספת
+  if (state.checks.database.ok && !state.settings.google?.secret) {
+    await scriptSecret();
+    state.settings.google = await store.getSetting("google");
   }
   if (wantsJson) {
     const steps = [...STEPS, ...ADDONS].map((s) => ({ id: s.id, kind: s.kind, title: s.title, ...stepStatus(s.check, state.checks) }));

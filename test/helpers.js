@@ -43,7 +43,7 @@ export function freshEnv(extra = {}) {
   const fake = createFake();
   useClient(fake);
   useTestModel(null);
-  for (const k of ["TELEGRAM_TOKEN", "AI_API_KEY", "SETUP_PASSWORD", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "GROQ_API_KEY", "ALLOWED_CHAT_IDS", "TIMEZONE", "VERCEL_PROJECT_PRODUCTION_URL", "POSTGRES_URL_NON_POOLING", "AI_MODEL", "AI_PROVIDER", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]) {
+  for (const k of ["TELEGRAM_TOKEN", "AI_API_KEY", "SETUP_PASSWORD", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "GROQ_API_KEY", "ALLOWED_CHAT_IDS", "TIMEZONE", "VERCEL_PROJECT_PRODUCTION_URL", "POSTGRES_URL_NON_POOLING", "AI_MODEL", "AI_PROVIDER"]) {
     delete process.env[k];
   }
   Object.assign(process.env, {

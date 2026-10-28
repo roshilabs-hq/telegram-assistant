@@ -80,12 +80,12 @@
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-siri)
 
 <a id="step-google"></a>
-### 4. יומן Google ו-Gmail · כ-15 דק׳
-1. [Google Cloud](https://console.cloud.google.com/projectcreate): פרויקט חדש ‹ **Enable** ל-Gmail API ול-Google Calendar API.
-2. Google Auth Platform: **Get started** ‹ **External** ‹ **Clients**: Web application עם כתובת החזרה מעמוד ההקמה.
-3. **Branding**: דף בית ו-`/privacy` מעמוד ההקמה ‹ **Audience** ‹ **Publish app**.
-4. ב-Vercel: `GOOGLE_CLIENT_ID` ו-`GOOGLE_CLIENT_SECRET` ‹ **Redeploy**.
-5. בעמוד ההקמה: **🔗 חיבור לחשבון Google** ‹ **מתקדם** ‹ **כניסה אל ... (לא מאובטח)** ‹ **בחירת הכול**.
+### 4. יומן Google ו-Gmail · כ-5 דק׳
+1. בעמוד ההקמה, בתוספת "יומן Google ו-Gmail": **העתקה** של הקוד.
+2. [script.google.com/create](https://script.google.com/create): מוחקים את מה שכתוב, מדביקים, ושומרים (Ctrl+S).
+3. **פריסה** ‹ **פריסה חדשה** ‹ ⚙️ ‹ **אפליקציית אינטרנט** ‹ "למי יש גישה": **כולם** ‹ **פריסה**.
+4. **הרשאת גישה** ‹ החשבון ‹ **Advanced** ‹ **Go to ... (unsafe)** ‹ **Select all** ‹ **Continue**.
+5. מעתיקים את **כתובת ה-URL**, מדביקים בעמוד ההקמה ולוחצים **חיבור**.
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-google)
 

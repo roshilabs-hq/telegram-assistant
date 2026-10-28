@@ -166,12 +166,11 @@ test("דף הבית ומדיניות הפרטיות (Google דורש את שתי
   assert.match(privacy.body, /myaccount\.google\.com\/permissions/);
 });
 
-test("ההדרכות שנוצרו כוללות את כל חלקי התוספת של Google (טקסט שלפני ### לא נעלם)", async () => {
+test("ההדרכות שנוצרו כוללות את התוספת של Google עד הסוף (גם הטקסט שאחרי הרשימה)", async () => {
   const { readFileSync } = await import("node:fs");
-  for (const f of ["docs/browser.md", "docs/claude-code.md"]) {
-    const doc = readFileSync(f, "utf8");
-    for (const part of ["חלק א׳", "חלק ב׳", "חלק ג׳", "חלק ד׳", "חלק ה׳"]) assert.match(doc, new RegExp(part), `${f}: חסר ${part}`);
-  }
+  const browser = readFileSync("docs/browser.md", "utf8");
+  for (const part of ["script.google.com/create", "Advanced", "התראת אבטחה"]) assert.match(browser, new RegExp(part), `docs/browser.md: חסר ${part}`);
+  assert.match(readFileSync("docs/claude-code.md", "utf8"), /\/add-google/);
 });
 
 test("ניחוש סיסמה: אחרי 10 ניסיונות בדקה מאותה כתובת — 429, גם לסיסמה הנכונה", async () => {
@@ -192,15 +191,13 @@ test("סיסמה קצרה מ-8 תווים לא פותחת את העמוד, ומ�
   assert.match(res.body, /קצרה/);
 });
 
-test("סיסמה בכותרת: גם ב-POST של פעולה וגם בחיבור Google סופרים ניסיונות", async () => {
-  const start = (await import("../api/google/start.js")).default;
+test("סיסמה בכותרת: גם ב-POST של פעולה סופרים ניסיונות", async () => {
   const headers = { "x-real-ip": "5.6.7.8", "x-setup-password": "wrong-guess" };
   for (let i = 0; i < 10; i++) await handler(mockReq({ headers, body: { action: "new_pairing" } }), mockRes());
   const res = mockRes();
-  await start(mockReq({ method: "GET", headers }), res);
+  await handler(mockReq({ headers, body: { action: "new_pairing" } }), res);
   assert.equal(res.statusCode, 429);
 });
-
 test("שעת תדריך ממקלדת ספרות (7, 730, 7.30) נשמרת כ-HH:MM", async () => {
   const save = async (v) => (await ACTIONS.save_settings(mockReq({}), { briefing_time: v }), (await store.getSettings()).briefing_time);
   assert.equal(await save("7"), "07:00");

@@ -86,6 +86,16 @@ test("אחרי עדכון הבוט מודיע פעם אחת. בהתקנה הרא
   assert.match(sent[0], /עודכן לבד לגרסה 1\.1\.0\. אין צורך לעשות כלום/);
 });
 
+test("אחרי עדכון, מי שחיבר Google בדרך הישנה מקבל הסבר שצריך לחבר מחדש", async () => {
+  const sent = [];
+  await store.setSetting("owner_chat_id", "42");
+  await store.setSetting("version_seen", "1.10.0");
+  await store.setSetting("google", { refresh_token: "rt", email: "dana@example.com" });
+  await maybeAnnounceUpdate(await store.getSettings(), async (c, t) => sent.push(t), "2.0.0");
+  assert.match(sent[0], /לחבר אותו מחדש/);
+  assert.doesNotMatch(sent[0], /אין צורך לעשות כלום/);
+});
+
 test("גרסה חדשה שלא נכנסה: הודעה אחת, רק אחרי יומיים, עם הדרך לעדכן", async () => {
   const sent = [];
   const send = async (chat, text) => sent.push(text);
