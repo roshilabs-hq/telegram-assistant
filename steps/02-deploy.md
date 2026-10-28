@@ -39,7 +39,7 @@ lost: **מתברברים?** לא נורא, זה קורה לכולם. חוזרי�
    - אם מופיע מסך **Secure Your Account with 2FA**: זו לא שגיאה. Vercel מציע אבטחה בשני שלבים, כלומר קוד נוסף בכל כניסה, וזה מומלץ. כדי לא להוסיף באמצע ההקמה עוד אפליקציה, אפשר ללחוץ למטה **Skip securing my account**, **ולהפעיל את זה מיד אחרי שהבוט עובד** (בהגדרות החשבון ב-Vercel ‹ **Authentication**). ![](docs/img/deploy-2fa.png)
 3. ב-**Git Scope** לוחצים **Add GitHub Scope**. נפתח חלון של GitHub: משאירים **All repositories**, גוללים למטה ולוחצים **Install**. זה נותן ל-Vercel גישה לקוד בחשבון ה-GitHub שלך. בחשבון חדש אין בו עדיין כלום חוץ מהבוט, וזה בטוח. ![](docs/img/deploy-6.png)
    - **בחשבון קיים עם פרויקטים אחרים:** Vercel יוכל לקרוא גם אותם (הוא לא משנה אותם בלי שתחבר/י אותם אליו). מי שלא רוצה את זה פותח/ת חשבון GitHub חדש רק לבוט. (בחירה של חלק מהריפואים בלבד לא עובדת כאן: Vercel לא יוכל ליצור את עותק הקוד החדש.) <!-- only:existing -->
-   - **במקום Git Scope מופיעים כפתורים GitHub / GitLab / Bitbucket** (קורה למי שכבר יש לו Vercel): לוחצים **GitHub**, ושם החשבון שלך מופיע לבד. ממשיכים לסעיף הבא. ![](docs/img/deploy-providers.png) <!-- only:existing -->
+   - **במקום Git Scope מופיעים כפתורים GitHub / GitLab / Bitbucket** (קורה למי שכבר יש לו Vercel): לוחצים **GitHub**, ושם החשבון שלך מופיע לבד. ממשיכים לסעיף הבא. ![](docs/img/deploy-providers.png)
 4. לוחצים **Create**. Vercel יוצר בחשבון שלך עותק פרטי של הקוד. ![](docs/img/deploy-7.png)
 5. **Add Products ‹ Supabase**: לוחצים **Add** ‹ **Accept and Create**. ![](docs/img/deploy-8.png)
    - **יש לך כבר Supabase:** בכל זאת יוצרים כאן חדש **(מומלץ)**. הוא נפתח בלחיצה, בלי הרשמה, ולא נוגע בפרויקטים הקיימים שלך. אצל מי שכבר יצר Supabase דרך Vercel אין מסך **Accept and Create**, ועוברים ישר לבחירת האזור. <!-- only:existing -->
