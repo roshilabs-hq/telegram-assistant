@@ -264,8 +264,8 @@ function askPanel(s, url) {
 }
 
 /**
- * תוספת "עדכונים אוטומטיים": קישורים ישירים לריפו של הלקוח ב-GitHub, כדי שלא יחפש
- * את Settings ‹ Actions לבד. בלי הכתובת של הריפו (מחוץ ל-Vercel) מציגים רק את הגרסה.
+ * תוספת "עדכונים אוטומטיים": קישור אחד שמוסיף את קובץ העדכון לריפו של הלקוח ב-GitHub.
+ * בלי הכתובת של הריפו (מחוץ ל-Vercel) מציגים רק את הגרסה.
  */
 function updatesPanel(check) {
   const repo = ownRepo();
@@ -274,10 +274,9 @@ function updatesPanel(check) {
   // הקישור פותח ב-GitHub קובץ חדש עם השם והתוכן מוכנים, ונשאר רק לאשר.
   const newFile = `${repo}/new/main?filename=.github/workflows/update.yml&value=`;
   const raw = "https://raw.githubusercontent.com/roshilabs-hq/telegram-assistant/main/.github/workflows/update.yml";
-  // קודם ההרשאה ואחר כך הקובץ: הוספת הקובץ מריצה מיד את הבדיקה, והיא צריכה את ההרשאה כדי לפתוח בקשת עדכון.
-  const setup = `<p class="muted">1. <a href="${repo}/settings/actions" target="_blank" rel="noopener">ההגדרה ב-GitHub (חד-פעמי)</a><br>
-2. <a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הוספת קובץ העדכונים ל-GitHub (חד-פעמי)</a></p>`;
-  return check?.ok ? setup : `<a class="btn" href="${repo}/pulls" target="_blank" rel="noopener">🔄 לבקשת העדכון ב-GitHub</a>${setup}`;
+  // הוספת הקובץ מריצה מיד את העדכון. אחר כך העדכונים נכנסים לבד, והבוט מודיע בטלגרם.
+  const setup = `<p class="muted"><a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הפעלת עדכונים אוטומטיים (פעם אחת)</a>. אחר כך העדכונים נכנסים לבד, והבוט מודיע לך בטלגרם.</p>`;
+  return check?.ok ? setup : `<a class="btn" href="${repo}/actions/workflows/update.yml" target="_blank" rel="noopener">🔄 לעדכן עכשיו</a>${setup}`;
 }
 
 const copyField = (id, label, value) => `<p class="muted">${label}</p>

@@ -1,19 +1,19 @@
-# עדכונים מהערכה: פעם בשבוע (ובלחיצה) בודק אם יצאה גרסה חדשה של הערכה,
-# ואם כן פותח בקשת שינוי (Pull Request) בריפו שלך. שום דבר לא משתנה עד שלוחצים Merge.
-# ההדרכה: docs/update.md
+# עדכונים מהערכה: פעם בשבוע (ומיד כשמוסיפים את הקובץ) בודק אם יצאה גרסה חדשה של הערכה,
+# ואם כן מכניס אותה לבד: הבדיקות של הערכה רצות קודם, ורק אם הן עוברות הקוד נדחף ו-Vercel מעלה את הבוט.
+# שינית את הקוד בעצמך (למשל עם Claude Code)? העדכון לא נוגע בו, ועמוד ההקמה ממשיך להראות "יש גרסה חדשה".
+# ההדרכה: docs/browser.md#עדכונים-אוטומטיים
 name: עדכון מהערכה
 
 on:
   schedule:
     - cron: "0 6 * * 0" # יום ראשון, 09:00 בישראל
   workflow_dispatch:
-  # רץ מיד כשמוסיפים את הקובץ הזה, כדי שבקשת העדכון תגיע בלי לחכות ליום ראשון.
+  # רץ מיד כשמוסיפים את הקובץ הזה, כדי שהעדכון יגיע בלי לחכות ליום ראשון.
   push:
     paths: [".github/workflows/update.yml"]
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   update:
@@ -22,29 +22,39 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-      # ניסיון קודם שנכשל (למשל לפני שאופשר ל-Actions לפתוח בקשות שינוי) משאיר ענף בלי בקשה פתוחה,
-      # ואז הפעולה מדלגת בשקט עד הגרסה הבאה. מוחקים ענפים כאלה לפני שמתחילים.
-      - name: ניקוי ענף שנשאר מניסיון שנכשל
+        with:
+          fetch-depth: 0
+      - name: עדכון לגרסה האחרונה
         env:
-          GH_TOKEN: ${{ github.token }}
+          KIT: https://github.com/roshilabs-hq/telegram-assistant.git
+          OWNER: ${{ github.repository_owner }}
+          OWNER_ID: ${{ github.repository_owner_id }}
         run: |
-          for b in $(git ls-remote --heads origin 'chore/template_sync_*' | sed 's#.*refs/heads/##'); do
-            if [ -z "$(gh pr list --head "$b" --state open --json number -q '.[].number')" ]; then
-              # מוחקים רק ענף שהשינוי האחרון בו נעשה על ידי כלי העדכון. ענף שמישהו עבד עליו נשאר.
-              git fetch --depth=1 origin "$b"
-              case "$(git log -1 --format=%ce FETCH_HEAD)" in
-                *actions-template-sync*|*github-actions*) git push origin --delete "$b" ;;
-                *) echo "::warning::הענף $b נשאר, כי יש בו שינוי של אדם. מוחקים או ממזגים אותו ידנית." ;;
-              esac
+          set -e
+          git clone --depth 1 "$KIT" /tmp/kit
+          mine=$(node -p "require('./package.json').version")
+          latest=$(node -p "require('/tmp/kit/package.json').version")
+          if [ "$mine" = "$latest" ]; then echo "מעודכן (גרסה $mine)."; exit 0; fi
+
+          # שינוי של אדם: קומיט שאינו הראשון (העותק ש-Vercel יצר), אינו של כלי העדכון, ונוגע במשהו מחוץ ל-.github.
+          root=$(git rev-list --max-parents=0 HEAD | tail -1)
+          for c in $(git rev-list --no-merges "$root"..HEAD); do
+            case "$(git log -1 --format=%ce "$c")" in *github-actions*|*actions-template-sync*) continue ;; esac
+            if git diff-tree --no-commit-id --name-only -r "$c" | grep -qv '^\.github/'; then
+              echo "::warning::שינית את הקוד של הבוט בעצמך (קומיט $c), ולכן העדכון לגרסה $latest לא נכנס לבד. עם Claude Code כותבים: תעדכן את הבוט מהערכה."
+              exit 0
             fi
           done
-      - uses: AndreasAugustin/actions-template-sync@6e1d0089686f8940604fc15baae62367bf6ee860 # v2.6.0
-        with:
-          source_repo_path: roshilabs-hq/telegram-assistant
-          upstream_branch: main
-          pr_title: "🔄 עדכון לבוט מהערכה"
-          pr_labels: template_sync
-          pr_body: |
-            יצאה גרסה חדשה של הערכה. מה השתנה: CHANGELOG.md.
-            כדי לעדכן את הבוט: לוחצים למטה **Merge pull request** ואז **Confirm merge** (לא Squash).
-            Vercel מעלה את הגרסה החדשה תוך דקה או שתיים. אחר כך נכנסים לעמוד ההקמה (/setup) ובודקים שהכול ירוק. אם לא, לוחצים "הפעילו הכול".
+
+          rsync -a --delete --exclude .git --exclude .github/workflows --exclude .github/ISSUE_TEMPLATE --exclude '.env*' /tmp/kit/ ./
+          npm ci --no-audit --no-fund
+          npm test
+          rm -rf node_modules
+
+          # הכותב הוא בעל הריפו, כי Vercel בחשבון החינמי מעלה רק קוד של בעל החשבון.
+          # המבצע הוא github-actions, וכך הבדיקה למעלה יודעת שזה עדכון ולא שינוי של אדם.
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "🔄 עדכון מהערכה: $mine ← $latest" --author="$OWNER <$OWNER_ID+$OWNER@users.noreply.github.com>"
+          git push origin HEAD
+          echo "עודכן לגרסה $latest. Vercel מעלה את הבוט תוך דקה או שתיים."

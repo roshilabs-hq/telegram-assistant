@@ -13,7 +13,7 @@
  *   node scripts/setup.mjs deploy      יוצר פרויקט ב-Vercel בצוות שאושר, מחבר Supabase ו-GitHub, ומעלה
  *   node scripts/setup.mjs url <כתובת>  שומר את הכתובת הקבועה, כשאי אפשר לאמת אותה לבד
  *   node scripts/setup.mjs activate    "הפעילו הכול" מרחוק, ומחזיר את קישור החיבור (--take-over רק באישור)
- *   node scripts/setup.mjs updates     תוספת: עדכונים אוטומטיים (ההגדרה ב-GitHub, דרך הטוקן)
+ *   node scripts/setup.mjs updates     תוספת: עדכונים אוטומטיים (בדיקה שהכול מחובר)
  *   node scripts/setup.mjs briefing 07:30   תוספת: תדריך בוקר (בלי שעה: מכבה)
  *   node scripts/setup.mjs voice       תוספת: הודעות קוליות (GROQ_API_KEY עובר ל-Vercel)
  *
@@ -554,23 +554,14 @@ function login() {
 
 // ---------- תוספות ----------
 
-/** עדכונים אוטומטיים: ההגדרה ב-GitHub (ש-Actions יוכל לפתוח בקשת עדכון), ובדיקה ש-Vercel מחובר לעותק. */
+/** עדכונים אוטומטיים: בעותק שנוצר מהתבנית קובץ העדכון כבר קיים, ונשאר לוודא ש-Vercel מעלה כל קומיט חדש. */
 async function updates() {
-  const t = envNow()?.GITHUB_TOKEN;
-  if (!t) return say(false, "GITHUB_TOKEN חסר ב-.env.local. בלעדיו מפעילים בעמוד: addons/05-updates.md");
-  const origin = run("git", ["remote", "get-url", "origin"], { quiet: true }).out.trim();
-  const repoName = /github\.com[/:]([^/]+\/[^/.]+?)(?:\.git)?$/.exec(origin)?.[1];
-  if (!repoName) return say(false, "לא מצאתי את העותק ב-GitHub");
-  const r = await gh(`/repos/${repoName}/actions/permissions/workflow`, t, {
-    method: "PUT",
-    body: JSON.stringify({ default_workflow_permissions: "write", can_approve_pull_request_reviews: true }),
-  });
-  if (r.status !== 204) return say(false, `GitHub סירב (קוד ${r.status})`);
+  if (!existsSync(join(ROOT, ".github/workflows/update.yml"))) return say(false, "חסר .github/workflows/update.yml. מוסיפים לפי addons/05-updates.md");
   const vt = envNow()?.VERCEL_TOKEN;
   const link = linkedProject();
   const p = vt && link ? await vapi(`/v9/projects/${link.id}?teamId=${link.orgId}`, vt) : null;
-  if (p && !p.link) return say(false, "ב-GitHub זה מוכן, אבל Vercel לא מחובר לעותק, ולכן עדכון שמאשרים לא יעלה לבד. מתקנים ב-Vercel ‹ Settings ‹ Git ‹ Connect.");
-  say(true, "עדכונים אוטומטיים פועלים: פעם בשבוע תגיע בקשת עדכון, ומאשרים בלחיצה");
+  if (p && !p.link) return say(false, "Vercel לא מחובר לעותק ב-GitHub, ולכן עדכון לא יעלה לבד. מתקנים ב-Vercel ‹ Settings ‹ Git ‹ Connect.");
+  say(true, "עדכונים אוטומטיים פועלים: פעם בשבוע גרסה חדשה נכנסת לבד, והבוט מודיע בטלגרם");
 }
 
 /** תדריך בוקר: node scripts/setup.mjs briefing 07:30 (ובלי שעה: מכבה). */

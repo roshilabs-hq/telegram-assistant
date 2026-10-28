@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { freshEnv, mockReq, mockRes } from "./helpers.js";
 import * as store from "../lib/db.js";
 import { secrets } from "../lib/config.js";
-import handler, { deliverDueReminders, maybeBriefing, briefingText } from "../api/cron.js";
+import handler, { deliverDueReminders, maybeBriefing, briefingText, maybeAnnounceUpdate } from "../api/cron.js";
 import { wallParts } from "../lib/time.js";
 
 const TZ = "Asia/Jerusalem";
@@ -72,4 +72,16 @@ test("טקסט התדריך: היום עם שעות, ובהמשך עם תארי�
   const t = briefingText(rows, "2026-07-01", TZ);
   assert.match(t, /10:00 רופא/);
   assert.match(t, /פח \(3\.7\)/);
+});
+
+test("אחרי עדכון הבוט מודיע פעם אחת. בהתקנה הראשונה לא", async () => {
+  const sent = [];
+  const send = async (chat, text) => sent.push(text);
+  await store.setSetting("owner_chat_id", "42");
+  assert.equal(await maybeAnnounceUpdate(await store.getSettings(), send, "1.0.0"), false);
+  assert.equal(await maybeAnnounceUpdate(await store.getSettings(), send, "1.0.0"), false);
+  assert.equal(await maybeAnnounceUpdate(await store.getSettings(), send, "1.1.0"), true);
+  assert.equal(await maybeAnnounceUpdate(await store.getSettings(), send, "1.1.0"), false);
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /עודכנתי לגרסה 1\.1\.0/);
 });

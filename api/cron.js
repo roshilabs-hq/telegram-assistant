@@ -5,6 +5,7 @@ import { timezoneOf } from "../lib/core.js";
 import { sendMessage } from "../lib/telegram.js";
 import { nextOccurrence, dayKey, hhmm, atWallTime } from "../lib/time.js";
 import { googleConfigured, listEvents } from "../lib/google.js";
+import { VERSION } from "../lib/version.js";
 
 /**
  * רץ כל דקה. Supabase קורא לכתובת הזו (pg_cron), כי בחשבון החינמי של Vercel
@@ -115,6 +116,19 @@ export async function maybeBriefing(settings, tz, send = sendMessage, now = new 
   }
 }
 
+/** אחרי עדכון: הודעה אחת לבעלים בטלגרם. בהתקנה הראשונה רק נרשמת הגרסה, בלי הודעה. */
+export async function maybeAnnounceUpdate(settings, send = sendMessage, version = VERSION) {
+  if (settings.version_seen === version) return false;
+  if (!(await store.claim(`version:${version}`))) return false; // ריצה מקבילה כבר שלחה
+  await store.setSetting("version_seen", version);
+  if (!settings.version_seen || !settings.owner_chat_id) return false;
+  await send(
+    settings.owner_chat_id,
+    `✅ עודכנתי לגרסה ${version}. מה חדש: https://github.com/roshilabs-hq/telegram-assistant/blob/main/CHANGELOG.md`
+  );
+  return true;
+}
+
 export default async function handler(req, res) {
   if (!authorized(req)) return res.status(401).send("unauthorized");
 
@@ -124,6 +138,7 @@ export default async function handler(req, res) {
 
   const sent = await deliverDueReminders(tz);
   const briefing = await maybeBriefing(settings, tz);
+  await maybeAnnounceUpdate(settings).catch((e) => console.error("update notice failed", e));
   if (hhmm(tz) === "04:00") await store.pruneLocks();
 
   return res.status(200).json({ ok: true, sent, briefing });
