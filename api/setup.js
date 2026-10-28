@@ -188,7 +188,14 @@ input,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line)
 textarea{direction:ltr;font-family:ui-monospace,monospace;font-size:.8rem;height:140px}
 .err{background:#fdecea;color:#7a1f16;border-color:#f5c2bd}.code{font-size:2rem;letter-spacing:.3em;font-weight:700;direction:ltr;text-align:center}
 label{display:block;margin-top:10px;font-weight:600}a{color:var(--accent)}
-</style></head><body><main>${body}<p class="muted" style="text-align:center">גרסה ${VERSION}</p></main></body></html>`;
+</style></head><body><main>${body}<p class="muted" style="text-align:center">גרסה ${VERSION}</p></main>
+<script>
+// חוזרים ללשונית (למשל מטלגרם): הדף מתרענן לבד, אלא אם יש שגיאה על המסך או שהתחלת להקליד.
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden || document.querySelector(".err") || [...document.querySelectorAll("input,textarea")].some((e) => e.type !== "hidden" && e.value)) return;
+  location.replace(location.pathname);
+});
+</script></body></html>`;
 }
 
 function loginPage(error) {
@@ -320,7 +327,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
 
   const done = !nextShown;
   return page(`<h1>הקמת העוזר האישי</h1>
-<p class="muted">${bot ? `הבוט: <b dir="ltr">@${esc(bot.username)}</b> · ` : ""}הדף מתעדכן כשמרעננים.</p>
+<p class="muted">${bot ? `הבוט: <b dir="ltr">@${esc(bot.username)}</b> · ` : ""}הדף מתעדכן לבד כשחוזרים אליו (או כשמרעננים).</p>
 ${errors.length ? `<div class="card err">${errors.map(esc).join("<br>")}</div>` : ""}
 ${done ? `<div class="card" style="border-color:var(--ok)">🎉 <b>הכול מוכן!</b> הבוט עובד. אפשר לסגור את הדף.</div>` : ""}
 <h2>שלבי ההקמה</h2>${rows}
