@@ -445,15 +445,16 @@ function renderWizard(steps, addons) {
   const total = core.reduce((n, s) => n + s.minutes, 0);
   const stuck = STUCK_LINE ? mdInline(STUCK_LINE.replace("(support.md)", "(docs/support.md)")) : "";
   const contact = CONTACT.length
-    ? `<div class="contact"><b>נתקעת? נתקין בשבילך.</b> לפי אותה הדרכה, בחשבונות שלך. כותבים לנו:<div class="btns">${CONTACT.map((c) => `<a class="${c.cls}" href="${htmlEsc(c.url)}" target="_blank" rel="noopener">${c.label}</a>`).join("")}</div></div>`
+    ? `<div class="contact"><b>צריך עזרה? אני כאן.</b> משהו מסתבך, או שמעדיפים שאתקין בשבילך, בחשבונות שלך? כותבים לי:<div class="btns">${CONTACT.map((c) => `<a class="${c.cls}" href="${htmlEsc(c.url)}" target="_blank" rel="noopener">${c.label}</a>`).join("")}</div></div>`
     : "";
   const sections = [];
   sections.push(`<section data-step="0"><h1>${htmlEsc(`${String(PKG.description || "").split(" — ")[0]}: הקמה צעד אחרי צעד`)}</h1>
-<p>${core.length} שלבים. בפעם הראשונה כדאי לפנות 45–60 דקות, בלי לחץ. מסך אחד לכל פעולה. הטלפון זוכר איפה עצרת.</p>
+<p><b>למי זה מתאים:</b> למי שכבר פתח פעם חשבון באתר באנגלית, ומסתדר עם תשלום קטן בכרטיס. יש כאן הדרכה מלאה להקמה עצמית, ואם משהו מסתבך, אני כאן.</p>${contact}
+<p>${core.length} שלבים, מסך אחד לכל פעולה. בפעם הראשונה כדאי לפנות 45–60 דקות. הטלפון זוכר איפה עצרת.</p>
 <div class="note">📱 <b>משאירים את העמוד הזה פתוח.</b> כל קישור נפתח בלשונית חדשה. בסוף כל פעולה חוזרים לכאן (בכפתור הלשוניות של הדפדפן) ולוחצים "הבא". את הטוקן, המפתח והסיסמה שומרים במנהל הסיסמאות של הטלפון, או בפתק נעול.</div>
 <p>לא עוצרים באמצע הרשמה, או לפני ששמרת מפתח שמוצג פעם אחת. בין שלב לשלב אפשר לעצור ולחזור.</p>
 <p><a href="${wizardUrl("docs/choose-path.md#requirements")}" target="_blank" rel="noopener">מה צריך לפני שמתחילים</a> · <a href="${wizardUrl("docs/browser.md")}" target="_blank" rel="noopener">כל ההדרכה בעמוד אחד</a></p>
-${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude באפליקציה? <a href="${wizardUrl("docs/help-from-claude.md")}" target="_blank" rel="noopener">אפשר להיעזר בו לאורך הדרך</a>.</p>` : ""}${contact}</section>`);
+${existsSync(join(ROOT, "docs/help-from-claude.md")) ? `<p>💬 יש לך Claude באפליקציה? <a href="${wizardUrl("docs/help-from-claude.md")}" target="_blank" rel="noopener">אפשר להיעזר בו לאורך הדרך</a>.</p>` : ""}</section>`);
   core.forEach((s, si) => {
     const screens = wizardScreens(s.how.browser, s.wizard === "one");
     const first = sections.length;
@@ -483,7 +484,7 @@ ${existsSync(join(ROOT, "docs/turn-off.md")) ? `<p><a href="${wizardUrl("docs/tu
 :root{--bg:#f7f7f5;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--line:#e5e5e0;--accent:#2563eb;--note:#fff8e1;--done:#e8f5ec}
 @media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#f1f1f1;--muted:#a0a0a0;--line:#333;--accent:#60a5fa;--note:#2b2616;--done:#16281d}}
 *{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
-main{max-width:560px;margin:0 auto;padding:12px 16px 110px}
+main{max-width:560px;margin:0 auto;padding:12px 16px 140px}
 .bar{position:sticky;top:0;background:var(--bg);padding:10px 0 8px;z-index:2}.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
 section{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}section.on{display:block}
 h1{font-size:1.35rem;margin:0 0 8px}.where{color:var(--muted);font-size:.9rem;margin-bottom:8px}.act{font-size:1.1rem;font-weight:600}
@@ -493,7 +494,7 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding
 details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;color:var(--accent);font-weight:600}
 a{color:var(--accent)}ul,ol{padding-inline-start:22px}
 nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
-nav div{max-width:560px;margin:0 auto;display:flex;gap:10px}
+nav div{max-width:560px;margin:0 auto;display:flex;gap:10px}.help{display:block;max-width:560px;margin:0 auto 8px;text-align:center;font-size:.9rem;font-weight:600}
 button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;cursor:pointer}
 nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}button:disabled{opacity:.35}
 .tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
@@ -510,7 +511,7 @@ body:not(.m-fresh) .only-fresh,body.m-fresh .only-existing{display:none}
 ${sections.join("\n")}
 <a class="restart" href="#" onclick="go(FORK);return false">החלפת דרך</a><a class="restart" href="#" onclick="go(0);return false">חזרה להתחלה</a>
 </main>
-<nav><div><button type="button" class="ghost" id="prev" onclick="go(i-1)">‹ חזרה</button><button type="button" id="next" onclick="go(i+1)">הבא ›</button></div></nav>
+<nav>${CONTACT[0] ? `<a class="help" href="${htmlEsc(CONTACT[0].url)}" target="_blank" rel="noopener">💬 צריך עזרה? כותבים לי ב${CONTACT[0].label}</a>` : ""}<div><button type="button" class="ghost" id="prev" onclick="go(i-1)">‹ חזרה</button><button type="button" id="next" onclick="go(i+1)">הבא ›</button></div></nav>
 <script>
 const S = [...document.querySelectorAll("section")], KEY = "wizard:${REPO || "kit"}";
 let i = 0;
