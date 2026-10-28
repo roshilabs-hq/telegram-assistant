@@ -275,7 +275,8 @@ function askPanel(s, url) {
     return `<form method="post"><input type="hidden" name="action" value="new_ask_token"><button class="ghost" type="submit">הפעלת גישה מ-Siri</button></form>`;
   }
   return `<p class="muted">הכתובת והמפתח לקיצור הדרך באייפון (ההדרכה בתוספת "Siri"):</p>
-<textarea readonly style="height:70px">${esc(`${url}/api/ask`)}\n${esc(s.ask_token)}</textarea>`;
+<textarea readonly style="height:70px">${esc(`${url}/api/ask`)}\n${esc(s.ask_token)}</textarea>
+<form method="post"><input type="hidden" name="action" value="new_ask_token"><button class="ghost" type="submit">החלפת המפתח (הישן מפסיק לעבוד מיד)</button></form>`;
 }
 
 /**

@@ -70,7 +70,7 @@
 **למה:** הבוט צריך מחשב שדולק 24 שעות ביממה. **Vercel** הוא המחשב באינטרנט שהבוט ירוץ עליו, ו-**Supabase** הוא המחברת שבה הבוט זוכר תזכורות, פתקים ורשימות. בשניהם יש מסלול חינמי שמספיק לבוט אישי. בשלב הזה פותחים את שניהם ומעלים את הבוט.
 
 ### מה עושים
-> 🌐 **בשלב הזה נפתחים כמה אתרים באנגלית.** המסך אצלך שונה מהתמונה? לא מנחשים על מה ללחוץ. מחפשים את המילה המודגשת שכתובה בצעד. היא לא מופיעה? פותחים "נתקעתי" לפני שממשיכים. **הלכת לאיבוד באמצע?** חוזרים לכפתור ה-Deploy שבצעד 1 ומתחילים שוב. מה שכבר עשית נשמר.
+> 🌐 **בשלב הזה נפתחים כמה אתרים באנגלית.** המסך אצלך שונה מהתמונה? לא מנחשים על מה ללחוץ. מחפשים את המילה המודגשת שכתובה בצעד. היא לא מופיעה? פותחים "נתקעתי" לפני שממשיכים. **הלכת לאיבוד באמצע?** חוזרים לכפתור ה-Deploy שבצעד 1 ומתחילים שוב. מה שכבר עשית נשמר. **פותחים את ההדרכה ב-Safari או ב-Chrome**, ולא מתוך וואטסאפ או אינסטגרם: בתוך אפליקציות ההתחברות והחידות נתקעות.
 
 1. **סיימנו עם טלגרם.** מכאן עובדים רק בדפדפן. (עדיין בטלגרם? חוזרים ללשונית של ההדרכה.) לוחצים כאן על הכפתור השחור **Deploy**: [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D)
    - לא רואים את הכפתור? [לוחצים כאן](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D).
@@ -154,7 +154,11 @@
 <details>
 <summary><b>נתקעתי</b></summary>
 
-- **מופיעה תיבה עם טקסט באנגלית וכפתור "העתקה"**: זה לא אמור לקרות בהתקנה מכפתור ה-Deploy (רק כש-Supabase לא חובר דרך Vercel). לא מעתיקים לבד. פונים אלינו, ונעשה את זה יחד.
+- **מופיעה תיבה עם טקסט באנגלית וכפתור "העתקה"**: זה קורה רק כש-Supabase לא חובר דרך Vercel. מריצים את הטקסט בעצמך, פעם אחת:
+  1. לוחצים **העתקה** מתחת לתיבה.
+  2. נכנסים ל-[Supabase](https://supabase.com/dashboard), לוחצים על הפרויקט של הבוט, ובתפריט משמאל על **SQL Editor**.
+  3. לוחצים בתוך החלון הגדול, מדביקים ולוחצים **Run** (למטה מימין). מופיע **Success**.
+  4. חוזרים לעמוד ההקמה ומרעננים. השורות של השלב הזה ירוקות.
 - **"טלגרם לא מכיר את הטוקן"**: הטוקן הועתק לא שלם. מעתיקים מחדש מ-BotFather (`/mybots` ‹ הבוט ‹ **API Token**).
 - **"התזמון לא רץ" גם אחרי כמה דקות**: לוחצים שוב **הפעילו הכול**. אם הופיעה תיבת העתקה, מריצים אותה שוב ב-Supabase.
 
