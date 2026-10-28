@@ -5,6 +5,7 @@ import postgres from "postgres";
 import { env, secrets, baseUrl } from "../lib/config.js";
 import { cookies, authed, sessionCookie, passwordOk, tooManyTries, MIN_PASSWORD } from "../lib/session.js";
 import { scriptSecret, connect as connectGoogle } from "../lib/google.js";
+import { checkGroqKey } from "../lib/voice.js";
 import { scriptSource } from "../lib/google-script.js";
 import { VERSION, ownRepo } from "../lib/version.js";
 import { runChecks, cronSql } from "../lib/checks.js";
@@ -140,6 +141,15 @@ export const ACTIONS = {
   async set_webhook(req) {
     const hook = await setWebhook(`${baseUrl(req)}/api/telegram`, secrets.webhook());
     return hook.ok ? [] : [`חיבור הבוט לטלגרם נכשל: ${hook.description || ""}`];
+  },
+  // הודעות קוליות: כמו המפתח של Claude, מודבק כאן ונשמר רק אחרי ש-Groq אישר אותו
+  async save_groq_key(req, form) {
+    const key = String(form.groq_key || "").trim();
+    if (!key) return ["מדביקים את המפתח בתיבה, ואז לוחצים על הכפתור."];
+    const e = await checkGroqKey(key);
+    if (e) return [e];
+    await store.setSetting("groq_key", key);
+    return [];
   },
   async google_connect(req, form) {
     const r = await connectGoogle(form.url);
@@ -280,9 +290,13 @@ function updatesPanel(check) {
   const newFile = `${repo}/new/main?filename=.github/workflows/update.yml&value=`;
   const raw = "https://raw.githubusercontent.com/roshilabs-hq/telegram-assistant/main/.github/workflows/update.yml";
   // הוספת הקובץ מריצה מיד את העדכון. אחר כך העדכונים נכנסים לבד, והבוט מודיע בטלגרם.
-  const setup = `<p class="muted"><a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הפעלת עדכונים אוטומטיים (פעם אחת)</a>. אחר כך העדכונים נכנסים לבד, והבוט מודיע לך בטלגרם.</p>`;
+  const setup = `<p class="muted"><a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הפעלת עדכונים אוטומטיים (פעם אחת)</a>. אחר כך העדכונים נכנסים לבד, והבוט מודיע לך בטלגרם. (GitHub כותב "A file with the same name already exists"? העדכונים כבר פועלים.)</p>`;
   return check?.ok ? setup : `<a class="btn" href="${repo}/actions/workflows/update.yml" target="_blank" rel="noopener">🔄 לעדכן עכשיו</a>${setup}`;
 }
+
+const voicePanel = () => `<form method="post"><input type="hidden" name="action" value="save_groq_key">
+<label for="gk">המפתח של Groq (מתחיל ב-<bdi dir="ltr">gsk_</bdi>)</label><input id="gk" name="groq_key" type="password" autocomplete="off" spellcheck="false" dir="ltr" placeholder="gsk_..." required>
+<button type="submit">🎙️ שמירה ובדיקה</button></form>`;
 
 const copyField = (id, label, value) => `<p class="muted">${label}</p>
 <textarea id="${id}" readonly style="height:48px">${esc(value)}</textarea>
@@ -328,7 +342,7 @@ ${isNext ? actionPanel(s.check, checks, { settings, bot, url }) : ""}
   const addons = ADDONS.map((a) => {
     const ok = checks[a.check]?.ok;
     return `<div class="card step"><span class="icon">${ok ? "✅" : "➕"}</span><div style="flex:1"><span class="t">${esc(a.title)}</span>
-<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, settings.google?.secret) : ""}${a.check === "updates" ? updatesPanel(checks.updates) : ""}
+<span class="muted">${esc(checks[a.check]?.detail)}</span>${a.check === "ask" && checks.database?.ok ? askPanel(settings, url) : ""}${a.check === "google" && checks.database?.ok ? googlePanel(checks.google, settings.google?.secret) : ""}${a.check === "updates" ? updatesPanel(checks.updates) : ""}${a.check === "voice" && checks.database?.ok && !checks.voice?.ok ? voicePanel() : ""}
 <div><a href="${DOCS}/browser.md#step-${a.id}" target="_blank" rel="noopener">איך מוסיפים</a></div></div></div>`;
   }).join("");
 

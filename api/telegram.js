@@ -3,7 +3,7 @@ import { same } from "../lib/session.js";
 import * as store from "../lib/db.js";
 import { converse, isAllowed, tryPair, timezoneOf } from "../lib/core.js";
 import { sendMessage, sendTyping, answerCallback, editMessageText, downloadFile } from "../lib/telegram.js";
-import { voiceEnabled, transcribe, frameTranscript } from "../lib/voice.js";
+import { voiceEnabled, groqKeyOf, transcribe, frameTranscript } from "../lib/voice.js";
 import { isQuotaError, QUOTA_MESSAGE, aiKeyOf, NO_BRAIN } from "../lib/ai.js";
 import { decide } from "../lib/confirm.js";
 
@@ -95,13 +95,13 @@ export default async function handler(req, res) {
     let text = msg.text || msg.caption || "";
     let inputKind = "text";
     if (msg.voice || msg.audio) {
-      if (!voiceEnabled()) {
+      if (!voiceEnabled(settings)) {
         await sendMessage(chatId, NO_VOICE);
         return res.status(200).send("ok");
       }
       await sendTyping(chatId);
       const file = msg.voice || msg.audio;
-      text = frameTranscript(await transcribe(await downloadFile(file.file_id), file.mime_type || "audio/ogg"));
+      text = frameTranscript(await transcribe(await downloadFile(file.file_id), file.mime_type || "audio/ogg", groqKeyOf(settings)));
       inputKind = "voice";
       if (!text) {
         await sendMessage(chatId, "לא הצלחתי לתמלל את ההודעה הקולית 🤔 אפשר לנסות שוב או לכתוב.");

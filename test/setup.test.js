@@ -42,6 +42,16 @@ test("כניסה מהעמוד עצמו עוברת, גם כשהדפדפן שול�
   assert.equal(page.headers["referrer-policy"], "same-origin");
 });
 
+test("מפתח Groq מודבק בעמוד ההקמה: נבדק, נשמר, והתוספת נדלקת", async () => {
+  assert.match((await ACTIONS.save_groq_key(mockReq({}), { groq_key: "abc" }))[0], /gsk_/);
+  const telegramFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => (String(url).includes("api.groq.com") ? new Response("{}", { status: 200 }) : telegramFetch(url, init));
+  assert.deepEqual(await ACTIONS.save_groq_key(mockReq({}), { groq_key: " gsk_test " }), []);
+  assert.equal((await store.getSettings()).groq_key, "gsk_test");
+  const { checks } = await runChecks(mockReq({ headers: {} }));
+  assert.equal(checks.voice.ok, true);
+});
+
 test("סיסמה שגויה: 401", async () => {
   const res = mockRes();
   await handler(mockReq({ body: { action: "login", password: "wrong" } }), res);

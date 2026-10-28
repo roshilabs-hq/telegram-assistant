@@ -61,7 +61,7 @@
 <a id="step-voice"></a>
 ### 1. הודעות קוליות · כ-4 דק׳
 1. מפתח ב-[Groq](https://console.groq.com/keys) (חינם): **Continue with email** ‹ **Create API Key**.
-2. ב-Vercel: `GROQ_API_KEY` ‹ **Redeploy**.
+2. בעמוד ההקמה, בתוספת "הודעות קוליות": מדביקים את המפתח ‹ **שמירה ובדיקה**.
 3. שולחים לבוט הודעה קולית.
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-voice)
