@@ -19,6 +19,11 @@ test("בלי סיסמה: עמוד כניסה, ולא מידע", async () => {
   assert.doesNotMatch(res.body, /שלבי ההקמה/);
 });
 
+test("קובץ העדכון קצר מספיק לקישור 'הפעלת עדכונים' (GitHub מחזיר 414 מעל כ-8000 תווים)", async () => {
+  const yml = (await import("node:fs")).readFileSync(".github/workflows/update.yml", "utf8");
+  assert.ok(encodeURIComponent(yml).length < 6000, `${encodeURIComponent(yml).length} תווים בקישור`);
+});
+
 test("טופס שנשלח מאתר אחר נדחה (CSRF), גם עם עוגייה תקפה", async () => {
   const res = mockRes();
   const headers = { cookie: `setup_session=${secrets.session()}`, origin: "https://evil.example", host: "bot.example.vercel.app" };
