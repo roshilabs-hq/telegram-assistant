@@ -356,7 +356,8 @@ ${checks.database?.ok ? settingsPanel(settings) : ""}
 ${ADDONS.length ? `<h2>תוספות (לא חובה)</h2>${addons}` : ""}
 ${checks.owner?.ok ? `<h2>אזור מתקדם</h2><form method="post" class="card"><input type="hidden" name="action" value="reset_owner">
 <label for="c">ניתוק הבוט מהחשבון שלך (למשל כדי לחבר טלפון אחר). כתבו "כן" לאישור:</label><input id="c" name="confirm">
-<button class="ghost" type="submit">ניתוק</button></form>` : ""}
+<button class="ghost" type="submit">ניתוק</button></form>
+<form method="post" class="card"><input type="hidden" name="action" value="activate"><p class="muted">משהו הפסיק לעבוד, או שגרסה חדשה ביקשה? מריצים שוב את "הפעילו הכול". זה לא מוחק כלום.</p><button class="ghost" type="submit">🚀 הפעילו הכול שוב</button></form>` : ""}
 ${checks.ai_model?.ok && !env.aiKey() ? `<form method="post" class="card"><input type="hidden" name="action" value="save_ai_key">
 <label for="ak2">החלפת המפתח של Claude (למשל אם פג או נמחק). המפתח החדש נבדק לפני שהוא מחליף את הישן:</label><input id="ak2" name="ai_key" type="password" autocomplete="off" spellcheck="false" dir="ltr" placeholder="sk-ant-..." required>
 <button class="ghost" type="submit">החלפה ובדיקה</button></form>` : ""}`);
