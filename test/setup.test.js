@@ -19,6 +19,13 @@ test("בלי סיסמה: עמוד כניסה, ולא מידע", async () => {
   assert.doesNotMatch(res.body, /שלבי ההקמה/);
 });
 
+test("טופס שנשלח מאתר אחר נדחה (CSRF), גם עם עוגייה תקפה", async () => {
+  const res = mockRes();
+  const headers = { cookie: `setup_session=${secrets.session()}`, origin: "https://evil.example", host: "bot.example.vercel.app" };
+  await handler(mockReq({ headers, body: { action: "new_pairing" } }), res);
+  assert.equal(res.statusCode, 403);
+});
+
 test("סיסמה שגויה: 401", async () => {
   const res = mockRes();
   await handler(mockReq({ body: { action: "login", password: "wrong" } }), res);

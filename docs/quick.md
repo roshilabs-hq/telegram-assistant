@@ -21,7 +21,7 @@
 
 1. [כפתור ה-Deploy](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D) ‹ התחברות עם GitHub ‹ **Create**.
 2. Supabase: **Add** ‹ **Frankfurt** ‹ **Create** ‹ **Done**.
-3. שני משתנים: `TELEGRAM_TOKEN`, `SETUP_PASSWORD` (ארוכה ואקראית, 16 תווים ומעלה) ‹ **Deploy**. (המפתח של Claude בא בסוף, בעמוד ההקמה.)
+3. שני משתנים: `TELEGRAM_TOKEN`, `SETUP_PASSWORD` (ארוכה ואקראית: לפחות 8 תווים, ומומלץ 16 ומעלה) ‹ **Deploy**. (המפתח של Claude בא בסוף, בעמוד ההקמה.)
 4. **Continue to Project** ‹ **Visit** ‹ **לעמוד ההקמה**.
 
 [הסבר מלא, צילומי מסך ו"נתקעתי" ←](browser.md#step-deploy)

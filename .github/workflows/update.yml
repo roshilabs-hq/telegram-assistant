@@ -1,4 +1,4 @@
-# עדכונים מהערכה: פעם בשבוע (ומיד כשמוסיפים את הקובץ) בודק אם יצאה גרסה חדשה של הערכה,
+# עדכונים מהערכה: פעם בשבוע (ומיד כשמוסיפים את הקובץ) בודק אם יצאה גרסה חדשה וחתומה של הערכה,
 # ואם כן מכניס אותה לבד: הבדיקות של הערכה רצות קודם, ורק אם הן עוברות הקוד נדחף ו-Vercel מעלה את הבוט.
 # שינית את הקוד בעצמך (למשל עם Claude Code)? העדכון לא נוגע בו, ועמוד ההקמה ממשיך להראות "יש גרסה חדשה".
 # ההדרכה: docs/browser.md#עדכונים-אוטומטיים
@@ -29,12 +29,20 @@ jobs:
           KIT: https://github.com/roshilabs-hq/telegram-assistant.git
           OWNER: ${{ github.repository_owner }}
           OWNER_ID: ${{ github.repository_owner_id }}
+          SIGNER: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILXXvvg51kM9xN+5gRNBJ31+rq2zoDYB3wln3MREU5qF
         run: |
           set -e
-          git clone --depth 1 "$KIT" /tmp/kit
           mine=$(node -p "require('./package.json').version")
-          latest=$(node -p "require('/tmp/kit/package.json').version")
-          if [ "$mine" = "$latest" ]; then echo "מעודכן (גרסה $mine)."; exit 0; fi
+          # רק גרסה עם תג חתום במפתח של הערכה. מי שמשתלט על הריפו של הערכה לא יכול לחתום,
+          # והמפתח הציבורי יושב כאן, בקובץ שהעדכון עצמו לא מחליף.
+          tag=$(git ls-remote --tags --refs "$KIT" 'v*' | sed 's#.*refs/tags/##' | sort -V | tail -1)
+          latest=${tag#v}
+          newer=$(node -e "const [a,b]=process.argv.slice(1).map(v=>v.split('.').map(Number));let r=0;for(let i=0;i<3&&!r;i++)r=Math.sign((a[i]||0)-(b[i]||0));console.log(r>0)" "$latest" "$mine")
+          if [ -z "$tag" ] || [ "$newer" != true ]; then echo "מעודכן (גרסה $mine)."; exit 0; fi
+          git clone -q --depth 1 --branch "$tag" "$KIT" /tmp/kit
+          echo "release $SIGNER" > /tmp/allowed_signers
+          git -C /tmp/kit -c gpg.ssh.allowedSignersFile=/tmp/allowed_signers verify-tag "$tag"             || { echo "::error::התג $tag לא חתום במפתח של הערכה. לא מעדכנים."; exit 1; }
+          [ "$(node -p "require('/tmp/kit/package.json').version")" = "$latest" ]             || { echo "::error::הגרסה בתג $tag לא תואמת ל-package.json. לא מעדכנים."; exit 1; }
 
           # שינוי של אדם: קומיט שאינו הראשון (העותק ש-Vercel יצר), אינו של כלי העדכון, ונוגע במשהו מחוץ ל-.github.
           root=$(git rev-list --max-parents=0 HEAD | tail -1)

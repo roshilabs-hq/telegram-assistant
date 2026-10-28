@@ -12,7 +12,7 @@ lost: **מתברברים?** לא נורא, זה קורה לכולם. חוזרי�
 
 1. [כפתור ה-Deploy](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant&project-name=telegram-assistant&repository-name=telegram-assistant&env=TELEGRAM_TOKEN%2CSETUP_PASSWORD&envDescription=BotFather%20token%20and%20a%20long%20setup%20password%20%2816%2B%20characters%2C%20best%20generated%20by%20a%20password%20manager%29&envLink=https%3A%2F%2Fgithub.com%2Froshilabs-hq%2Ftelegram-assistant%2Fblob%2Fmain%2Fdocs%2Fbrowser.md%23step-deploy&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22supabase%22%2C%22productSlug%22%3A%22supabase%22%2C%22protocol%22%3A%22storage%22%7D%5D) ‹ התחברות עם GitHub ‹ **Create**.
 2. Supabase: **Add** ‹ **Frankfurt** ‹ **Create** ‹ **Done**.
-3. שני משתנים: `TELEGRAM_TOKEN`, `SETUP_PASSWORD` (ארוכה ואקראית, 16 תווים ומעלה) ‹ **Deploy**. (המפתח של Claude בא בסוף, בעמוד ההקמה.)
+3. שני משתנים: `TELEGRAM_TOKEN`, `SETUP_PASSWORD` (ארוכה ואקראית: לפחות 8 תווים, ומומלץ 16 ומעלה) ‹ **Deploy**. (המפתח של Claude בא בסוף, בעמוד ההקמה.)
 4. **Continue to Project** ‹ **Visit** ‹ **לעמוד ההקמה**.
 
 ### עם Claude Code
@@ -48,7 +48,7 @@ lost: **מתברברים?** לא נורא, זה קורה לכולם. חוזרי�
 6. נפתח חלון באנגלית. הוא פותח את "המחברת" של הבוט, בחינם. ב-**Primary Region** בוחרים **Frankfurt, Germany** (ברירת המחדל היא Washington, צריך להחליף) (הכי קרוב לישראל). בשדה **Public Environment Variables Prefix** לא נוגעים. גוללים למטה ובודקים שמסומן **Supabase Free Plan**. **מופיע מחיר בדולרים לחודש (Pro, Team)? עוצרים ולא מאשרים**, וקוראים "נתקעתי". לוחצים **Continue** ‹ **Create**, מחכים כחצי דקה ללחצן **Done** ולוחצים עליו. ![](docs/img/deploy-10.png)
 7. **Add Environment Variables**: יש שתי שורות. בכל שורה לוחצים על התיבה הריקה מימין (**Value**) וממלאים: ![](docs/img/deploy-13.png)
    - `TELEGRAM_TOKEN`: מדביקים (לחיצה ארוכה בתיבה ‹ **הדבק** / **Paste**) את הטוקן מ-BotFather, של הבוט **החדש** שיצרת בשלב הראשון. (מי שכבר יש לו בוט אחר: לא הטוקן שלו. כל בוט מחובר להתקנה אחת.)
-   - `SETUP_PASSWORD`: ממציאים סיסמה חדשה, **16 תווים ומעלה**. היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. באשף יש סיסמה מוכנה, עם כפתור העתקה. בלי האשף, הכי פשוט: ארבע מילים באנגלית ומספר, צמודים, למשל `BlueCatEatsPizza2026` (אבל לא בדיוק זו). לא סיסמה שכבר יש לך במקום אחר. **כותבים אותה בפתק** ליד הטוקן: עוד רגע נכנסים איתה.
+   - `SETUP_PASSWORD`: ממציאים סיסמה חדשה, **לפחות 8 תווים, ומומלץ 16 ומעלה**. היא המפתח לעמוד ההקמה, ומי שמנחש אותה יכול להשתלט על הבוט. באשף יש סיסמה מוכנה, עם כפתור העתקה. בלי האשף, הכי פשוט: ארבע מילים באנגלית ומספר, צמודים, למשל `BlueCatEatsPizza2026` (אבל לא בדיוק זו). לא סיסמה שכבר יש לך במקום אחר. **כותבים אותה בפתק** ליד הטוקן: עוד רגע נכנסים איתה.
    <!-- wizard:password -->
    - לא לוחצים **Deploy** לפני ששתי השורות מלאות. (את המפתח של Claude, "המוח", מוסיפים רק בסוף, בעמוד ההקמה. בינתיים לא צריך כרטיס אשראי.)
 8. לוחצים **Deploy** ומחכים חצי דקה עד דקה, עד שמופיע **Congratulations!**. ![](docs/img/deploy-14.png)

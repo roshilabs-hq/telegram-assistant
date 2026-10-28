@@ -1,7 +1,7 @@
 {
   "name": "telegram-assistant",
   "repository": "https://github.com/roshilabs-hq/telegram-assistant",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "עוזר אישי בטלגרם — ערכה של רושינוביץ",
   "type": "module",
   "private": true,

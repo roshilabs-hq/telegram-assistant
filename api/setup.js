@@ -358,6 +358,9 @@ export default async function handler(req, res) {
   if (req.headers["x-setup-password"] && (await tooManyTries(req))) return res.status(429).json({ error: "too many tries, wait a minute" });
 
   if (req.method === "POST") {
+    // בנוסף לעוגייה עם SameSite=Strict: טופס שנשלח מאתר אחר נדחה (CSRF).
+    const origin = req.headers.origin;
+    if (origin && origin !== `https://${req.headers.host}`) return res.status(403).send("forbidden");
     const form = await readForm(req);
     if (form.action === "login") {
       const page = (code, msg) => res.status(code).setHeader("content-type", "text/html; charset=utf-8").send(loginPage(msg));
