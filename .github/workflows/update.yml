@@ -7,6 +7,9 @@ on:
   schedule:
     - cron: "0 6 * * 0" # יום ראשון, 09:00 בישראל
   workflow_dispatch:
+  # רץ מיד כשמוסיפים את הקובץ הזה, כדי שבקשת העדכון תגיע בלי לחכות ליום ראשון.
+  push:
+    paths: [".github/workflows/update.yml"]
 
 permissions:
   contents: write

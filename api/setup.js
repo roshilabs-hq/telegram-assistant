@@ -274,8 +274,9 @@ function updatesPanel(check) {
   // הקישור פותח ב-GitHub קובץ חדש עם השם והתוכן מוכנים, ונשאר רק לאשר.
   const newFile = `${repo}/new/main?filename=.github/workflows/update.yml&value=`;
   const raw = "https://raw.githubusercontent.com/roshilabs-hq/telegram-assistant/main/.github/workflows/update.yml";
-  const setup = `<p class="muted">1. <a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הוספת קובץ העדכונים ל-GitHub (חד-פעמי)</a><br>
-2. <a href="${repo}/settings/actions" target="_blank" rel="noopener">ההגדרה ב-GitHub (חד-פעמי)</a></p>`;
+  // קודם ההרשאה ואחר כך הקובץ: הוספת הקובץ מריצה מיד את הבדיקה, והיא צריכה את ההרשאה כדי לפתוח בקשת עדכון.
+  const setup = `<p class="muted">1. <a href="${repo}/settings/actions" target="_blank" rel="noopener">ההגדרה ב-GitHub (חד-פעמי)</a><br>
+2. <a href="#" onclick="fetch('${raw}').then(r=>r.text()).then(t=>location.href='${newFile}'+encodeURIComponent(t));return false">הוספת קובץ העדכונים ל-GitHub (חד-פעמי)</a></p>`;
   return check?.ok ? setup : `<a class="btn" href="${repo}/pulls" target="_blank" rel="noopener">🔄 לבקשת העדכון ב-GitHub</a>${setup}`;
 }
 
