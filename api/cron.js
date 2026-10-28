@@ -5,7 +5,7 @@ import { timezoneOf } from "../lib/core.js";
 import { sendMessage } from "../lib/telegram.js";
 import { nextOccurrence, dayKey, hhmm, atWallTime } from "../lib/time.js";
 import { googleConfigured, listEvents } from "../lib/google.js";
-import { VERSION } from "../lib/version.js";
+import { VERSION, latestVersion, isNewer } from "../lib/version.js";
 
 /**
  * רץ כל דקה. Supabase קורא לכתובת הזו (pg_cron), כי בחשבון החינמי של Vercel
@@ -124,7 +124,39 @@ export async function maybeAnnounceUpdate(settings, send = sendMessage, version 
   if (!settings.version_seen || !settings.owner_chat_id) return false;
   await send(
     settings.owner_chat_id,
-    `✅ עודכנתי לגרסה ${version}. מה חדש: https://github.com/roshilabs-hq/telegram-assistant/blob/main/CHANGELOG.md`
+    `✅ הבוט עודכן לבד לגרסה ${version}. אין צורך לעשות כלום.
+מה חדש: ${CHANGELOG}`
+  );
+  return true;
+}
+
+const CHANGELOG = "https://github.com/roshilabs-hq/telegram-assistant/blob/main/CHANGELOG.md";
+const DAY = 86400000;
+
+/**
+ * יש גרסה חדשה, והבוט עדיין לא קיבל אותה (העדכונים האוטומטיים כבויים, או שהקוד שונה ביד):
+ * הודעה אחת לגרסה, ביומיים אחרי שהיא נראתה לראשונה. מי שהפעיל עדכונים מקבל אותה לבד לפני כן.
+ * בודקים פעם ביום, ב-10:00.
+ */
+export async function maybeNotifyNewVersion(settings, url, send = sendMessage, now = new Date(), latestFn = latestVersion) {
+  const latest = await latestFn();
+  if (!latest || !isNewer(latest, VERSION)) return false;
+  const seen = settings.newer_seen;
+  if (seen?.v !== latest) {
+    await store.setSetting("newer_seen", { v: latest, at: now.toISOString() });
+    return false;
+  }
+  if (seen.told || now - new Date(seen.at) < 2 * DAY || !settings.owner_chat_id) return false;
+  if (!(await store.claim(`newer:${latest}`))) return false;
+  await store.setSetting("newer_seen", { ...seen, told: true });
+  await send(
+    settings.owner_chat_id,
+    [
+      `🔔 יש גרסה חדשה של העוזר (${latest}). הגרסה שלך: ${VERSION}.`,
+      `כדי לקבל אותה, ומעכשיו כל עדכון לבד: בעמוד ההקמה ${url}/setup לוחצים "הפעלת עדכונים אוטומטיים", ואז שתי לחיצות Commit. תוך כמה דקות הבוט מתעדכן ומודיע לך.`,
+      `שינית את הבוט בעצמך עם Claude Code? כותבים ל-Claude: "תעדכן את הבוט מהערכה".`,
+      `מה חדש: ${CHANGELOG}`,
+    ].join("\n\n")
   );
   return true;
 }
@@ -139,6 +171,8 @@ export default async function handler(req, res) {
   const sent = await deliverDueReminders(tz);
   const briefing = await maybeBriefing(settings, tz);
   await maybeAnnounceUpdate(settings).catch((e) => console.error("update notice failed", e));
+  if (hhmm(tz) === "10:00")
+    await maybeNotifyNewVersion(settings, `https://${req.headers.host}`).catch((e) => console.error("new version notice failed", e));
   if (hhmm(tz) === "04:00") await store.pruneLocks();
 
   return res.status(200).json({ ok: true, sent, briefing });

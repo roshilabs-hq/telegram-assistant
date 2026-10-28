@@ -561,7 +561,7 @@ async function updates() {
   const link = linkedProject();
   const p = vt && link ? await vapi(`/v9/projects/${link.id}?teamId=${link.orgId}`, vt) : null;
   if (p && !p.link) return say(false, "Vercel לא מחובר לעותק ב-GitHub, ולכן עדכון לא יעלה לבד. מתקנים ב-Vercel ‹ Settings ‹ Git ‹ Connect.");
-  say(true, "עדכונים אוטומטיים פועלים: פעם בשבוע גרסה חדשה נכנסת לבד, והבוט מודיע בטלגרם");
+  say(true, "עדכונים אוטומטיים פועלים: כל יום נבדק אם יש גרסה חדשה, והיא נכנסת לבד והבוט מודיע בטלגרם");
 }
 
 /** תדריך בוקר: node scripts/setup.mjs briefing 07:30 (ובלי שעה: מכבה). */

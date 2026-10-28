@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { freshEnv, mockReq, mockRes } from "./helpers.js";
 import * as store from "../lib/db.js";
 import { secrets } from "../lib/config.js";
-import handler, { deliverDueReminders, maybeBriefing, briefingText, maybeAnnounceUpdate } from "../api/cron.js";
+import handler, { deliverDueReminders, maybeBriefing, briefingText, maybeAnnounceUpdate, maybeNotifyNewVersion } from "../api/cron.js";
 import { wallParts } from "../lib/time.js";
 
 const TZ = "Asia/Jerusalem";
@@ -83,5 +83,22 @@ test("אחרי עדכון הבוט מודיע פעם אחת. בהתקנה הרא
   assert.equal(await maybeAnnounceUpdate(await store.getSettings(), send, "1.1.0"), true);
   assert.equal(await maybeAnnounceUpdate(await store.getSettings(), send, "1.1.0"), false);
   assert.equal(sent.length, 1);
-  assert.match(sent[0], /עודכנתי לגרסה 1\.1\.0/);
+  assert.match(sent[0], /עודכן לבד לגרסה 1\.1\.0\. אין צורך לעשות כלום/);
+});
+
+test("גרסה חדשה שלא נכנסה: הודעה אחת, רק אחרי יומיים, עם הדרך לעדכן", async () => {
+  const sent = [];
+  const send = async (chat, text) => sent.push(text);
+  const latest = async () => "99.0.0";
+  await store.setSetting("owner_chat_id", "42");
+  const t0 = new Date("2026-11-01T08:00:00Z");
+  const at = (days) => new Date(t0.getTime() + days * 86400000);
+  assert.equal(await maybeNotifyNewVersion(await store.getSettings(), "https://b.example", send, t0, latest), false);
+  assert.equal(await maybeNotifyNewVersion(await store.getSettings(), "https://b.example", send, at(1), latest), false);
+  assert.equal(await maybeNotifyNewVersion(await store.getSettings(), "https://b.example", send, at(2), latest), true);
+  assert.equal(await maybeNotifyNewVersion(await store.getSettings(), "https://b.example", send, at(3), latest), false);
+  assert.equal(sent.length, 1);
+  assert.match(sent[0], /99\.0\.0/);
+  assert.match(sent[0], /https:\/\/b\.example\/setup/);
+  assert.match(sent[0], /הפעלת עדכונים אוטומטיים/);
 });

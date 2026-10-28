@@ -1,8 +1,8 @@
-# עדכון מהערכה: פעם בשבוע, ומיד כשמוסיפים את הקובץ. רק גרסה עם תג חתום במפתח שכאן.
+# עדכון מהערכה: כל יום, ומיד כשמוסיפים את הקובץ. רק גרסה עם תג חתום במפתח שכאן.
 # העדכון לא מחליף את הקובץ הזה. ההסבר: addons/05-updates.md
 name: עדכון מהערכה
 on:
-  schedule: [{ cron: "0 6 * * 0" }]
+  schedule: [{ cron: "0 6 * * *" }]
   workflow_dispatch:
   push: { paths: [".github/workflows/update.yml"] }
 permissions: { contents: write }
