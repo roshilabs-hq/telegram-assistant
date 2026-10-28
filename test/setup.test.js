@@ -31,6 +31,17 @@ test("טופס שנשלח מאתר אחר נדחה (CSRF), גם עם עוגיי�
   assert.equal(res.statusCode, 403);
 });
 
+test("כניסה מהעמוד עצמו עוברת, גם כשהדפדפן שולח Origin: null (Safari)", async () => {
+  for (const origin of ["https://bot.example.vercel.app", "null"]) {
+    const res = mockRes();
+    await handler(mockReq({ headers: { origin, host: "bot.example.vercel.app" }, body: { action: "login", password: "correct-horse" } }), res);
+    assert.equal(res.statusCode, 303, origin);
+  }
+  const page = mockRes();
+  await handler(mockReq({ method: "GET", headers: {} }), page);
+  assert.equal(page.headers["referrer-policy"], "same-origin");
+});
+
 test("סיסמה שגויה: 401", async () => {
   const res = mockRes();
   await handler(mockReq({ body: { action: "login", password: "wrong" } }), res);
