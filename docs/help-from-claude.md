@@ -9,7 +9,7 @@ Claude באפליקציה (בטלפון או במחשב) או בדפדפן לא 
 
 ```
 אני מקים בוט עוזר אישי בטלגרם לפי ההדרכה הזו:
-https://github.com/roshilabs-hq/telegram-assistant/blob/main/docs/browser.md
+https://kits.roshinovic.co.il/telegram-assistant/browser.html
 
 אין לי ידע טכני. תעזור לי לאורך הדרך: כשאני שולח צילום מסך או מתאר מה אני רואה, תגיד לי בעברית פשוטה מה לעשות עכשיו, צעד אחד בכל פעם.
 אל תבקש ממני טוקן, מפתח או סיסמה. אם אני עומד לשלוח לך אחד כזה, תעצור אותי.

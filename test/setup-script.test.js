@@ -82,3 +82,10 @@ test("מסד חלקי לא נחשב מחובר, ופרויקט בלי שם או 
   assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_1", repo: "dana/other-bot" }, "telegram-assistant-2", "team_1", "dana/telegram-assistant-2"), false);
   assert.equal(sameProject({ name: "telegram-assistant-2", orgId: "team_1", repo: "dana/telegram-assistant-2" }, "telegram-assistant-2", "team_1", "dana/telegram-assistant-2"), true);
 });
+
+test("האשף והמסמכים באתר: אף קישור לא שולח לקובץ ב-GitHub (חוץ מטופס נתקעתי)", async () => {
+  const { readdirSync, readFileSync } = await import("node:fs");
+  for (const f of readdirSync("docs").filter((n) => n.endsWith(".html"))) {
+    assert.doesNotMatch(readFileSync(`docs/${f}`, "utf8"), /github\.com\/roshilabs-hq\/telegram-assistant\/blob/, f);
+  }
+});

@@ -13,7 +13,7 @@
 [צעד אחרי צעד, מהדפדפן](https://kits.roshinovic.co.il/telegram-assistant/): מסך אחד לכל פעולה (או [הכול בעמוד אחד](browser.md)). כל לחיצה מוסברת, עם צילום מסך, ואפשר לעשות הכול מהטלפון. בלי להתקין כלום. יש לך Claude באפליקציה או בדפדפן? [אפשר להיעזר בו לאורך הדרך](help-from-claude.md). כבר מכיר את GitHub ואת Vercel? [המדריך המקוצר](quick.md) הוא עמוד אחד. משהו מסתבך באמצע? [כותבים לנו](support.md#contact) ונעזור.
 
 **🤖 "אני כבר עובד עם Claude Code"**
-[שורה אחת ב-Claude Code](../README.md#claude-code), ו-Claude עושה בעצמו כל מה שאפשר במחשב. אחר כך הוא גם משנה את הבוט לפי בקשה. הדרך הזו מניחה ש-Claude Code כבר מותקן ועובד אצלך. אין לך אותו? אחת משתי הדרכים האחרות.
+[שורה אחת ב-Claude Code](claude-code.md), ו-Claude עושה בעצמו כל מה שאפשר במחשב. אחר כך הוא גם משנה את הבוט לפי בקשה. הדרך הזו מניחה ש-Claude Code כבר מותקן ועובד אצלך. אין לך אותו? אחת משתי הדרכים האחרות.
 
 ## ההשוואה המלאה
 
@@ -44,7 +44,7 @@
 
 > 💡 **לא צריך להתקין סקילים, תוספים או פקודות.** כל הפקודות של הבוט (`/start`, `/add-voice` וכו') מגיעות בתוך הקוד עצמו, ו-Claude Code מכיר אותן מהרגע שהתיקייה נפתחת.
 
-**[← צעד אחרי צעד](https://kits.roshinovic.co.il/telegram-assistant/)** · **[← שורה אחת ב-Claude Code](../README.md#claude-code)** · **[← תתקינו לי](support.md#contact)**
+**[← צעד אחרי צעד](https://kits.roshinovic.co.il/telegram-assistant/)** · **[← שורה אחת ב-Claude Code](claude-code.md)** · **[← תתקינו לי](support.md#contact)**
 
 > אפשר להתחיל בדפדפן ולעבור ל-Claude Code אחר כך. הבוט נשאר אותו בוט.
 

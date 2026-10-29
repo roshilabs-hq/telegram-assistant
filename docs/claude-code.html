@@ -1,0 +1,225 @@
+<!doctype html>
+<!-- נוצר אוטומטית מתוך docs/claude-code.md — לא לערוך ידנית. להרצה: npm run guide -->
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מסלול ב׳: עם Claude Code</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--line:#e5e5e0;--accent:#2563eb;--note:#fff8e1;--done:#e8f5ec}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#f1f1f1;--muted:#a0a0a0;--line:#333;--accent:#60a5fa;--note:#2b2616;--done:#16281d}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+main{max-width:560px;margin:0 auto;padding:12px 16px 140px}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0 8px;z-index:2}.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
+section{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}section.on{display:block}
+h1{font-size:1.35rem;margin:0 0 8px}.where{color:var(--muted);font-size:.9rem;margin-bottom:8px}.act{font-size:1.1rem;font-weight:600}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:block}img.inline{display:inline-block;border:0;margin:6px 0;height:48px;width:auto}
+code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 4px;font-size:.9em;word-break:break-all}
+.note{background:var(--note);border-radius:10px;padding:10px 12px;margin:10px 0}.done{background:var(--done);border-radius:10px;padding:10px 12px;margin:12px 0}
+details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;color:var(--accent);font-weight:600}
+a{color:var(--accent)}ul,ol{padding-inline-start:22px}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+nav div{max-width:560px;margin:0 auto;display:flex;gap:10px}.help{display:block;max-width:560px;margin:0 auto 8px;text-align:center;font-size:.9rem;font-weight:600}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;cursor:pointer}
+nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}button:disabled{opacity:.35}
+.tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.pw{font:600 1.15rem ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0;word-break:break-all;text-align:center}.out{margin-top:8px;font-weight:600}
+.restart{display:block;text-align:center;color:var(--muted);font-size:.85rem;margin-top:14px}
+.opt{display:block;width:100%;text-align:start;background:var(--card);color:var(--ink);border:2px solid var(--line);margin:10px 0;padding:12px 14px}.opt b{display:block;font-size:1.05rem}.opt span{display:block;font-weight:400;color:var(--muted);font-size:.92rem}.opt.picked{border-color:var(--accent)}
+body:not(.m-fresh) .only-fresh,body.m-fresh .only-existing{display:none}
+.brand{display:block;color:var(--muted);font-size:.85rem;font-weight:600;text-decoration:none;padding-top:4px}
+.contact{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btns a{flex:1 1 90px;text-align:center;font-weight:600;border-radius:10px;padding:10px;text-decoration:none;color:#fff}.wa{background:#1f9d55}.ig{background:#c13584}.fb{background:#1877f2}
+article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}h2{font-size:1.15rem;margin:20px 0 6px}h3{font-size:1.02rem;margin:16px 0 4px}
+.table{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem;margin:8px 0}th,td{border:1px solid var(--line);padding:6px 8px;text-align:start;vertical-align:top}pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:.9rem}
+</style></head><body><main>
+<a class="brand" href="https://roshinovic.co.il" target="_blank" rel="noopener">רושינוביץ · אוטומציה לעסקים</a>
+<article>
+<h1>מסלול ב׳: עם Claude Code</h1>
+<p>7 שלבים · בערך 29 דקות למי שמכיר את המסכים. בפעם הראשונה כדאי לפנות 45–60 דקות, בלי לחץ. אפשר לעצור בין שלב לשלב ולחזור אחר כך. לא עוצרים באמצע הרשמה, או לפני ששמרת מפתח שמוצג פעם אחת.</p>
+<p><b>לפני שמתחילים:</b> <a href="choose-path.html#requirements" target="_blank" rel="noopener">מה צריך</a>.</p>
+<div class="table"><table><tr><th>#</th><th>שלב</th><th>זמן</th></tr><tr><td>1</td><td><a href="#step-get-code">מדביקים שורה אחת ב-Claude Code</a></td><td>כ-2 דק׳</td></tr><tr><td>2</td><td><a href="#step-create-bot">יוצרים בוט בטלגרם</a></td><td>כ-3 דק׳</td></tr><tr><td>3</td><td><a href="#step-deploy">מעלים את הבוט לאוויר</a></td><td>כ-10 דק׳</td></tr><tr><td>4</td><td><a href="#step-activate">לוחצים &quot;הפעילו הכול&quot;</a></td><td>כ-2 דק׳</td></tr><tr><td>5</td><td><a href="#step-pair">מחברים את הבוט אליך</a></td><td>כ-1 דק׳</td></tr><tr><td>6</td><td><a href="#step-ai-key">מוסיפים לבוט מוח</a></td><td>כ-10 דק׳</td></tr><tr><td>7</td><td><a href="#step-say-hello">שולחים הודעה ראשונה</a></td><td>כ-1 דק׳</td></tr></table></div>
+<p>---</p>
+<a id="step-get-code"></a>
+<h2>שלב 1 מתוך 7 · מדביקים שורה אחת ב-Claude Code</h2>
+<p><b>⏱ כ-2 דקות</b></p>
+<p><b>למה:</b> מכאן Claude עושה בעצמו כל מה שאפשר לעשות מתוך המחשב: יוצר לך עותק של הקוד ב-GitHub, מייצר סיסמה, בודק את מה שהדבקת, מעלה את הבוט לאוויר ומפעיל אותו. אתה לוחץ רק באתרים שרק אתה יכול: BotFather, ספק ה-AI, ואישור בדפדפן.</p>
+<h3>מה עושים</h3>
+<ol><li>המסלול הזה מניח ש-Claude Code כבר מותקן ועובד אצלך ב-VS Code, עם Git ו-Node.js. עוד לא? <a href="browser.html" target="_blank" rel="noopener">המסלול מהדפדפן</a> מגיע לאותו בוט בלי להתקין כלום.</li><li>צריך חשבון <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>. <b>אין לך?</b> לוחצים <a href="https://github.com/signup" target="_blank" rel="noopener"><b>Sign up</b></a>, ממלאים מייל, סיסמה ושם משתמש באנגלית, ומקלידים את הקוד שמגיע במייל.</li><li>ב-VS Code פותחים תיקייה ריקה (<b>File</b> ‹ <b>Open Folder</b>), ופותחים את Claude Code (סמל ה-Claude בצד).</li><li>מדביקים את השורה, ושולחים:<pre dir="auto">   תקים לי את העוזר האישי בטלגרם לפי https://raw.githubusercontent.com/roshilabs-hq/telegram-assistant/main/.claude/commands/start.md</pre></li><li>Claude יפתח לך קובץ אחד לכל הסודות. בראש הקובץ יש שני טוקנים, של GitHub ושל Vercel, ולכל אחד קישור ליצירה. הם קובעים באיזה חשבון הבוט ייווצר, ו-Claude יראה לך את שם החשבון לפני שהוא יוצר משהו.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>Claude עונה בעברית, שואל כמה הסבר אתה רוצה, ומתחיל לבדוק מה מותקן אצלך.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>Claude לא פותח את הקישור:</b> מדביקים את השורה שוב, ומוסיפים בסוף &quot;תקרא את הקובץ בקישור ותעבוד לפיו&quot;.</li><li><b>לא רוצה ליצור טוקנים?</b> אומרים ל-Claude. הוא יעבוד עם החשבונות שמחוברים במחשב, אבל ישאל קודם באיזה מהם.</li><li><b>Claude מראה חשבון לא נכון:</b> יוצרים טוקן חדש בחשבון הנכון, ומחליפים אותו בקובץ.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-create-bot"></a>
+<h2>שלב 2 מתוך 7 · יוצרים בוט בטלגרם</h2>
+<p><b>⏱ כ-3 דקות</b></p>
+<p><b>למה:</b> כל בוט בטלגרם נולד אצל &quot;אבא של הבוטים&quot;, BotFather. הוא נותן לבוט שם, וגם <b>טוקן</b>: סיסמה ארוכה שבעזרתה הקוד שלנו מדבר בשם הבוט.</p>
+<h3>מה עושים</h3>
+<div class="note"><p><b>אין לך טלגרם?</b> מתקינים את האפליקציה מ-<a href="https://telegram.org" target="_blank" rel="noopener">telegram.org</a> ונרשמים עם מספר הטלפון. <b>כבר יצרת בעבר בוטים?</b> אין בעיה, יוצרים עוד אחד: לכל בוט יש טוקן משלו, והישנים ממשיכים לעבוד.</p></div>
+<ol><li>פותחים את טלגרם (בטלפון או במחשב) ונכנסים ל-<a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>. ליד השם צריך להופיע וי כחול.</li><li>לוחצים <b>Start</b> (או <b>התחל</b>).</li><li>כותבים בשדה <b>Message</b> שלמטה <code dir="ltr">/newbot</code>, ושולחים. (בתחתית יש גם כפתור כחול <b>Open</b>. לא צריך אותו.) השיחה אצלך אולי ריקה או נראית אחרת מהתמונה. זה בסדר. <img src="img/create-bot-1.png" alt="צילום מסך" loading="lazy"></li><li><b>השאלה הראשונה: השם שיופיע בשיחה.</b> BotFather כותב: *&quot;Alright, a new bot. How are we going to call it? Please choose a name for your bot.&quot;* עונים בשם רגיל, בכל שפה ועם רווחים, למשל: <code dir="ltr">העוזר של דנה</code>.</li><li><b>השאלה השנייה: שם המשתמש, כמו כתובת.</b> BotFather כותב: *&quot;Good. Now let's choose a username for your bot. It must end in <code dir="ltr">bot</code>...&quot;* כאן עונים <b>באנגלית, בלי רווחים, ובסוף המילה <code dir="ltr">bot</code></b>, למשל: <code dir="ltr">dana_helper_bot</code>. השם הזה צריך להיות פנוי בכל טלגרם, אז אם כתוב שהוא תפוס, מוסיפים מספר: <code dir="ltr">dana_helper2_bot</code>. <img src="img/create-bot-2.png" alt="צילום מסך" loading="lazy"><ul><li><b>מופיעה הודעת שגיאה?</b> זה קורה גם למנוסים, ולא מתייאשים. ב&quot;נתקעתי&quot; שלמטה כתוב מה כל הודעה אומרת ומה עושים.</li><li><b>לא ברור מה לכתוב?</b> שני השמות שונים: הראשון הוא מה שרואים בראש השיחה (אפשר בעברית). השני הוא הכתובת של הבוט, כמו <code dir="ltr">@dana_helper_bot</code>, ולכן רק אנגלית, בלי רווחים, ונגמר ב-<code dir="ltr">bot</code>.</li></ul></li><li>BotFather שולח הודעה ארוכה שמתחילה ב-<b>Done!</b>. אחרי השורה *&quot;Use this token to access the HTTP API:&quot;* מופיעה שורה ארוכה של מספרים ואותיות, שנראית ככה: <code dir="ltr">123456789:AAH...</code>. זה הטוקן. (הצבע שלה תלוי בטלפון, ולפעמים היא בגופן אחר משאר ההודעה.) <b>לוחצים עליו פעם אחת</b>, והוא מועתק (מופיע &quot;Copied&quot;). לא הופיע &quot;Copied&quot;? לוחצים על ההודעה לחיצה ארוכה ובוחרים <b>Copy</b> (העתקה), ואז מוחקים בפתק את מה שמסביב לטוקן. <img src="img/create-bot-3.png" alt="צילום מסך" loading="lazy"></li><li>שומרים את הטוקן בצד, במנהל הסיסמאות של הטלפון, בפתק נעול, או בהודעה לעצמך ב-&quot;הודעות שמורות&quot; של טלגרם (בטלגרם: לוחצים על החיפוש למעלה וכותבים &quot;Saved Messages&quot; או &quot;הודעות שמורות&quot;). נצטרך אותו כשנעלה את הבוט לאוויר.<div class="tool"><b>בדיקה מהירה:</b> מדביקים כאן את הטוקן ולוחצים "בדיקה". הטלפון שואל את טלגרם ישירות, והטוקן לא נשמר ולא נשלח לשום מקום אחר.
+<input id="tg" dir="ltr" autocomplete="off" spellcheck="false" placeholder="123456789:AAH..."><button type="button" onclick="checkTg()">בדיקה</button><div id="tgout" class="out"></div></div></li></ol>
+<div class="note"><p>🔒 <b>הטוקן הוא סיסמה.</b> מי שמחזיק אותו שולט בבוט. לא שולחים אותו לאף אחד ולא מדביקים אותו בצ'אט עם AI.</p></div>
+<h3>איך יודעים שהצליח</h3>
+<p>יש לך טוקן שמתחיל במספרים, אחריהם נקודתיים, ואחריהם אותיות (<code dir="ltr">123456789:AAH...</code>). בטלגרם אין עוד מה לעשות בינתיים. ממשיכים בהדרכה לשלב הבא (אם עברת לטלגרם, חוזרים קודם ללשונית של ההדרכה).</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>&quot;Sorry, an error has occurred during your request&quot;</b>: תקלה רגעית אצל טלגרם. מחכים חצי דקה ושולחים שוב את אותו שם משתמש.</li><li><b>&quot;Sorry, this username is already taken&quot;</b>: שם המשתמש תפוס. מוסיפים מספר או מילה, למשל <code dir="ltr">dana_helper2_bot</code>.</li><li><b>&quot;Sorry, the username must end in 'bot'&quot;</b>: שם המשתמש חייב להיגמר ב-<code dir="ltr">bot</code> (באותיות קטנות).</li><li><b>הטוקן דלף או שנשלח בטעות למישהו</b>: שולחים ל-BotFather <code dir="ltr">/revoke</code>, בוחרים את הבוט ומקבלים טוקן חדש.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-deploy"></a>
+<h2>שלב 3 מתוך 7 · מעלים את הבוט לאוויר</h2>
+<p><b>⏱ כ-10 דקות</b></p>
+<p><b>למה:</b> הבוט צריך מחשב שדולק 24 שעות ביממה. <b>Vercel</b> הוא המחשב באינטרנט שהבוט ירוץ עליו, ו-<b>Supabase</b> הוא המחברת שבה הבוט זוכר תזכורות, פתקים ורשימות. בשניהם יש מסלול חינמי שמספיק לבוט אישי. בשלב הזה פותחים את שניהם ומעלים את הבוט.</p>
+<h3>מה עושים</h3>
+<ol><li>כשמגיעים לשלב הזה, Claude מריץ את ההעלאה: הוא יוצר פרויקט ב-Vercel, מחבר אותו לעותק שלך ב-GitHub (בשביל העדכונים), מחבר מסד נתונים ב-Supabase בפרנקפורט, ומעביר את שלושת הסודות מ-<code dir="ltr">.env.local</code>. הוא לא רואה אותם.</li><li><b>אם עוד לא התחברת ל-Vercel,</b> נפתח דפדפן. מתחברים עם GitHub (אין חשבון Vercel? הוא נפתח בדרך), ומאשרים.</li><li><b>אם Supabase מבקש אישור,</b> נפתח דפדפן. מאשרים, ואומרים ל-Claude להמשיך.</li><li>בסוף Claude כותב את הכתובת של הבוט, משהו כמו <code dir="ltr">telegram-assistant-xxxx.vercel.app</code>.</li></ol>
+<div class="note"><p>גם במחשב ששמו בעברית זה עובד. הכלי של Vercel נשבר מזה, ו-Claude עוקף את זה לבד.</p></div>
+<h3>איך יודעים שהצליח</h3>
+<p>נכנסים לכתובת של הבוט ומוסיפים בסוף <code dir="ltr">/setup</code>, למשל <code dir="ltr">https://telegram-assistant-xxxx.vercel.app/setup</code>. מופיע עמוד בעברית שמבקש את סיסמת ההקמה. נכנסים, והשורה &quot;מעלים את הבוט לאוויר&quot; מסומנת ✅.</p>
+<div class="note"><p>כדי לחזור לפרויקט ב-Vercel בעתיד (למשל להוסיף מפתח): נכנסים ל-<a href="https://vercel.com" target="_blank" rel="noopener">vercel.com</a>, מתחברים עם GitHub, ולוחצים על <code dir="ltr">telegram-assistant</code>.</p></div>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>ב-GitHub כתוב &quot;We could not validate the response from your social login provider&quot;</b>: ההתחברות דרך Google לא הושלמה. לרוב זה קורה כשהדפדפן עדיין מחובר לחשבון GitHub אחר (בכותרת כתוב <b>Add an account</b>). לוחצים <b>Sign out</b> בתחתית, ואז שוב על כפתור ה-Deploy בהדרכה ‹ <b>Continue with Google</b>. אם זה חוזר, פותחים את ההדרכה ב-Safari או ב-Chrome, או נרשמים עם מייל וסיסמה.</li><li><b>כתוב &quot;This phone number is already associated with a Vercel account&quot;</b>: כבר פתחת בעבר Vercel עם הנייד הזה. לא פותחים חשבון חדש: לוחצים שוב על כפתור ה-Deploy בהדרכה ונכנסים לחשבון הקיים (עם המייל, Google או GitHub שבהם נרשמת אז). לא זוכרים איך? <b>Continue with Email</b> עם המייל שלך, ואז נשלח אליו קוד.</li><li><b>כתוב &quot;The verification phone number has been temporarily blocked. Please wait 12 hours&quot;</b>: זו חסימה זמנית של מערכת ההגנה של Vercel. היא קורה לפעמים גם בפעם הראשונה עם מספר, למשל אחרי כמה ניסיונות מאותו טלפון או מאותה רשת. זה לא בגללך, והחשבון לא נפגע. לא מנסים שוב ושוב, כי זה רק מאריך את החסימה. מחכים 12 שעות, ואז לוחצים שוב על כפתור ה-<b>Deploy</b> וממשיכים. מה שכבר עשית נשמר. לא רוצים לחכות? כותבים לנו, ונעזור.</li><li><b>כתוב &quot;There is already an account associated with your GitHub email&quot;</b>: כבר יש לך Vercel עם אותו מייל. לוחצים <b>Login with Email</b>, מקלידים את המייל, ומקלידים את הקוד שמגיע במייל. אחר כך לוחצים שוב על כפתור ה-Deploy בהדרכה, וממשיכים מהסעיף של <b>Git Scope</b>.</li><li><b>אחרי ההתחברות ל-Vercel מופיע 404</b>: לוחצים שוב על כפתור ה-Deploy בהדרכה. ההתחברות כבר נשמרה, והפעם הטופס ייפתח.</li><li><b>כתוב &quot;A repository named telegram-assistant already exists&quot;</b>: יש לך כבר עותק קוד (ריפו) בשם הזה ב-GitHub. בשדה <b>Private Repository Name</b> כותבים שם אחר, למשל <code dir="ltr">telegram-assistant-2</code> (ואם גם הוא תפוס, <code dir="ltr">telegram-assistant-3</code>), ולוחצים שוב <b>Create</b>. גם הכתובת של הבוט תהיה בשם הזה. <img src="img/deploy-exists.png" alt="צילום מסך" loading="lazy"></li><li><b>Vercel לא מצליח ליצור את הריפו, או כתוב שאין לו גישה</b>: בעבר נתת ל-Vercel גישה לחלק מעותקי הקוד שלך ב-GitHub, ולא לכולם. ב-GitHub ‹ <b>Settings</b> ‹ <b>Applications</b> ‹ <b>Vercel</b> ‹ <b>Configure</b> בוחרים <b>All repositories</b> ושומרים, ולוחצים שוב על כפתור ה-Deploy.</li><li><b>בחלון של Supabase כתוב &quot;Upgrade your plan&quot;, ומופיעות רק תוכניות בתשלום (Pro, Team)</b>: כבר יש לך 2 פרויקטים חינמיים פעילים ב-Supabase. <b>לא בוחרים תוכנית בתשלום.</b> סוגרים את החלון, מפנים מקום, ולוחצים שוב <b>Add</b>: <img src="img/supabase-limit.png" alt="צילום מסך" loading="lazy"><ul><li>בוט ישן שלא צריך: מוחקים אותו לפי <a href="turn-off.html" target="_blank" rel="noopener">איך מכבים הכול</a>, סעיף 3.</li><li><b>מחקת כבר פרויקט ב-Vercel ועדיין כתוב שיש 2?</b> מחיקת פרויקט לא מוחקת את מסד הנתונים שלו ב-Supabase, גם כשהוא כבר לא מופיע ב-Vercel. בודקים קודם מה שומרים: בכל בוט שעובד נכנסים ב-Vercel ל-<b>Storage</b> של הפרויקט, ורושמים את שם המסד שמופיע שם (למשל <code dir="ltr">supabase-bistre-saddle</code>). אחר כך ב-<a href="https://supabase.com/dashboard" target="_blank" rel="noopener">Supabase</a> מוחקים רק מסד <b>ששמו לא נרשם</b>: שלוש הנקודות ⋮ שלידו ‹ <b>Delete</b> (או <b>Pause</b>). מסד שמחובר לבוט שעובד לא מוחקים.</li><li>פרויקט אחר ב-<a href="https://supabase.com/dashboard" target="_blank" rel="noopener">Supabase</a> שלא בשימוש: נכנסים אליו ‹ <b>Pause project</b>. פרויקט מושהה לא נספר.</li></ul></li><li><b>ב-GitHub לחצתי Create account ולא קורה כלום</b>: מחכים 20 שניות וגוללים למטה, כי החידה נטענת לאט בטלפון ולפעמים מופיעה נמוך בעמוד. עדיין כלום? בודקים שהעמוד פתוח ב-Safari או ב-Chrome, ולא בתוך וואטסאפ או אינסטגרם (שם החידה לא נטענת): ⋯ ‹ <b>פתיחה בדפדפן</b>, ומתחילים שוב מכפתור ה-Deploy.</li><li><b>ב-Deploy כתוב &quot;Build Failed&quot;</b>: ההעלאה לא הושלמה, ושום דבר לא נמחק. לוחצים <b>Redeploy</b> אם הוא מופיע במסך. אם זה חוזר, <b>לא מוחקים את הפרויקט ולא פותחים חשבון חדש</b>. מצלמים את המסך ופונים אלינו.</li><li><b>לא הופיעה הצעה ליצור Supabase</b>: בדשבורד של הפרויקט ב-Vercel נכנסים ל-<b>Storage</b> ‹ <b>Create Database</b> ‹ <b>Supabase</b> ‹ <b>Frankfurt</b> ‹ <b>Connect</b>. אחר כך <b>Deployments</b> ‹ <b>Redeploy</b>.</li><li><b>בעמוד ההקמה כתוב &quot;חסרים SUPABASE_URL...&quot;</b>: Supabase לא חובר לפרויקט. עושים את מה שכתוב בסעיף הקודם.</li><li><b>שכחתי את סיסמת ההקמה</b>: ב-Vercel ‹ <b>Settings</b> ‹ <b>Environment Variables</b> משנים את <code dir="ltr">SETUP_PASSWORD</code>, ואז <b>Redeploy</b>. בעמוד ההקמה לוחצים שוב &quot;הפעילו הכול&quot;.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-activate"></a>
+<h2>שלב 4 מתוך 7 · לוחצים &quot;הפעילו הכול&quot;</h2>
+<p><b>⏱ כ-2 דקות</b></p>
+<p><b>למה:</b> הבוט עלה, אבל עוד לא מחובר לכלום. כפתור אחד עושה שלושה דברים: יוצר במסד את המקומות לתזכורות, לפתקים ולרשימות; מחבר את הבוט לטלגרם; ומפעיל שעון שבודק כל דקה אם הגיע זמן של תזכורת.</p>
+<h3>מה עושים</h3>
+<ol><li>Claude לוחץ על &quot;הפעילו הכול&quot; בשבילך, מרחוק, ומראה לך מה ירוק.</li><li>כדאי לשמור במועדפים את עמוד ההקמה: הכתובת של הבוט + <code dir="ltr">/setup</code>, עם הסיסמה מ-<code dir="ltr">.env.local</code>. לכאן חוזרים לכל בדיקה או שינוי.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>בראש עמוד ההקמה כתוב &quot;הבוט: @...&quot;. מוודאים שזה הבוט החדש שיצרת.</p>
+<p>בעמוד ההקמה, תחת &quot;לוחצים הפעילו הכול&quot;, שלוש שורות מסומנות ✅: הטבלאות קיימות, מחובר, רץ כל דקה. שורת התזמון יכולה לקחת עד שתי דקות (בבדיקה שלנו: דקה). מרעננים אם צריך.</p>
+<p>שורה אחת לא ירוקה? לוחצים שוב <b>🚀 הפעילו הכול</b>, פעם אחת. עדיין לא? לא נכנסים להגדרות שלא מכירים. מצלמים את ההודעה (בלי סיסמאות או מפתחות) ופונים אלינו.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>מופיעה תיבה עם טקסט באנגלית וכפתור &quot;העתקה&quot;</b>: זה קורה רק כש-Supabase לא חובר דרך Vercel. מריצים את הטקסט בעצמך, פעם אחת:<ol><li>לוחצים <b>העתקה</b> מתחת לתיבה.</li><li>נכנסים ל-<a href="https://supabase.com/dashboard" target="_blank" rel="noopener">Supabase</a>, לוחצים על הפרויקט של הבוט, ובתפריט משמאל על <b>SQL Editor</b>.</li><li>לוחצים בתוך החלון הגדול, מדביקים ולוחצים <b>Run</b> (למטה מימין). מופיע <b>Success</b>.</li><li>חוזרים לעמוד ההקמה ומרעננים. השורות של השלב הזה ירוקות.</li></ol></li><li><b>&quot;טלגרם לא מכיר את הטוקן&quot;</b>: הטוקן הועתק לא שלם. מעתיקים מחדש מ-BotFather (<code dir="ltr">/mybots</code> ‹ הבוט ‹ <b>API Token</b>).</li><li><b>&quot;התזמון לא רץ&quot; גם אחרי כמה דקות</b>: לוחצים שוב <b>הפעילו הכול</b>. אם הופיעה תיבת העתקה, מריצים אותה שוב ב-Supabase.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-pair"></a>
+<h2>שלב 5 מתוך 7 · מחברים את הבוט אליך</h2>
+<p><b>⏱ כ-1 דקות</b></p>
+<p><b>למה:</b> הבוט עונה רק לך. כדי לדעת מי זה &quot;אתה&quot;, שולחים לו פעם אחת קוד סודי שמופיע בעמוד ההקמה. מי שאין לו את הקוד לא יקבל מהבוט תשובה בכלל.</p>
+<h3>מה עושים</h3>
+<ol><li>Claude נותן לך קישור. פותחים אותו בטלפון, וטלגרם נפתח בשיחה עם הבוט.</li><li>לוחצים <b>Start</b> (או <b>התחל</b>).</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>הבוט עונה &quot;🎉 מחוברים!&quot;, ובעמוד ההקמה השורה מסומנת ✅. במסלול הדפדפן הוא מוסיף &quot;🧠 כמעט מוכן! חסר לי רק מוח&quot;. זה בסדר: זה השלב הבא.</p>
+<p>🎉 <b>מצוין!</b> הבוט שלך כבר בטלגרם ומזהה אותך. נשאר רק לחבר לו את הבינה המלאכותית, כדי שיבין ויענה. זה השלב היחיד בהקמה שדורש תשלום מראש (5 דולר).</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>הבוט לא עונה בכלל</b>: בודקים בעמוד ההקמה שהשלב &quot;לוחצים הפעילו הכול&quot; ירוק כולו. אם כן, לוחצים בעמוד ההקמה על <b>יצירת קוד צימוד</b> (אם מופיע) ומנסים שוב.</li><li><b>שלחתי מטלפון אחר בטעות</b>: בעמוד ההקמה, ב&quot;אזור מתקדם&quot;, מנתקים וחוזרים על השלב.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-ai-key"></a>
+<h2>שלב 6 מתוך 7 · מוסיפים לבוט מוח</h2>
+<p><b>⏱ כ-10 דקות</b></p>
+<p><b>למה:</b> הבוט כבר באוויר ומחובר אליך. חסר לו רק &quot;מוח&quot;. הבוט &quot;חושב&quot; בעזרת Claude, הבינה המלאכותית של Anthropic. Claude מזהה את הבוט לפי <b>מפתח</b>: סיסמה ארוכה שמחוברת לחשבון שלך. <b>המפתח עובד רק כשיש בחשבון יתרה.</b> משלמים מראש: טוענים 5 דולר, וכל הודעה לבוט מורידה מהיתרה שבריר של אגורה עד כמה אגורות. לשימוש אישי זה בערך 2–5 דולר בחודש.</p>
+<h3>מה עושים</h3>
+<ol><li>Claude פותח לך את הקובץ <code dir="ltr">.env.local</code>. נכנסים ל-<a href="https://platform.claude.com" target="_blank" rel="noopener">Claude Console</a>, נרשמים וטוענים <b>$5</b> (לא 20), ויוצרים מפתח עם <b>Expires: Never</b>, כמו בהדרכה מהדפדפן.</li><li>מדביקים את המפתח בשורה <code dir="ltr">AI_API_KEY</code>, ושומרים. Claude בודק שהוא עונה. אין מה להדביק בעמוד ההקמה.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>בעמוד ההקמה, בשלב &quot;מוסיפים לבוט מוח&quot;, שתי שורות מסומנות ✅: <b>Claude (Anthropic)</b>, והמודל (<code dir="ltr">claude-haiku-...</code>). <img src="img/activate-2.png" alt="צילום מסך" loading="lazy"></p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>&quot;זה לא נראה כמו מפתח של Claude&quot; או &quot;הספק דחה את המפתח&quot;</b>: המפתח הועתק לא שלם, או עם רווח. מעתיקים אותו שוב, כולו, ומדביקים שוב.</li><li><b>&quot;אין בחשבון יתרה או אמצעי תשלום&quot;</b>: ב-<a href="https://platform.claude.com/settings/billing" target="_blank" rel="noopener">Billing</a> טוענים יתרה (סעיפים 5–6), ומדביקים שוב.</li><li><b>הכרטיס נדחה (&quot;Your card was declined&quot;)</b>: זה קורה גם לכרטיסים תקינים. לפי הסדר:<ol><li>בודקים שהשם והכתובת בטופס זהים לאלה שבכרטיס.</li><li>בודקים באפליקציה של חברת האשראי אם מחכה עסקה לאישור, ומאשרים.</li><li>מנסים כרטיס אחר. (בבדיקה שלנו כרטיס אחד נדחה שוב ושוב, וכרטיס אחר עבר מיד.)</li><li>כרטיסי חיוב מיידי (דביט) נדחים לפעמים. כרטיס אשראי רגיל עובד.</li></ol></li><li><b>ביקשו אימות בטלפון</b>: מקלידים את המספר שלך ואת הקוד שמגיע ב-SMS. זה חלק מההרשמה.</li><li><b>נסגר החלון לפני שהעתקתי את המפתח</b>: יוצרים מפתח חדש, ואת הישן מוחקים.</li><li><b>הבוט הפסיק לענות אחרי חודש</b>: כנראה המפתח פג (ברירת המחדל היא 30 יום). יוצרים מפתח חדש עם <b>Never</b>. בעמוד ההקמה, בתחתית (<b>אזור מתקדם</b>), מדביקים אותו בתיבה <b>החלפת המפתח של Claude</b> ‹ <b>החלפה ובדיקה</b>. (מי שהגדיר את המפתח ב-Vercel, למשל במסלול Claude Code: Settings ‹ Environment Variables ‹ <code dir="ltr">AI_API_KEY</code> ‹ Redeploy.)</li><li><b>המפתח דלף, או שלחת אותו בטעות למישהו</b>: ב-<a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">API keys</a> מוחקים אותו (<b>Delete</b>), יוצרים חדש, ומדביקים בעמוד ההקמה בתיבה <b>החלפת המפתח של Claude</b>. המפתח הישן מפסיק לעבוד מיד.</li><li><b>הבוט כותב שנגמרה היתרה</b>: ב-<a href="https://platform.claude.com/settings/billing" target="_blank" rel="noopener">Billing</a> טוענים שוב.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-say-hello"></a>
+<h2>שלב 7 מתוך 7 · שולחים הודעה ראשונה</h2>
+<p><b>⏱ כ-1 דקות</b></p>
+<p><b>למה:</b> לוודא שהכול עובד מקצה לקצה: הבוט מבין, זוכר ומזכיר.</p>
+<h3>מה עושים</h3>
+<p>שולחים לבוט את שלוש ההודעות האלה, אחת אחרי השנייה:</p>
+<ol><li><code dir="ltr">תזכיר לי בעוד 2 דקות לשתות מים</code></li><li><code dir="ltr">תוסיף חלב ולחם לרשימת הקניות</code></li><li><code dir="ltr">מה יש ברשימת הקניות?</code></li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>הבוט מאשר כל בקשה <img src="img/say-hello-1.png" alt="צילום מסך" loading="lazy">, ואחרי שתי דקות מגיעה תזכורת עם שלושה כפתורים: ✅ בוצע, ⏱ 10 דק׳, 🌅 מחר 9:00. בראש עמוד ההקמה כתוב <b>🎉 הכול מוכן!</b> <img src="img/setup-done.png" alt="צילום מסך" loading="lazy"> 🎉 <b>סיימת!</b></p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>הבוט עונה, אבל התזכורת לא הגיעה</b>: מחכים עוד דקה ומרעננים את עמוד ההקמה. &quot;רץ כל דקה&quot; ירוק? שולחים תזכורת חדשה לעוד 2 דקות ומחכים. לא ירוק? לוחצים <b>🚀 הפעילו הכול</b> (שלב &quot;לוחצים הפעילו הכול&quot;). אם גם התזכורת השנייה לא הגיעה, פונים אלינו.</li><li><b>הבוט עונה &quot;ספק ה-AI עצר את הבקשה בגלל מכסה או יתרה&quot;</b>: באתר של ספק ה-AI בודקים שאמצעי התשלום מחובר ושיש יתרה (השלב &quot;מוסיפים לבוט מוח&quot;).</li><li><b>הבוט עונה &quot;משהו נשבר אצלי&quot;</b>: בעמוד ההקמה מחפשים איקס אדום. אם הכול ירוק, בודקים שיש יתרה אצל ספק ה-AI.</li><li><b>השעה של התזכורת לא נכונה</b>: הבוט מחשב לפי שעון ישראל. אם גרים באזור זמן אחר, מוסיפים ב-Vercel משתנה <code dir="ltr">TIMEZONE</code> (למשל <code dir="ltr">Europe/London</code>) ועושים Redeploy.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<h1>תוספות (לא חובה)</h1>
+<p>כל תוספת עומדת בפני עצמה. אפשר להוסיף אותה עכשיו או בעוד חודש.</p>
+<a id="step-voice"></a>
+<h2>תוספת 1 מתוך 5 · הודעות קוליות</h2>
+<p><b>⏱ כ-4 דקות</b></p>
+<p><b>למה:</b> לדבר לבוט במקום להקליד: מקליטים הודעה קולית, והבוט מתמלל אותה ומבצע. מתאים במיוחד לנהיגה, או לסיכום אחרי פגישה (&quot;תרשום ש... ותזכיר לי ביום שני ל...&quot;).</p>
+<h3>מה עושים</h3>
+<ol><li>כותבים ל-Claude: &quot;תפעיל הודעות קוליות&quot; (או <code dir="ltr">/add-voice</code>).</li><li>נכנסים לקישור של <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Groq</a> שבקובץ <code dir="ltr">.env.local</code>, מתחברים עם Google, לוחצים <b>Create API Key</b>, ומדביקים את המפתח בשדה <code dir="ltr">GROQ_API_KEY</code>.</li><li>את השאר Claude עושה לבד: בודק את המפתח, מעביר אותו ל-Vercel ומעלה את הבוט מחדש.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>בעמוד ההקמה, תחת &quot;תוספות&quot;, השורה &quot;הודעות קוליות&quot; מסומנת ✅. שולחים לבוט הודעה קולית קצרה, והוא מבצע אותה.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>ב-Groq כתוב &quot;does not belong to any organizations&quot;</b>: זה קורה בכניסה עם <b>Continue with Google</b>. חוזרים לעמוד הכניסה, כותבים את המייל ולוחצים <b>Continue with email</b>.</li><li><b>לא הספקתי להעתיק את המפתח</b>: ב-<b>API Keys</b> מוחקים אותו ויוצרים חדש.</li><li><b>&quot;Groq לא מכיר את המפתח הזה&quot;</b>: המפתח הועתק חלקית. ב-<b>API Keys</b> יוצרים מפתח חדש ומדביקים אותו שוב.</li><li><b>הבוט לא הבין מה אמרתי</b>: מדברים קרוב לטלפון. התמלול מכוון לעברית.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-briefing"></a>
+<h2>תוספת 2 מתוך 5 · תדריך בוקר</h2>
+<p><b>⏱ כ-1 דקות</b></p>
+<p><b>למה:</b> כל בוקר, בשעה שבוחרים, הבוט שולח סיכום: מה מחכה היום, ומה בהמשך השבוע.</p>
+<h3>מה עושים</h3>
+<p>אומרים ל-Claude באיזו שעה, למשל &quot;תדריך כל בוקר ב-7:30&quot;. הוא קובע את זה בעצמו. לכיבוי: &quot;תכבה את תדריך הבוקר&quot;.</p>
+<h3>איך יודעים שהצליח</h3>
+<p>בעמוד ההקמה, תחת &quot;תוספות&quot;, השורה &quot;תדריך בוקר&quot; מסומנת ✅ עם השעה. בבוקר שלמחרת מגיעה הודעה שמתחילה ב-&quot;☀️ בוקר טוב!&quot;.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>כתוב &quot;שעת התדריך צריכה להיות בפורמט 07:30&quot;</b>: שתי ספרות, נקודתיים, שתי ספרות. למשל <code dir="ltr">08:00</code>, ולא <code dir="ltr">8</code>.</li><li><b>התדריך לא הגיע</b>: בודקים בעמוד ההקמה שהשורה &quot;רץ כל דקה&quot; ירוקה.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-siri"></a>
+<h2>תוספת 3 מתוך 5 · לדבר עם הבוט דרך Siri</h2>
+<p><b>⏱ כ-6 דקות</b></p>
+<p><b>למה:</b> &quot;היי Siri, עוזר&quot; — ואומרים מה צריך, בלי לפתוח את טלגרם. מתאים לאייפון. אותו בוט, אותו זיכרון.</p>
+<p>זו התוספת הכי טכנית בערכה: בונים קיצור דרך באייפון עם כמה הגדרות באנגלית. אם זה מרגיש מסובך, אפשר לדלג. הבוט עובד מצוין גם בלי.</p>
+<h3>מה עושים</h3>
+<ol><li>בעמוד ההקמה, תחת &quot;תוספות&quot;, לוחצים <b>הפעלת גישה מ-Siri</b>. מופיעות שתי שורות: כתובת ומפתח.</li><li>באייפון פותחים את אפליקציית <b>קיצורים</b> (Shortcuts) ולוחצים <b>+</b>.</li><li>מוסיפים פעולה <b>הכתבת טקסט</b> (Dictate Text).</li><li>מוסיפים פעולה <b>קבל תוכן של URL</b> (Get Contents of URL):<ul><li>בכתובת מדביקים את השורה הראשונה מעמוד ההקמה.</li><li><b>שיטה</b>: <code dir="ltr">POST</code>.</li><li><b>כותרות</b>: מוסיפים <code dir="ltr">Authorization</code>, ובערך כותבים <code dir="ltr">Bearer </code> (עם רווח) ומדביקים אחריו את השורה השנייה.</li><li><b>גוף הבקשה</b>: JSON, עם שדה <code dir="ltr">text</code> שערכו הוא &quot;טקסט מוכתב&quot;.</li></ul></li><li>מוסיפים פעולה <b>הקרא טקסט</b> (Speak Text).</li><li>נותנים לקיצור שם קצר, למשל <code dir="ltr">עוזר</code>.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>אומרים &quot;היי Siri, עוזר&quot;, ואחרי הצפצוף &quot;מה יש לי מחר?&quot;. Siri מקריא את התשובה של הבוט.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>Siri אומר שיש שגיאה 401</b>: המפתח לא הודבק נכון. בודקים שכתוב <code dir="ltr">Bearer</code>, רווח, ואז המפתח, בלי רווחים נוספים.</li><li><b>Siri אומר שיש שגיאה 409</b>: הבוט עוד לא מחובר אליך. קודם עושים את השלב &quot;מחברים את הבוט אליך&quot;.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-google"></a>
+<h2>תוספת 4 מתוך 5 · יומן Google ו-Gmail</h2>
+<p><b>⏱ כ-5 דקות</b></p>
+<p><b>למה:</b> הבוט יכול לקבוע פגישות ביומן (&quot;קבע לי מחר ב-10 פגישה עם דני&quot;), לענות &quot;מה יש לי היום&quot;, לחפש ולקרוא מיילים, להכין טיוטות תשובה ולשלוח מיילים. כל שליחה, מחיקה וזימון של אנשים אחרים מחכים לאישור שלך: הבוט שולח הודעה עם הפרטים וכפתור &quot;✅ לאשר&quot;, ושום דבר לא יוצא לפני שלוחצים. (הוספת בעצמך צ'אטים נוספים במשתנה <code dir="ltr">ALLOWED_CHAT_IDS</code>? גם הם יכולים לבקש מהבוט את היומן והמייל שלך. אל תוסיפו צ'אט של מישהו שלא אמור לראות אותם.)</p>
+<p>איך זה עובד: מדביקים קוד קצר באתר של Google (Apps Script), והוא רץ בתוך החשבון שלך. הבוט מדבר רק איתו, ורק עם סיסמה שכבר כתובה בקוד. בלי מפתחות, בלי Vercel ובלי הגדרות ב-Google Cloud.</p>
+<p><b>צריך מחשב</b>: האתר של Apps Script לא עובד בטלפון. אין מחשב? מדלגים על התוספת הזו. הבוט עובד מצוין גם בלעדיה, עם תזכורות, רשימות ופתקים.</p>
+<h3>מה עושים</h3>
+<ol><li>כותבים ל-Claude: <code dir="ltr">/add-google</code>. Claude פותח לך את עמוד ההקמה ומלווה אותך באותם צעדים.</li><li>את הקוד מעתיקים מעמוד ההקמה, ולא מ-Claude: הסיסמה שבו לא עוברת בצ'אט.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>בעמוד ההקמה התוספת מסומנת ✅, עם המייל שלך. שולחים לבוט &quot;קבע לי מחר ב-10 פגישה עם דני&quot;, ואחר כך &quot;מה יש לי מחר?&quot;. הבוט עונה עם הפגישה מהיומן. כשמבקשים למחוק, מגיעה הודעה עם כפתור &quot;✅ לאשר&quot;, והאירוע נמחק רק אחרי הלחיצה.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>אחרי האישור החלון נסגר, ואין כתובת</b>: לוחצים שוב <b>פריסה</b> ‹ <b>פריסה חדשה</b>, ובוחרים שוב <b>כולם</b>. הפעם אין מסך אישור, והכתובת מופיעה מיד.</li><li><b>&quot;הסקריפט לא עונה&quot;</b>: בודקים שתחת &quot;למי יש גישה&quot; נבחר <b>כולם</b>, ולא &quot;רק לי&quot;. אם לא, עושים פריסה חדשה. גם אם הודבק קוד ישן או חלקי, מעתיקים שוב מעמוד ההקמה, מדביקים, שומרים ועושים פריסה חדשה.</li><li><b>&quot;זו לא כתובת של סקריפט&quot;</b>: הודבקה הכתובת של העורך. צריך את זו מחלון הפריסה, שמתחילה ב-<code dir="ltr">https://script.google.com/macros/s/</code> ומסתיימת ב-<code dir="ltr">/exec</code>.</li><li><b>לא סימנתי את כל התיבות</b>: נכנסים ל-<a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">הרשאות של חשבון Google</a>, מסירים את &quot;פרויקט ללא שם&quot;, ועושים שוב פריסה חדשה (צעדים 4–11).</li><li><b>הבוט אומר שהחיבור ל-Google לא עונה</b>: הגישה הוסרה, או שהפרויקט נמחק. עוברים שוב על הצעדים מההתחלה.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+<a id="step-updates"></a>
+<h2>תוספת 5 מתוך 5 · עדכונים אוטומטיים</h2>
+<p><b>⏱ כ-1 דקות</b></p>
+<p><b>למה:</b> כשמשהו בערכה משתפר או מתוקן, הבוט שלך מקבל את זה לבד. כל יום GitHub בודק אם יצאה גרסה חדשה. אם כן, הוא מריץ קודם את כל הבדיקות של הערכה, ורק אם הן עוברות מכניס את הגרסה החדשה. Vercel מעלה את הבוט מחדש, והבוט כותב לך &quot;✅ עודכנתי לגרסה...&quot;. התזכורות, הפתקים והרשימות נשארים.</p>
+<p>לא חובה. מפעילים רק אחרי שהבוט כבר עובד. <b>לא הפעלת?</b> כשיוצאת גרסה חדשה, הבוט שולח לך בטלגרם הודעה אחת &quot;🔔 יש גרסה חדשה&quot;, עם הדרך לקבל אותה.</p>
+<h3>מה עושים</h3>
+<ol><li>Claude מוסיף את קובץ העדכון בעצמו. מכאן העדכונים נכנסים לבד, כמו במסלול הדפדפן.</li><li><b>שינית את הבוט עם Claude?</b> העדכון נכנס לבד גם אז, והשינויים שלך נשארים. רק אם הגרסה החדשה משנה את אותה שורה ששינית, היא לא נכנסת, והבוט שולח לך הודעה. אז כותבים ל-Claude: &quot;תעדכן את הבוט מהערכה&quot;.</li></ol>
+<h3>איך יודעים שהצליח</h3>
+<p>בתוספת &quot;עדכונים אוטומטיים&quot; בעמוד ההקמה כתוב <b>מעודכן</b>, עם מספר הגרסה. אחרי כל עדכון הבוט כותב לך בטלגרם &quot;✅ הבוט עודכן לבד לגרסה... אין צורך לעשות כלום&quot;. ההודעה הזו רק מודיעה: העדכון כבר נכנס.</p>
+<details>
+<summary><b>נתקעתי</b></summary>
+<ul><li><b>כתוב &quot;A file with the same name already exists&quot;</b>: העדכונים כבר מופעלים. אין מה לעשות.</li><li><b>GitHub מציג 404</b>: בדפדפן הזה לא התחברת ל-GitHub, והריפו שלך פרטי. נכנסים ל-github.com ‹ <b>Sign in</b> (עם אותו חשבון, למשל <b>Continue with Google</b>), ופותחים שוב את הקישור.</li><li><b>בעמוד ההקמה כתוב &quot;יש גרסה חדשה&quot; כבר כמה ימים</b>: לוחצים <b>🔄 לעדכן עכשיו</b> ‹ <b>Run workflow</b> ‹ <b>Run workflow</b>. אחרי 2–3 דקות מרעננים את עמוד ההקמה.</li><li><b>ליד &quot;עדכון מהערכה&quot; ב-GitHub יש איקס אדום</b>: הבדיקות של הגרסה החדשה לא עברו, ולכן שום דבר לא השתנה והבוט ממשיך לעבוד בגרסה הקודמת. כותבים לנו, ונתקן.</li><li><b>בעמוד ההקמה עדיין כתוב &quot;יש גרסה חדשה&quot;, ובריצה ב-GitHub כתוב &quot;מתנגשת עם שינוי שעשית&quot;</b>: הגרסה החדשה משנה שורה ששינית בעצמך, ולכן שום דבר לא השתנה, והבוט ממשיך לעבוד. עם Claude Code כותבים: &quot;תעדכן את הבוט מהערכה&quot;. במסלול הדפדפן כותבים לנו.</li><li><b>הוספת את העדכונים לפני 1.9.1 (28.10.2026)?</b> אצלך עובד מנגנון העדכונים הקודם (עד 1.8.0: בקשת עדכון ולחיצה על <b>Merge pull request</b> ‹ <b>Confirm merge</b>; ב-1.9.0: בלי בדיקת חתימה). כדי לעבור לחדש: ב-GitHub פותחים את <code dir="ltr">.github/workflows/update.yml</code> ומוחקים אותו (⋯ ‹ <b>Delete file</b> ‹ <b>Commit changes</b>), ואז מוסיפים אותו מחדש מעמוד ההקמה.</li></ul>
+<p>לא הסתדר? <a href="https://github.com/roshilabs-hq/telegram-assistant/issues/new?template=stuck.yml" target="_blank" rel="noopener">ספרו לנו איפה נתקעתם</a>, ונתקן את ההדרכה. אין לכם GitHub? <a href="support.html" target="_blank" rel="noopener">דרכים נוספות</a>.</p>
+</details>
+<p>---</p>
+</article>
+<p><a href="./">‹ להדרכה צעד אחרי צעד</a></p>
+</main></body></html>

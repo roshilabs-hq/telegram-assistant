@@ -318,19 +318,24 @@ function renderModule(steps, addons) {
 
 const htmlEsc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-/** קישור מתוך שלב: תמונות יחסית ל-docs/, מסמכים אחרים לריפו ב-GitHub, וכל השאר כמו שהוא. */
+// מסמכים מ-docs/ שיוצאים גם כעמוד באתר (docs/<שם>.html, ליד האשף). הלקוח לא נשלח ל-GitHub.
+const PAGES = readdirSync(join(ROOT, "docs")).filter((f) => f.endsWith(".md")).map((f) => f.slice(0, -3));
+
+/** קישור מתוך שלב: תמונות ומסמכים לעמודים באתר (יחסית ל-docs/), שאר הקבצים לריפו ב-GitHub, וכל השאר כמו שהוא. */
 function wizardUrl(u) {
   if (/^(https?:|mailto:|#)/.test(u)) return u;
   const p = u.replace(/^\.\//, "");
-  if (p.startsWith("docs/img/")) return p.slice("docs/".length);
-  // בשלבים הנתיבים מראש הריפו (docs/x.md). שם קובץ בלי תיקייה הוא מתוך docs/, כמו בהדרכה עצמה.
-  const inRepo = p.includes("/") ? p : `docs/${p}`;
+  if (/^(docs\/)?img\//.test(p)) return p.replace(/^docs\//, "");
+  // בשלבים הנתיבים מראש הריפו (docs/x.md). במסמכים ב-docs/ שם קובץ בלי תיקייה הוא מתוך docs/, ו-../ הוא ראש הריפו.
+  const inRepo = p.startsWith("../") ? p.slice(3) : p.includes("/") ? p : `docs/${p}`;
+  const page = /^docs\/([\w-]+)\.md(#.*)?$/.exec(inRepo);
+  if (page && PAGES.includes(page[1])) return `${page[1]}.html${page[2] || ""}`;
   return REPO ? `https://github.com/${REPO}/blob/main/${inRepo}` : inRepo;
 }
 
 function mdInline(s) {
   let h = htmlEsc(s);
-  const a = (href, inner) => `<a href="${wizardUrl(href)}" target="_blank" rel="noopener">${inner}</a>`;
+  const a = (href, inner) => (href.startsWith("#") ? `<a href="${href}">${inner}</a>` : `<a href="${wizardUrl(href)}" target="_blank" rel="noopener">${inner}</a>`);
   h = h.replace(/\[!\[([^\]]*)\]\(([^)\s]+)\)\]\(([^)\s]+)\)/g, (_, alt, src, href) => a(href, `<img class="inline" src="${wizardUrl(src)}" alt="${alt}">`));
   h = h.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, (_, alt, src) => `<img src="${wizardUrl(src)}" alt="${alt || "צילום מסך"}" loading="lazy">`);
   h = h.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, t, href) => a(href, t));
@@ -342,7 +347,7 @@ function mdInline(s) {
 const indentOf = (l) => l.match(/^\s*/)[0].length;
 const ITEM = /^\s*(?:[-*]|\d+\.)\s+(.*)$/;
 
-function mdList(lines, i) {
+function mdList(lines, i, page) {
   const ind = indentOf(lines[i]);
   const ordered = /^\s*\d+\./.test(lines[i]);
   const items = [];
@@ -362,31 +367,49 @@ function mdList(lines, i) {
     } else items.at(-1).sub.push(l.slice(ind));
   }
   const tag = ordered ? "ol" : "ul";
-  return [`<${tag}>${items.map((it) => `<li${it.only ? ` class="only-${it.only}"` : ""}>${mdInline(it.text)}${it.sub.length ? mdBlock(it.sub.join("\n")) : ""}</li>`).join("")}</${tag}>`, i];
+  return [`<${tag}>${items.map((it) => `<li${it.only ? ` class="only-${it.only}"` : ""}>${mdInline(it.text)}${it.sub.length ? mdBlock(it.sub.join("\n"), page) : ""}</li>`).join("")}</${tag}>`, i];
 }
 
-function mdBlock(md) {
+const cells = (row) => row.trim().replace(/^\||\|$/g, "").split("|").map((c) => mdInline(c.trim()));
+
+/** page: עמוד מסמך שלם, ולכן גם כותרות, עוגנים (`<a id>`) וקטעים מתקפלים נשארים. באשף הם מושמטים. */
+function mdBlock(md, page = false) {
   const lines = md.split(/\r?\n/);
   const out = [];
   for (let i = 0; i < lines.length; ) {
     const l = lines[i];
     const t = l.trim();
     const widget = /^<!--\s*wizard:([\w-]+)\s*-->$/.exec(t);
-    if (!t || (/^<\/?(details|summary|a|div)\b/.test(t) && !widget)) i++;
+    const heading = /^(#{1,4})\s+(.*)$/.exec(t);
+    if (page && /^<(\/?details>|summary>.*<\/summary>$|a id="[\w-]+"><\/a>$)/.test(t)) (out.push(t), i++);
+    else if (page && heading) (out.push(`<h${heading[1].length}>${mdInline(heading[2])}</h${heading[1].length}>`), i++);
+    else if (!t || (/^(<!--|<\/?(details|summary|a|div)\b)/.test(t) && !widget)) i++;
     else if (widget) (out.push(WIDGETS[widget[1]] || ""), i++);
+    else if (t.startsWith("```")) {
+      const code = [];
+      for (i++; i < lines.length && !lines[i].trim().startsWith("```"); i++) code.push(lines[i]);
+      i++;
+      out.push(`<pre dir="auto">${htmlEsc(code.join("\n"))}</pre>`);
+    } else if (t.startsWith("|") && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1] || "")) {
+      const head = cells(l);
+      const body = [];
+      for (i += 2; i < lines.length && lines[i].trim().startsWith("|"); i++) body.push(cells(lines[i]));
+      out.push(`<div class="table"><table><tr>${head.map((c) => `<th>${c}</th>`).join("")}</tr>${body.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>`);
+    }
     else if (/^\s*>/.test(l)) {
       const q = [];
       while (i < lines.length && /^\s*>/.test(lines[i])) q.push(lines[i++].replace(/^\s*>\s?/, ""));
       const only = ONLY.exec(q[0] || "")?.[1];
       if (only) q[0] = q[0].replace(ONLY, "");
-      out.push(`<div class="note${only ? ` only-${only}` : ""}">${mdBlock(q.join("\n"))}</div>`);
+      out.push(`<div class="note${only ? ` only-${only}` : ""}">${mdBlock(q.join("\n"), page)}</div>`);
     } else if (ITEM.test(l)) {
-      const [html, next] = mdList(lines, i);
+      const [html, next] = mdList(lines, i, page);
       out.push(html);
       i = next;
     } else {
-      const p = [];
-      while (i < lines.length && lines[i].trim() && !/^\s*>/.test(lines[i]) && !ITEM.test(lines[i])) p.push(lines[i++].trim());
+      const p = [lines[i++].trim()];
+      const stop = (x) => !x.trim() || /^\s*>/.test(x) || ITEM.test(x) || (page && /^\s*(<|#{1,4}\s|```|\|)/.test(x));
+      while (i < lines.length && !stop(lines[i])) p.push(lines[i++].trim());
       out.push(`<p>${mdInline(p.join(" "))}</p>`);
     }
   }
@@ -440,6 +463,52 @@ ${opt("existing", "🗂️", "כן, יש לי חשבון באחד מהם", "נר
   ];
 }
 
+const CSS = `
+:root{--bg:#f7f7f5;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--line:#e5e5e0;--accent:#2563eb;--note:#fff8e1;--done:#e8f5ec}
+@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#f1f1f1;--muted:#a0a0a0;--line:#333;--accent:#60a5fa;--note:#2b2616;--done:#16281d}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+main{max-width:560px;margin:0 auto;padding:12px 16px 140px}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0 8px;z-index:2}.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
+section{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}section.on{display:block}
+h1{font-size:1.35rem;margin:0 0 8px}.where{color:var(--muted);font-size:.9rem;margin-bottom:8px}.act{font-size:1.1rem;font-weight:600}
+img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:block}img.inline{display:inline-block;border:0;margin:6px 0;height:48px;width:auto}
+code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 4px;font-size:.9em;word-break:break-all}
+.note{background:var(--note);border-radius:10px;padding:10px 12px;margin:10px 0}.done{background:var(--done);border-radius:10px;padding:10px 12px;margin:12px 0}
+details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;color:var(--accent);font-weight:600}
+a{color:var(--accent)}ul,ol{padding-inline-start:22px}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+nav div{max-width:560px;margin:0 auto;display:flex;gap:10px}.help{display:block;max-width:560px;margin:0 auto 8px;text-align:center;font-size:.9rem;font-weight:600}
+button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;cursor:pointer}
+nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}button:disabled{opacity:.35}
+.tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.pw{font:600 1.15rem ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0;word-break:break-all;text-align:center}.out{margin-top:8px;font-weight:600}
+.restart{display:block;text-align:center;color:var(--muted);font-size:.85rem;margin-top:14px}
+.opt{display:block;width:100%;text-align:start;background:var(--card);color:var(--ink);border:2px solid var(--line);margin:10px 0;padding:12px 14px}.opt b{display:block;font-size:1.05rem}.opt span{display:block;font-weight:400;color:var(--muted);font-size:.92rem}.opt.picked{border-color:var(--accent)}
+body:not(.m-fresh) .only-fresh,body.m-fresh .only-existing{display:none}
+.brand{display:block;color:var(--muted);font-size:.85rem;font-weight:600;text-decoration:none;padding-top:4px}
+.contact{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btns a{flex:1 1 90px;text-align:center;font-weight:600;border-radius:10px;padding:10px;text-decoration:none;color:#fff}.wa{background:#1f9d55}.ig{background:#c13584}.fb{background:#1877f2}
+article{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}h2{font-size:1.15rem;margin:20px 0 6px}h3{font-size:1.02rem;margin:16px 0 4px}
+.table{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.92rem;margin:8px 0}th,td{border:1px solid var(--line);padding:6px 8px;text-align:start;vertical-align:top}pre{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:.9rem}
+`;
+
+/** מסמך מ-docs/ כעמוד באתר, באותו עיצוב של האשף. */
+function renderPage(name, md = readFileSync(join(ROOT, `docs/${name}.md`), "utf8")) {
+  const title = (/^#\s+(.+)$/m.exec(md)?.[1] || name).replace(/\*\*/g, "");
+  return `<!doctype html>
+<!-- נוצר אוטומטית מתוך docs/${name}.md — לא לערוך ידנית. להרצה: npm run guide -->
+<html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${htmlEsc(title)}</title>
+<style>${CSS}</style></head><body><main>
+<a class="brand" href="${SITE.url}" target="_blank" rel="noopener">${htmlEsc(SITE.name)}</a>
+<article>
+${mdBlock(md, true)}
+</article>
+<p><a href="./">‹ להדרכה צעד אחרי צעד</a></p>
+</main></body></html>
+`;
+}
+
 function renderWizard(steps, addons) {
   const core = steps.filter((s) => s.only !== "claude");
   const total = core.reduce((n, s) => n + s.minutes, 0);
@@ -480,31 +549,7 @@ ${existsSync(join(ROOT, "docs/turn-off.md")) ? `<p><a href="${wizardUrl("docs/tu
 <!-- נוצר אוטומטית מתוך steps/ — לא לערוך ידנית. להרצה: npm run guide -->
 <html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${htmlEsc(`${String(PKG.description || "").split(" — ")[0]}: הקמה צעד אחרי צעד`)}</title>
-<style>
-:root{--bg:#f7f7f5;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--line:#e5e5e0;--accent:#2563eb;--note:#fff8e1;--done:#e8f5ec}
-@media (prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#f1f1f1;--muted:#a0a0a0;--line:#333;--accent:#60a5fa;--note:#2b2616;--done:#16281d}}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.65 system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
-main{max-width:560px;margin:0 auto;padding:12px 16px 140px}
-.bar{position:sticky;top:0;background:var(--bg);padding:10px 0 8px;z-index:2}.track{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.fill{height:100%;background:var(--accent);width:0;transition:width .2s}
-section{display:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}section.on{display:block}
-h1{font-size:1.35rem;margin:0 0 8px}.where{color:var(--muted);font-size:.9rem;margin-bottom:8px}.act{font-size:1.1rem;font-weight:600}
-img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;margin:8px 0;display:block}img.inline{display:inline-block;border:0;margin:6px 0;height:48px;width:auto}
-code{background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:0 4px;font-size:.9em;word-break:break-all}
-.note{background:var(--note);border-radius:10px;padding:10px 12px;margin:10px 0}.done{background:var(--done);border-radius:10px;padding:10px 12px;margin:12px 0}
-details{border-top:1px solid var(--line);margin-top:12px;padding-top:8px}summary{cursor:pointer;color:var(--accent);font-weight:600}
-a{color:var(--accent)}ul,ol{padding-inline-start:22px}
-nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
-nav div{max-width:560px;margin:0 auto;display:flex;gap:10px}.help{display:block;max-width:560px;margin:0 auto 8px;text-align:center;font-size:.9rem;font-weight:600}
-button{font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--accent);color:#fff;cursor:pointer}
-nav button{flex:1}button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}button:disabled{opacity:.35}
-.tool{border:2px dashed var(--accent);border-radius:12px;padding:12px;margin:12px 0}.tool input{width:100%;font:inherit;padding:10px;margin:8px 0;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
-.pw{font:600 1.15rem ui-monospace,monospace;background:var(--bg);border-radius:8px;padding:10px;margin:8px 0;word-break:break-all;text-align:center}.out{margin-top:8px;font-weight:600}
-.restart{display:block;text-align:center;color:var(--muted);font-size:.85rem;margin-top:14px}
-.opt{display:block;width:100%;text-align:start;background:var(--card);color:var(--ink);border:2px solid var(--line);margin:10px 0;padding:12px 14px}.opt b{display:block;font-size:1.05rem}.opt span{display:block;font-weight:400;color:var(--muted);font-size:.92rem}.opt.picked{border-color:var(--accent)}
-body:not(.m-fresh) .only-fresh,body.m-fresh .only-existing{display:none}
-.brand{display:block;color:var(--muted);font-size:.85rem;font-weight:600;text-decoration:none;padding-top:4px}
-.contact{border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0}.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.btns a{flex:1 1 90px;text-align:center;font-weight:600;border-radius:10px;padding:10px;text-decoration:none;color:#fff}.wa{background:#1f9d55}.ig{background:#c13584}.fb{background:#1877f2}
+<style>${CSS}
 </style></head><body><main>
 <a class="brand" href="${SITE.url}" target="_blank" rel="noopener">${htmlEsc(SITE.name)}</a>
 <div class="bar"><div class="track"><div class="fill" id="fill"></div></div></div>
@@ -620,6 +665,9 @@ const outputs = {
   ...(STUCK_URL ? { ".github/ISSUE_TEMPLATE/stuck.yml": renderStuckForm(steps, addons) } : {}),
   "docs/index.html": renderWizard(steps, addons),
 };
+
+// אחרי ההדרכות, כדי שהעמוד של browser.md ייבנה מהגרסה החדשה ולא מהקובץ הישן.
+for (const n of PAGES) outputs[`docs/${n}.html`] = renderPage(n, outputs[`docs/${n}.md`]);
 
 let stale = [];
 for (const [rel, content] of Object.entries(outputs)) {
